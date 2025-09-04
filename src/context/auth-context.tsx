@@ -24,23 +24,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Prevent this from running on the server
+    // This effect runs once on mount to check for a logged-in user.
+    // It should only run on the client-side.
     if (typeof window !== 'undefined') {
+      let foundUser: Employee | undefined | null = null;
       try {
         const storedUserId = localStorage.getItem('userId');
         if (storedUserId) {
-          const foundUser = employees.find(e => e.id === storedUserId);
-          if (foundUser) {
-            setUser(foundUser);
-          }
+          foundUser = employees.find(e => e.id === storedUserId);
+          setUser(foundUser || null);
         }
       } catch (e) {
         console.error('Failed to access localStorage:', e);
-      } finally {
-        setLoading(false);
       }
+      // Regardless of the outcome, the initial loading is finished.
+      setLoading(false);
     }
-  }, []);
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   const login = (employeeId: string): boolean => {
     const foundUser = employees.find(e => e.id === employeeId.toLowerCase());
@@ -51,7 +51,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error('Failed to access localStorage:', e);
       }
       setUser(foundUser);
-      setLoading(false); // Ensure loading is false after login
       return true;
     }
     return false;
@@ -66,9 +65,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>
-      {loading ? <Loading /> : children}
+      {children}
     </AuthContext.Provider>
   );
 };
