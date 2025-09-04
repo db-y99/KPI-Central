@@ -25,7 +25,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PenSquare, User, Upload, FileCheck } from 'lucide-react';
 import type { Kpi, KpiRecord } from '@/types';
-import RewardCalculator from './reward-calculator';
 import { cn } from '@/lib/utils';
 import { Badge } from './ui/badge';
 import { DataContext } from '@/context/data-context';
@@ -199,10 +198,6 @@ export default function KpiCard({
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-           
-            <div className="col-span-2">
-                 <RewardCalculator record={record} />
-            </div>
         </div>
       </CardFooter>
     </Card>

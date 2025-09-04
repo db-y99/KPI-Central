@@ -17,9 +17,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PenSquare, Bot } from 'lucide-react';
+import { PenSquare } from 'lucide-react';
 import type { Kpi, KpiRecord } from '@/types';
-import RewardCalculator from './reward-calculator';
 import { cn } from '@/lib/utils';
 import { DataContext } from '@/context/data-context';
 
@@ -90,12 +89,6 @@ export default function KpiListRow({ record }: KpiListRowProps) {
                 <Button onClick={handleUpdate}>Lưu thay đổi</Button>
             </DialogContent>
             </Dialog>
-          
-          <RewardCalculator record={{...record, actual: record.actual}}>
-            <Button variant="default" size="icon">
-              <Bot className="h-4 w-4" />
-            </Button>
-          </RewardCalculator>
         </div>
       </TableCell>
     </TableRow>

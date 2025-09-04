@@ -16,9 +16,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PenSquare, Upload, Bot } from 'lucide-react';
+import { PenSquare, Upload } from 'lucide-react';
 import type { Kpi, KpiRecord } from '@/types';
-import RewardCalculator from './reward-calculator';
 import { cn } from '@/lib/utils';
 import { DataContext } from '@/context/data-context';
 import { useToast } from '@/hooks/use-toast';
@@ -91,8 +90,8 @@ export default function EmployeeKpiListRow({ record }: EmployeeKpiListRowProps) 
         <div className="flex justify-end gap-2">
           <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="icon">
-                <PenSquare className="h-4 w-4" />
+              <Button variant="outline" size="sm">
+                <PenSquare className="mr-2 h-4 w-4" /> Cập nhật
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
@@ -118,8 +117,8 @@ export default function EmployeeKpiListRow({ record }: EmployeeKpiListRowProps) 
 
            <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
                 <DialogTrigger asChild>
-                    <Button variant="outline" size="icon">
-                        <Upload className="h-4 w-4" />
+                    <Button variant="outline" size="sm">
+                        <Upload className="mr-2 h-4 w-4" /> Nộp
                     </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -143,12 +142,6 @@ export default function EmployeeKpiListRow({ record }: EmployeeKpiListRowProps) 
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-
-          <RewardCalculator record={record}>
-            <Button variant="default" size="icon">
-              <Bot className="h-4 w-4" />
-            </Button>
-          </RewardCalculator>
         </div>
       </TableCell>
     </TableRow>
