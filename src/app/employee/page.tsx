@@ -71,10 +71,11 @@ export default function EmployeeDashboardPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[45%]">Tên KPI</TableHead>
-                  <TableHead className="w-[30%]">Tiến độ</TableHead>
+                  <TableHead className="w-[30%]">Tên KPI</TableHead>
+                  <TableHead className="w-[15%]">Trạng thái</TableHead>
+                  <TableHead className="w-[20%]">Tiến độ</TableHead>
                   <TableHead className="text-right">Hoàn thành</TableHead>
-                  <TableHead className="text-right w-[150px]">
+                  <TableHead className="text-right w-[220px]">
                     Hành động
                   </TableHead>
                 </TableRow>

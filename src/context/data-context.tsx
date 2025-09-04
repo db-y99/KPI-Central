@@ -22,6 +22,8 @@ interface DataContextType {
   deleteKpi: (kpiId: string) => void;
   updateKpiRecord: (recordId: string, updates: Partial<KpiRecord>) => void;
   submitReport: (recordId: string, reportName: string) => void;
+  approveKpi: (recordId: string) => void;
+  rejectKpi: (recordId: string, comment: string) => void;
   view: ViewType;
   setView: (view: ViewType) => void;
 }
@@ -37,6 +39,8 @@ export const DataContext = createContext<DataContextType>({
   deleteKpi: () => {},
   updateKpiRecord: () => {},
   submitReport: () => {},
+  approveKpi: () => {},
+  rejectKpi: () => {},
   view: 'grid',
   setView: () => {},
 });
@@ -75,7 +79,19 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   
   const submitReport = (recordId: string, reportName: string) => {
     setKpiRecords(prev =>
-      prev.map(r => (r.id === recordId ? { ...r, submittedReport: reportName } : r))
+      prev.map(r => (r.id === recordId ? { ...r, submittedReport: reportName, status: 'awaiting_approval' } : r))
+    );
+  };
+
+  const approveKpi = (recordId: string) => {
+    setKpiRecords(prev =>
+      prev.map(r => (r.id === recordId ? { ...r, status: 'approved', approvalComment: '' } : r))
+    );
+  };
+
+  const rejectKpi = (recordId: string, comment: string) => {
+    setKpiRecords(prev =>
+      prev.map(r => (r.id === recordId ? { ...r, status: 'rejected', approvalComment: comment } : r))
     );
   };
 
@@ -90,6 +106,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     deleteKpi,
     updateKpiRecord,
     submitReport,
+    approveKpi,
+    rejectKpi,
     view,
     setView,
   };

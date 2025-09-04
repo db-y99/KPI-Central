@@ -104,9 +104,10 @@ export const kpiRecords: KpiRecord[] = [
     kpiId: 'kpi1',
     employeeId: 'e1',
     target: 500000000,
-    actual: 450000000,
+    actual: 0,
     startDate: '2024-07-01',
     endDate: '2024-07-31',
+    status: 'pending',
   },
   {
     id: 'rec2',
@@ -116,6 +117,8 @@ export const kpiRecords: KpiRecord[] = [
     actual: 22,
     startDate: '2024-07-01',
     endDate: '2024-07-31',
+    status: 'awaiting_approval',
+    submittedReport: "Báo cáo KH mới T7.pdf"
   },
   {
     id: 'rec3',
@@ -125,15 +128,18 @@ export const kpiRecords: KpiRecord[] = [
     actual: 1350000000,
     startDate: '2024-07-01',
     endDate: '2024-07-31',
+    status: 'approved',
   },
   {
     id: 'rec4',
     kpiId: 'kpi3',
     employeeId: 'e3',
     target: 15,
-    actual: 12,
+    actual: 10,
     startDate: '2024-07-01',
     endDate: '2024-09-30',
+    status: 'rejected',
+    approvalComment: 'Số liệu chưa khớp với CRM, cần xem lại.'
   },
   {
     id: 'rec5',
@@ -143,6 +149,8 @@ export const kpiRecords: KpiRecord[] = [
     actual: 45000,
     startDate: '2024-07-01',
     endDate: '2024-07-31',
+    status: 'approved',
+    submittedReport: "BC chi phí Marketing T7.xlsx"
   },
   {
     id: 'rec6',
@@ -152,5 +160,6 @@ export const kpiRecords: KpiRecord[] = [
     actual: 7,
     startDate: '2024-01-01',
     endDate: '2024-12-31',
+    status: 'awaiting_approval',
   },
 ];

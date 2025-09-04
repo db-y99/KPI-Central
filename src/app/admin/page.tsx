@@ -4,7 +4,7 @@ import { LayoutGrid, List } from 'lucide-react';
 import KpiCard from '@/components/kpi-card';
 import KpiListRow from '@/components/kpi-list-row';
 import type { Kpi, KpiRecord } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -50,13 +50,20 @@ export default function AdminDashboardPage() {
         </div>
       ) : (
         <Card>
+           <CardHeader>
+            <CardTitle>Danh sách KPI nhân viên</CardTitle>
+            <CardDescription>
+              Theo dõi, phê duyệt và quản lý KPI của nhân viên.
+            </CardDescription>
+          </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[20%]">Nhân viên</TableHead>
-                  <TableHead className="w-[30%]">Tên KPI</TableHead>
-                  <TableHead className="w-[30%]">Tiến độ</TableHead>
+                  <TableHead className="w-[15%]">Nhân viên</TableHead>
+                  <TableHead className="w-[25%]">Tên KPI</TableHead>
+                  <TableHead className="w-[15%]">Trạng thái</TableHead>
+                  <TableHead className="w-[20%]">Tiến độ</TableHead>
                   <TableHead className="text-right">Hoàn thành</TableHead>
                   <TableHead className="text-right w-[150px]">Hành động</TableHead>
                 </TableRow>

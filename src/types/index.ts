@@ -31,4 +31,6 @@ export type KpiRecord = {
   startDate: string;
   endDate: string;
   submittedReport?: string;
+  status: 'pending' | 'awaiting_approval' | 'approved' | 'rejected';
+  approvalComment?: string;
 };
