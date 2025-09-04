@@ -105,8 +105,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
     <div className="flex h-full flex-col bg-card text-card-foreground">
       <div
         className={cn(
-          'flex h-16 shrink-0 items-center border-b px-4',
-          !isCollapsed ? 'justify-between' : 'justify-center'
+          'flex h-16 shrink-0 items-center border-b',
+          !isCollapsed ? 'justify-between px-4' : 'justify-center'
         )}
       >
         <div className={cn('flex items-center gap-2', isCollapsed && 'hidden')}>
@@ -268,7 +268,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <aside
         className={cn(
           'hidden h-full border-r transition-all duration-300 ease-in-out md:flex md:flex-col',
-          isCollapsed ? 'w-20' : 'w-64'
+          isCollapsed ? 'w-16' : 'w-64'
         )}
       >
         {sidebarContent}
