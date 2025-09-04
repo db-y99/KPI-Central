@@ -40,9 +40,9 @@ interface DepartmentReportProps {
 }
 
 export default function DepartmentReport({ dateRange }: DepartmentReportProps) {
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | null>(
-    null
-  );
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<
+    string | null
+  >(null);
 
   const departmentEmployees = useMemo(() => {
     if (!selectedDepartmentId) return [];
@@ -57,7 +57,6 @@ export default function DepartmentReport({ dateRange }: DepartmentReportProps) {
 
       if (dateRange?.from && dateRange?.to) {
         employeeRecords = employeeRecords.filter(record => {
-          // Ensure record.endDate is a valid date object before comparison
           const recordEndDate = new Date(record.endDate);
           return isWithinInterval(recordEndDate, {
             start: dateRange.from as Date,
@@ -92,10 +91,7 @@ export default function DepartmentReport({ dateRange }: DepartmentReportProps) {
   const departmentAverage = useMemo(() => {
     const validData = departmentData.filter(d => d.kpiCount > 0);
     if (validData.length === 0) return 0;
-    const total = validData.reduce(
-      (acc, item) => acc + item.avgCompletion,
-      0
-    );
+    const total = validData.reduce((acc, item) => acc + item.avgCompletion, 0);
     return Math.round(total / validData.length);
   }, [departmentData]);
 
