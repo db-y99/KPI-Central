@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -26,6 +26,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { AuthContext } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
+import Loading from '../loading';
 
 const formSchema = z.object({
   employeeId: z.string().min(1, 'Mã nhân viên không được để trống.'),
@@ -33,9 +34,21 @@ const formSchema = z.object({
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useContext(AuthContext);
+  const { login, user, loading } = useContext(AuthContext);
   const router = useRouter();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!loading && user) {
+       const isManager = user.position.toLowerCase().includes('manager');
+       if (isManager) {
+         router.push('/admin');
+       } else {
+         router.push('/employee');
+       }
+    }
+  }, [user, loading, router]);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -50,9 +63,9 @@ export default function LoginPage() {
     if (success) {
       toast({
         title: 'Thành công',
-        description: 'Đăng nhập thành công!',
+        description: 'Đăng nhập thành công! Đang chuyển hướng...',
       });
-      router.push('/');
+      // The useEffect will handle redirection
     } else {
       toast({
         variant: 'destructive',
@@ -62,6 +75,11 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   }
+
+  if (loading || user) {
+    return <Loading />;
+  }
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -104,7 +122,7 @@ export default function LoginPage() {
             </form>
           </Form>
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            Sử dụng ID: e1, e2, e3, e4, hoặc e5 để đăng nhập.
+            Sử dụng ID: e1, e3, e5 (Nhân viên) hoặc e2, e4 (Quản lý) để đăng nhập.
           </p>
         </CardContent>
       </Card>

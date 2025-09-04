@@ -1,57 +1,30 @@
 'use client';
 import { useContext, useEffect } from 'react';
-import KpiCard from '@/components/kpi-card';
-import { kpis, kpiRecords } from '@/lib/data';
-import type { Kpi, KpiRecord } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AuthContext } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import Loading from './loading';
-import AppShell from '@/components/app-shell';
 
-export default function DashboardPage() {
+export default function DashboardRedirectPage() {
   const { user, loading } = useContext(AuthContext);
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (loading) {
+      return;
+    }
+
+    if (!user) {
       router.push('/login');
+      return;
+    }
+
+    const isManager = user.position.toLowerCase().includes('manager');
+    if (isManager) {
+      router.push('/admin');
+    } else {
+      router.push('/employee');
     }
   }, [loading, user, router]);
 
-  if (loading || !user) {
-    return <Loading />;
-  }
-
-  const userKpiRecords = kpiRecords.filter(r => r.employeeId === user.id);
-
-  const enrichedKpiRecords = userKpiRecords.map(record => {
-    const kpiDetails = kpis.find(k => k.id === record.kpiId);
-    return { ...record, ...kpiDetails };
-  });
-
-  return (
-    <AppShell>
-      <div className="h-full p-6 md:p-8">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {enrichedKpiRecords.map(record => (
-            <KpiCard key={record.id} record={record as Kpi & KpiRecord} />
-          ))}
-        </div>
-
-        {enrichedKpiRecords.length === 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Chưa có KPI nào được giao</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Bạn chưa có KPI nào được giao trong kỳ này.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </AppShell>
-  );
+  return <Loading />;
 }
