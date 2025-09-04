@@ -32,6 +32,8 @@ export default function DashboardHeader() {
       title = 'Quản lý nhân viên';
   } else if (pathname.startsWith('/admin/kpi-assignment')) {
       title = 'Giao KPI';
+  } else if (pathname.startsWith('/admin/profile')) {
+    title = 'Hồ sơ cá nhân';
   } else if (pathname.startsWith('/admin')) {
     title = 'Tổng quan của quản lý';
   } else if (pathname.startsWith('/employee/profile')) {

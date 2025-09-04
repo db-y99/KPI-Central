@@ -41,7 +41,11 @@ export default function LoginPage() {
   useEffect(() => {
     // If the user is already logged in, redirect them away from the login page.
     if (!loading && user) {
-       router.push('/');
+       if (user.role === 'admin') {
+        router.push('/admin');
+      } else {
+        router.push('/employee');
+      }
     }
   }, [user, loading, router]);
 
@@ -53,7 +57,7 @@ export default function LoginPage() {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoggingIn(true);
     const success = login(values.employeeId);
     if (success) {
