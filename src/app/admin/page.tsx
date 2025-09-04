@@ -1,5 +1,5 @@
 'use client';
-import { useState, useContext } from 'react';
+import { useContext } from 'react';
 import { LayoutGrid, List } from 'lucide-react';
 import KpiCard from '@/components/kpi-card';
 import KpiListRow from '@/components/kpi-list-row';
@@ -16,8 +16,7 @@ import {
 import { DataContext } from '@/context/data-context';
 
 export default function AdminDashboardPage() {
-  const { kpis, kpiRecords, employees } = useContext(DataContext);
-  const [view, setView] = useState('grid');
+  const { kpis, kpiRecords, employees, view } = useContext(DataContext);
 
   const enrichedKpiRecords = kpiRecords.map(record => {
     const kpiDetails = kpis.find(k => k.id === record.kpiId);
@@ -28,25 +27,6 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="h-full p-6 md:p-8">
-      <div className="mb-4 flex items-center justify-end">
-        <div className="flex items-center gap-2">
-          <Button
-            variant={view === 'grid' ? 'secondary' : 'ghost'}
-            size="icon"
-            onClick={() => setView('grid')}
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={view === 'list' ? 'secondary' : 'ghost'}
-            size="icon"
-            onClick={() => setView('list')}
-          >
-            <List className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
       {enrichedKpiRecords.length === 0 ? (
         <Card>
           <CardHeader>

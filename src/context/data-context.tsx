@@ -9,6 +9,8 @@ import {
   departments as initialDepartments
 } from '@/lib/data';
 
+type ViewType = 'grid' | 'list';
+
 interface DataContextType {
   departments: Department[];
   employees: Employee[];
@@ -20,6 +22,8 @@ interface DataContextType {
   deleteKpi: (kpiId: string) => void;
   updateKpiRecord: (recordId: string, updates: Partial<KpiRecord>) => void;
   submitReport: (recordId: string, reportName: string) => void;
+  view: ViewType;
+  setView: (view: ViewType) => void;
 }
 
 export const DataContext = createContext<DataContextType>({
@@ -33,6 +37,8 @@ export const DataContext = createContext<DataContextType>({
   deleteKpi: () => {},
   updateKpiRecord: () => {},
   submitReport: () => {},
+  view: 'grid',
+  setView: () => {},
 });
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
@@ -40,6 +46,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
   const [kpis, setKpis] = useState<Kpi[]>(initialKpis);
   const [kpiRecords, setKpiRecords] = useState<KpiRecord[]>(initialKpiRecords);
+  const [view, setView] = useState<ViewType>('grid');
 
   const addEmployee = (employee: Employee) => {
     setEmployees(prev => [...prev, employee]);
@@ -83,6 +90,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     deleteKpi,
     updateKpiRecord,
     submitReport,
+    view,
+    setView,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

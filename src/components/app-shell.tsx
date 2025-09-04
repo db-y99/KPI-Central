@@ -241,6 +241,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <Award className="size-7 text-primary" />
             <span className="text-lg font-semibold">KPI Central</span>
           </div>
+           {/* We need to render a slimmed down header for mobile */}
+           <DashboardHeader />
         </header>
         <div className="flex flex-1 flex-col overflow-hidden">
           <main className="flex-1 overflow-y-auto bg-background">
