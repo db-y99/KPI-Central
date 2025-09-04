@@ -62,7 +62,7 @@ export default function KpiCard({
 
   return (
     <Card className="flex flex-col transition-all">
-      <CardHeader>
+      <CardHeader className="min-h-[140px]">
         {showEmployee && record.employeeName && (
           <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
             <User className="h-4 w-4" />
@@ -70,7 +70,7 @@ export default function KpiCard({
           </div>
         )}
         <CardTitle className="text-lg">{record.name}</CardTitle>
-        <CardDescription>{record.description}</CardDescription>
+        <CardDescription className="truncate">{record.description}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow space-y-4">
         <div className="flex justify-between text-sm font-medium">
