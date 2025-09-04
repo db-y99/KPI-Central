@@ -154,9 +154,8 @@ export default function KpiListRow({ record, isEmployeeView = false }: KpiListRo
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-                <Badge variant="outline" className={cn("border-none text-white", currentStatus.color)}>
-                  <StatusIcon className="mr-1 h-3 w-3" />
-                  {currentStatus.label}
+                <Badge variant="outline" size="icon" className={cn("border-0 text-white", currentStatus.color)}>
+                  <StatusIcon className="h-4 w-4" />
                 </Badge>
             </TooltipTrigger>
             <TooltipContent>
