@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import type { DateRange } from 'react-day-picker';
 import {
   Card,
   CardContent,
@@ -7,10 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import ReviewPeriodSelector from '@/components/review-period-selector';
+import ReviewsTable from '@/components/reviews-table';
 
 export default function ReviewsPage() {
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+
   return (
-    <div className="p-6 md:p-8">
+    <div className="p-6 md:p-8 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Đánh giá & Xếp loại cuối kỳ</CardTitle>
@@ -19,14 +25,12 @@ export default function ReviewsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/50 p-12 text-center">
-            <h3 className="text-lg font-semibold">Chức năng đang được xây dựng</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Tính năng tổng hợp kết quả, tự động xếp loại và đề xuất thưởng/phạt sẽ sớm được cập nhật tại đây.
-            </p>
-          </div>
+           <ReviewPeriodSelector onDateChange={setDateRange} />
         </CardContent>
       </Card>
+      
+      <ReviewsTable dateRange={dateRange} />
+
     </div>
   );
 }
