@@ -9,6 +9,7 @@ export type Employee = {
   position: string;
   departmentId: string;
   avatar: string;
+  role: 'admin' | 'employee';
 };
 
 export type Kpi = {

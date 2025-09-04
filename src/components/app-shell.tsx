@@ -36,11 +36,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
     setIsCollapsed(!isCollapsed);
   };
 
-  const isManager = user?.position.toLowerCase().includes('manager');
+  const isAdmin = user?.role === 'admin';
 
   const navLinks = [
     {
-      href: isManager ? '/admin' : '/employee',
+      href: isAdmin ? '/admin' : '/employee',
       label: 'Bảng điều khiển',
       icon: Home,
       isActive: pathname === '/admin' || pathname === '/employee',
@@ -50,21 +50,21 @@ export default function AppShell({ children }: { children: ReactNode }) {
       label: 'Quản lý KPI',
       icon: ListPlus,
       isActive: pathname.startsWith('/admin/kpi-definitions'),
-      isManagerOnly: true,
+      isAdminOnly: true,
     },
     {
       href: '/admin/kpi-assignment',
       label: 'Giao KPI',
       icon: Target,
       isActive: pathname.startsWith('/admin/kpi-assignment'),
-      isManagerOnly: true,
+      isAdminOnly: true,
     },
     {
       href: '/admin/reports',
       label: 'Báo cáo',
       icon: BarChart2,
       isActive: pathname.startsWith('/admin/reports'),
-      isManagerOnly: true,
+      isAdminOnly: true,
     },
   ];
 
@@ -103,7 +103,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         <TooltipProvider delayDuration={0}>
           {navLinks.map(
             link =>
-              (!link.isManagerOnly || isManager) && (
+              (!link.isAdminOnly || isAdmin) && (
                 <Tooltip key={link.label}>
                   <TooltipTrigger asChild>
                     <Button

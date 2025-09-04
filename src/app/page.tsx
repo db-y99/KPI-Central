@@ -18,8 +18,7 @@ export default function DashboardRedirectPage() {
       return;
     }
 
-    const isManager = user.position.toLowerCase().includes('manager');
-    if (isManager) {
+    if (user.role === 'admin') {
       router.push('/admin');
     } else {
       router.push('/employee');

@@ -13,13 +13,15 @@ export const employees: Employee[] = [
     position: 'Sales Executive',
     departmentId: 'd1',
     avatar: 'https://picsum.photos/seed/e1/100/100',
+    role: 'employee',
   },
   {
     id: 'e2',
-    name: 'Trần Thị B',
-    position: 'Sales Manager',
+    name: 'Trần Thị B (Admin)',
+    position: 'General Director',
     departmentId: 'd1',
     avatar: 'https://picsum.photos/seed/e2/100/100',
+    role: 'admin',
   },
   {
     id: 'e3',
@@ -27,6 +29,7 @@ export const employees: Employee[] = [
     position: 'Marketing Specialist',
     departmentId: 'd2',
     avatar: 'https://picsum.photos/seed/e3/100/100',
+    role: 'employee',
   },
   {
     id: 'e4',
@@ -34,6 +37,7 @@ export const employees: Employee[] = [
     position: 'Digital Marketing Lead',
     departmentId: 'd2',
     avatar: 'https://picsum.photos/seed/e4/100/100',
+    role: 'employee',
   },
   {
     id: 'e5',
@@ -41,6 +45,7 @@ export const employees: Employee[] = [
     position: 'HR Officer',
     departmentId: 'd3',
     avatar: 'https://picsum.photos/seed/e5/100/100',
+    role: 'employee',
   },
 ];
 

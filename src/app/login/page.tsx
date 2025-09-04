@@ -40,8 +40,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-       const isManager = user.position.toLowerCase().includes('manager');
-       if (isManager) {
+       if (user.role === 'admin') {
          router.push('/admin');
        } else {
          router.push('/employee');
@@ -76,6 +75,12 @@ export default function LoginPage() {
     }
   }
 
+  const handleQuickLogin = (employeeId: string) => {
+    form.setValue('employeeId', employeeId);
+    onSubmit({ employeeId });
+  };
+
+
   if (loading || user) {
     return <Loading />;
   }
@@ -95,7 +100,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="employeeId"
@@ -121,8 +126,18 @@ export default function LoginPage() {
               </Button>
             </form>
           </Form>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+             <Button variant="outline" onClick={() => handleQuickLogin('e1')} disabled={isLoading}>
+                Đăng nhập (Nhân viên)
+             </Button>
+              <Button variant="outline" onClick={() => handleQuickLogin('e2')} disabled={isLoading}>
+                Đăng nhập (Admin)
+              </Button>
+          </div>
+
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            Sử dụng ID: e1, e3, e5 (Nhân viên) hoặc e2, e4 (Quản lý) để đăng nhập.
+            Nhân viên: e1, e3, e4, e5 | Admin: e2
           </p>
         </CardContent>
       </Card>
