@@ -21,16 +21,19 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PenSquare } from 'lucide-react';
+import { PenSquare, User } from 'lucide-react';
 import type { Kpi, KpiRecord } from '@/types';
 import RewardCalculator from './reward-calculator';
 import { cn } from '@/lib/utils';
+import { Badge } from './ui/badge';
+
 
 interface KpiCardProps {
-  record: Kpi & KpiRecord;
+  record: Kpi & KpiRecord & { employeeName?: string };
+  showEmployee?: boolean;
 }
 
-export default function KpiCard({ record }: KpiCardProps) {
+export default function KpiCard({ record, showEmployee = false }: KpiCardProps) {
   // Trạng thái cục bộ cho mục đích demo. Trong một ứng dụng thực tế, điều này sẽ đến từ giải pháp quản lý trạng thái máy chủ.
   const [actualValue, setActualValue] = useState(record.actual);
   const [inputValue, setInputValue] = useState(record.actual.toString());
@@ -60,6 +63,12 @@ export default function KpiCard({ record }: KpiCardProps) {
   return (
     <Card className="flex flex-col">
       <CardHeader>
+        {showEmployee && record.employeeName && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+            <User className="h-4 w-4" />
+            <span>{record.employeeName}</span>
+          </div>
+        )}
         <CardTitle className="text-lg">{record.name}</CardTitle>
         <CardDescription>{record.description}</CardDescription>
       </CardHeader>
@@ -82,8 +91,10 @@ export default function KpiCard({ record }: KpiCardProps) {
             {completionPercentage}%
           </div>
         </div>
-        <div className="text-xs text-muted-foreground">
-          <p>Tần suất: {record.frequency}</p>
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p>
+            Tần suất: <Badge variant="outline" className="text-xs">{record.frequency}</Badge>
+          </p>
           <p>
             Thời gian:{' '}
             {new Date(record.startDate).toLocaleDateString('vi-VN')} -{' '}

@@ -1,36 +1,31 @@
 'use client';
-import { useContext } from 'react';
 import KpiCard from '@/components/kpi-card';
-import { kpis, kpiRecords } from '@/lib/data';
+import { kpis, kpiRecords, employees } from '@/lib/data';
 import type { Kpi, KpiRecord } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AuthContext } from '@/context/auth-context';
 
 export default function AdminDashboardPage() {
-  const { user } = useContext(AuthContext);
-
-  if (!user) {
-    return null; // Layout handles loading and redirection
-  }
-
-  const userKpiRecords = kpiRecords.filter(r => r.employeeId === user.id);
-
-  const enrichedKpiRecords = userKpiRecords.map(record => {
+  const enrichedKpiRecords = kpiRecords.map(record => {
     const kpiDetails = kpis.find(k => k.id === record.kpiId);
-    return { ...record, ...kpiDetails };
+    const employeeDetails = employees.find(e => e.id === record.employeeId);
+    return { ...record, ...kpiDetails, employeeName: employeeDetails?.name };
   });
 
   return (
     <div className="h-full p-6 md:p-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Tổng quan của quản lý</h1>
+        <h1 className="text-2xl font-bold">Bảng điều khiển Giám đốc</h1>
         <p className="text-muted-foreground">
-          Đây là các chỉ số KPI cá nhân của bạn, {user.name}.
+          Xem và quản lý tất cả KPI của nhân viên trong công ty.
         </p>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {enrichedKpiRecords.map(record => (
-          <KpiCard key={record.id} record={record as Kpi & KpiRecord} />
+          <KpiCard
+            key={record.id}
+            record={record as Kpi & KpiRecord & { employeeName?: string }}
+            showEmployee
+          />
         ))}
       </div>
 
@@ -41,7 +36,7 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Bạn chưa có KPI nào được giao trong kỳ này.
+              Sử dụng trang "Giao KPI" để bắt đầu phân công công việc.
             </p>
           </CardContent>
         </Card>

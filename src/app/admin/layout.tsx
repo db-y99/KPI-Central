@@ -4,14 +4,13 @@ import { useRouter } from 'next/navigation';
 import { AuthContext } from '@/context/auth-context';
 import AppShell from '@/components/app-shell';
 import Loading from '@/app/loading';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useContext(AuthContext);
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && (!user || user.role !== 'admin')) {
       router.push('/login');
     }
   }, [loading, user, router]);
@@ -20,25 +19,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     return <Loading />;
   }
 
-  const isManager = user.position.toLowerCase().includes('manager');
-
-  if (!isManager) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <Card className="m-4">
-          <CardHeader>
-            <CardTitle>Không có quyền truy cập</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Bạn không phải là quản lý. Vui lòng quay lại trang tổng quan của
-              bạn.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
+  // No need to show an access denied message here, as the useEffect will redirect.
+  // We just return the main shell.
   return <AppShell>{children}</AppShell>;
 }
