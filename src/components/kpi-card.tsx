@@ -199,15 +199,6 @@ export default function KpiCard({
         </div>
       </CardContent>
       <CardFooter className="flex flex-col items-start gap-4 p-6 pt-0">
-        <div className="w-full">
-            <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>Tiến độ</span>
-                <span className={cn('font-bold', completionPercentage >= 100 && 'text-green-500')}>
-                    {completionPercentage}%
-                </span>
-            </div>
-            <Progress value={completionPercentage} className="h-2" />
-        </div>
         <div className="grid w-full grid-cols-2 gap-2">
             {canUpdate && (
                 <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
@@ -310,6 +301,15 @@ export default function KpiCard({
                 </>
             )}
 
+        </div>
+        <div className="w-full">
+            <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                <span>Tiến độ</span>
+                <span className={cn('font-bold', completionPercentage >= 100 && 'text-green-500')}>
+                    {completionPercentage}%
+                </span>
+            </div>
+            <Progress value={completionPercentage} className="h-2" />
         </div>
       </CardFooter>
     </Card>
