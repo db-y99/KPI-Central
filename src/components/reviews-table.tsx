@@ -8,7 +8,6 @@ import type { Employee } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { Download, ChevronsRight } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -35,11 +34,11 @@ const getGrade = (completion: number): string => {
 }
 
 const gradeColors: { [key: string]: string } = {
-    'A+': 'bg-fuchsia-600 hover:bg-fuchsia-600',
-    'A': 'bg-green-600 hover:bg-green-600',
-    'B': 'bg-blue-500 hover:bg-blue-500',
-    'C': 'bg-yellow-500 hover:bg-yellow-500',
-    'D': 'bg-red-600 hover:bg-red-600',
+    'A+': 'bg-fuchsia-600 hover:bg-fuchsia-700 text-white',
+    'A': 'bg-green-600 hover:bg-green-700 text-white',
+    'B': 'bg-blue-600 hover:bg-blue-700 text-white',
+    'C': 'bg-yellow-500 hover:bg-yellow-600 text-white',
+    'D': 'bg-red-600 hover:bg-red-700 text-white',
 };
 
 
@@ -161,7 +160,7 @@ export default function ReviewsTable({ dateRange }: ReviewsTableProps) {
                 <TableCell className="text-center font-bold">{item.averageCompletion}%</TableCell>
                 <TableCell className="text-center">
                    <Select value={item.grade} onValueChange={(newGrade) => handleGradeChange(item.employee.id, newGrade)}>
-                        <SelectTrigger className={cn("w-24 mx-auto text-white border-0 font-semibold", gradeColors[item.grade])}>
+                        <SelectTrigger className={cn("w-24 mx-auto border-0 font-semibold", gradeColors[item.grade])}>
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
