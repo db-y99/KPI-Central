@@ -64,7 +64,7 @@ export default function KpiCard({
     <Card className="flex flex-col transition-all">
       <CardHeader>
         {showEmployee && record.employeeName && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+          <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
             <User className="h-4 w-4" />
             <span>{record.employeeName}</span>
           </div>
@@ -73,22 +73,6 @@ export default function KpiCard({
         <CardDescription>{record.description}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow space-y-4">
-        {/* Progress Bar */}
-        <div className="flex items-center gap-3">
-          <Progress
-            value={Math.min(completionPercentage, 100)}
-            className="flex-1"
-          />
-          <div
-            className={cn(
-              'w-12 text-right text-lg font-bold',
-              progressColorClass
-            )}
-          >
-            {completionPercentage}%
-          </div>
-        </div>
-        {/* Stats */}
         <div className="flex justify-between text-sm font-medium">
           <span className="text-left">
             Thực tế:
@@ -103,8 +87,7 @@ export default function KpiCard({
             {new Intl.NumberFormat('vi-VN').format(record.target)} {record.unit}
           </span>
         </div>
-        {/* Meta Info */}
-        <div className="text-xs text-muted-foreground space-y-1 pt-2">
+        <div className="space-y-1 pt-2 text-xs text-muted-foreground">
           <div>
             Tần suất:{' '}
             <Badge variant="outline" className="text-xs">
@@ -118,35 +101,45 @@ export default function KpiCard({
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex gap-2 pt-4">
-        {/* Nested Dialog for Updating */}
-        <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="w-full">
-              <PenSquare className="mr-2 h-4 w-4" /> Cập nhật
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Cập nhật kết quả KPI</DialogTitle>
-              <DialogDescription>{record.name}</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="actualValue">Kết quả thực tế</Label>
-                <Input
-                  id="actualValue"
-                  type="number"
-                  value={inputValue}
-                  onChange={e => setInputValue(e.target.value)}
-                  placeholder="Nhập kết quả..."
-                />
-              </div>
+      <CardFooter className="flex flex-col items-start gap-4 p-6 pt-0">
+        <div className="w-full">
+            <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                <span>Tiến độ</span>
+                <span className={cn('font-bold', progressColorClass)}>
+                    {completionPercentage}%
+                </span>
             </div>
-            <Button onClick={handleUpdate}>Lưu thay đổi</Button>
-          </DialogContent>
-        </Dialog>
-        <RewardCalculator record={{ ...record, actual: actualValue }} />
+            <Progress value={completionPercentage} className="h-2" />
+        </div>
+        <div className="flex w-full gap-2">
+            <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
+            <DialogTrigger asChild>
+                <Button variant="outline" className="w-full">
+                <PenSquare className="mr-2 h-4 w-4" /> Cập nhật
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                <DialogTitle>Cập nhật kết quả KPI</DialogTitle>
+                <DialogDescription>{record.name}</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                    <Label htmlFor="actualValue">Kết quả thực tế</Label>
+                    <Input
+                    id="actualValue"
+                    type="number"
+                    value={inputValue}
+                    onChange={e => setInputValue(e.target.value)}
+                    placeholder="Nhập kết quả..."
+                    />
+                </div>
+                </div>
+                <Button onClick={handleUpdate}>Lưu thay đổi</Button>
+            </DialogContent>
+            </Dialog>
+            <RewardCalculator record={{ ...record, actual: actualValue }} />
+        </div>
       </CardFooter>
     </Card>
   );
