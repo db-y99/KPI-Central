@@ -84,22 +84,24 @@ export default function KpiCard({ record, showEmployee = false }: KpiCardProps) 
               {record.unit}
             </span>
           </div>
-          <Progress value={Math.min(completionPercentage, 100)} />
-          <div
-            className={cn('text-right text-lg font-bold', progressColorClass)}
-          >
-            {completionPercentage}%
+          <div className="flex items-center gap-3">
+             <Progress value={Math.min(completionPercentage, 100)} className="w-full" />
+             <div
+                className={cn('text-right text-lg font-bold', progressColorClass)}
+             >
+                {completionPercentage}%
+             </div>
           </div>
         </div>
         <div className="text-xs text-muted-foreground space-y-1">
           <div>
             Tần suất: <Badge variant="outline" className="text-xs">{record.frequency}</Badge>
           </div>
-          <p>
+          <div>
             Thời gian:{' '}
             {new Date(record.startDate).toLocaleDateString('vi-VN')} -{' '}
             {new Date(record.endDate).toLocaleDateString('vi-VN')}
-          </p>
+          </div>
         </div>
       </CardContent>
       <CardFooter className="gap-2">
