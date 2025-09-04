@@ -1,10 +1,23 @@
 'use client';
 import { useContext } from 'react';
-import KpiCard from '@/components/kpi-card';
 import type { Kpi, KpiRecord } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { AuthContext } from '@/context/auth-context';
 import { DataContext } from '@/context/data-context';
+import EmployeeKpiListRow from '@/components/employee-kpi-list-row';
 
 export default function EmployeeDashboardPage() {
   const { user } = useContext(AuthContext);
@@ -19,19 +32,13 @@ export default function EmployeeDashboardPage() {
 
   const enrichedKpiRecords = userKpiRecords.map(record => {
     const kpiDetails = kpis.find(k => k.id === record.kpiId);
-     // Preserve record.id by spreading kpiDetails first, then record, ensuring record.id is the final one.
+    // Preserve record.id by spreading kpiDetails first, then record, ensuring record.id is the final one.
     return { ...kpiDetails, ...record };
   });
 
   return (
     <div className="h-full p-6 md:p-8">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {enrichedKpiRecords.map(record => (
-          <KpiCard key={record.id} record={record as Kpi & KpiRecord} />
-        ))}
-      </div>
-
-      {enrichedKpiRecords.length === 0 && (
+      {enrichedKpiRecords.length === 0 ? (
         <Card>
           <CardHeader>
             <CardTitle>Chưa có KPI nào được giao</CardTitle>
@@ -40,6 +47,37 @@ export default function EmployeeDashboardPage() {
             <p className="text-muted-foreground">
               Bạn chưa có KPI nào được giao trong kỳ này.
             </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>KPI của bạn</CardTitle>
+            <CardDescription>
+              Theo dõi và cập nhật tiến độ công việc của bạn.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[30%]">Tên KPI</TableHead>
+                  <TableHead>Tiến độ</TableHead>
+                  <TableHead className="text-right">Hoàn thành</TableHead>
+                  <TableHead className="text-right w-[200px]">
+                    Hành động
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {enrichedKpiRecords.map(record => (
+                  <EmployeeKpiListRow
+                    key={record.id}
+                    record={record as Kpi & KpiRecord}
+                  />
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
