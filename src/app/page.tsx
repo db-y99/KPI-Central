@@ -1,21 +1,29 @@
+'use client';
+import { useContext } from 'react';
 import DashboardHeader from '@/components/dashboard-header';
 import KpiCard from '@/components/kpi-card';
-import { employees, kpis, kpiRecords } from '@/lib/data';
+import { kpis, kpiRecords } from '@/lib/data';
 import type { Kpi, KpiRecord } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-// Giả sử người dùng đăng nhập là 'Nguyễn Văn A' (e1) để minh họa
-const LOGGED_IN_EMPLOYEE_ID = 'e1';
+import { AuthContext } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
-  const user = employees.find(e => e.id === LOGGED_IN_EMPLOYEE_ID);
-  const userKpiRecords = kpiRecords.filter(
-    r => r.employeeId === LOGGED_IN_EMPLOYEE_ID
-  );
+  const { user, loading } = useContext(AuthContext);
+  const router = useRouter();
+
+  if (loading) {
+    return null;
+  }
+  if (!user) {
+    router.push('/login');
+    return null;
+  }
+
+  const userKpiRecords = kpiRecords.filter(r => r.employeeId === user.id);
 
   const enrichedKpiRecords = userKpiRecords.map(record => {
     const kpiDetails = kpis.find(k => k.id === record.kpiId);
-    // This combines the record with its definition for easy access in components
     return { ...record, ...kpiDetails };
   });
 

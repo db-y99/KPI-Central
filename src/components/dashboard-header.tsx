@@ -1,3 +1,6 @@
+'use client';
+import { useContext } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Employee } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -9,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { AuthContext } from '@/context/auth-context';
 
 interface DashboardHeaderProps {
   title: string;
@@ -16,6 +20,14 @@ interface DashboardHeaderProps {
 }
 
 export default function DashboardHeader({ title, user }: DashboardHeaderProps) {
+  const { logout } = useContext(AuthContext);
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
       <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
@@ -42,7 +54,7 @@ export default function DashboardHeader({ title, user }: DashboardHeaderProps) {
             <DropdownMenuItem>Hồ sơ</DropdownMenuItem>
             <DropdownMenuItem>Cài đặt</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Đăng xuất</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>Đăng xuất</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )}

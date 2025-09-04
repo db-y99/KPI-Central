@@ -13,9 +13,16 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, BarChart2, Award } from 'lucide-react';
+import { useContext } from 'react';
+import { AuthContext } from '@/context/auth-context';
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { user } = useContext(AuthContext);
+
+  if (pathname === '/login') {
+    return <>{children}</>;
+  }
 
   return (
     <SidebarProvider>
