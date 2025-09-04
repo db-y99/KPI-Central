@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { AuthContext } from '@/context/auth-context';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 
 interface DashboardHeaderProps {
