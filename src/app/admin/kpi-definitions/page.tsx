@@ -1,5 +1,5 @@
 'use client';
-import { useState, useContext } from 'react';
+import { useState, useContext, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -34,12 +34,27 @@ import {
 import AddKpiForm from '@/components/add-kpi-form';
 import { useToast } from '@/hooks/use-toast';
 import { DataContext } from '@/context/data-context';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 
 export default function KpiDefinitionsPage() {
-  const { kpis, addKpi, deleteKpi } = useContext(DataContext);
+  const { kpis, addKpi, deleteKpi, departments } = useContext(DataContext);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState('all');
   const { toast } = useToast();
+
+  const filteredKpis = useMemo(() => {
+    if (selectedDepartment === 'all') {
+      return kpis;
+    }
+    return kpis.filter(kpi => kpi.department === selectedDepartment);
+  }, [kpis, selectedDepartment]);
 
 
   const handleSaveKpi = (newKpi: Kpi) => {
@@ -84,7 +99,7 @@ export default function KpiDefinitionsPage() {
     <div className="p-6 md:p-8">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <CardTitle>Quản lý định nghĩa KPI</CardTitle>
               <CardDescription>
@@ -108,6 +123,19 @@ export default function KpiDefinitionsPage() {
           </div>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 w-full md:w-1/3">
+            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                <SelectTrigger>
+                    <SelectValue placeholder="Lọc theo phòng ban..." />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">Tất cả phòng ban</SelectItem>
+                    {departments.map(dept => (
+                        <SelectItem key={dept.id} value={dept.name}>{dept.name}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -119,7 +147,7 @@ export default function KpiDefinitionsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {kpis.map(kpi => (
+              {filteredKpis.map(kpi => (
                 <TableRow key={kpi.id}>
                   <TableCell className="font-medium">{kpi.name}</TableCell>
                   <TableCell>{kpi.department}</TableCell>
