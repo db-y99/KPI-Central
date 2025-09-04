@@ -40,7 +40,9 @@ interface DepartmentReportProps {
 }
 
 export default function DepartmentReport({ dateRange }: DepartmentReportProps) {
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | null>(null);
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | null>(
+    null
+  );
 
   const departmentEmployees = useMemo(() => {
     if (!selectedDepartmentId) return [];
@@ -54,12 +56,14 @@ export default function DepartmentReport({ dateRange }: DepartmentReportProps) {
       );
 
       if (dateRange?.from && dateRange?.to) {
-        employeeRecords = employeeRecords.filter(record =>
-          isWithinInterval(new Date(record.endDate), {
+        employeeRecords = employeeRecords.filter(record => {
+          // Ensure record.endDate is a valid date object before comparison
+          const recordEndDate = new Date(record.endDate);
+          return isWithinInterval(recordEndDate, {
             start: dateRange.from as Date,
             end: dateRange.to as Date,
-          })
-        );
+          });
+        });
       }
 
       if (employeeRecords.length === 0) {
@@ -114,7 +118,10 @@ export default function DepartmentReport({ dateRange }: DepartmentReportProps) {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="w-full md:w-1/3">
-          <Select onValueChange={setSelectedDepartmentId}>
+          <Select
+            onValueChange={setSelectedDepartmentId}
+            value={selectedDepartmentId ?? ''}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Chọn một phòng ban..." />
             </SelectTrigger>
@@ -225,9 +232,9 @@ export default function DepartmentReport({ dateRange }: DepartmentReportProps) {
                 </Card>
               </>
             ) : (
-               <Card>
+              <Card>
                 <CardContent className="pt-6">
-                   <p className="text-center text-muted-foreground">
+                  <p className="text-center text-muted-foreground">
                     Không có dữ liệu KPI cho phòng ban này trong khoảng thời gian đã chọn.
                   </p>
                 </CardContent>
