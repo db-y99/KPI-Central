@@ -135,7 +135,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           {navLinks.map(
             link =>
               ((!link.isAdminOnly && !link.isEmployeeOnly) || (link.isAdminOnly && isAdmin) || (link.isEmployeeOnly && !isAdmin)) && (
-                <Tooltip key={link.label}>
+                <Tooltip key={link.label} disableHoverableContent={!isCollapsed}>
                   <TooltipTrigger asChild>
                     <Button
                       asChild
@@ -150,9 +150,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                       </Link>
                     </Button>
                   </TooltipTrigger>
-                  {isCollapsed && (
-                    <TooltipContent side="right">{link.label}</TooltipContent>
-                  )}
+                  <TooltipContent side="right">{link.label}</TooltipContent>
                 </Tooltip>
               )
           )}
@@ -163,7 +161,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <div className="mt-auto shrink-0 border-t p-2">
         <Separator className={cn('my-2', isCollapsed && 'hidden')} />
         <TooltipProvider delayDuration={0}>
-          <Tooltip>
+          <Tooltip disableHoverableContent={!isCollapsed}>
             <TooltipTrigger asChild>
               <div
                 className={cn(
@@ -191,17 +189,19 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 </div>
               </div>
             </TooltipTrigger>
-            {isCollapsed && user && (
-              <TooltipContent side="right">
-                <p>{user.name}</p>
-                <p className="text-muted-foreground">{user.position}</p>
-              </TooltipContent>
-            )}
+            <TooltipContent side="right">
+                {user && (
+                    <>
+                        <p>{user.name}</p>
+                        <p className="text-muted-foreground">{user.position}</p>
+                    </>
+                )}
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
         <TooltipProvider delayDuration={0}>
-          <Tooltip>
+          <Tooltip disableHoverableContent={!isCollapsed}>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
@@ -214,9 +214,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 </span>
               </Button>
             </TooltipTrigger>
-            {isCollapsed && (
-              <TooltipContent side="right">Đăng xuất</TooltipContent>
-            )}
+            <TooltipContent side="right">Đăng xuất</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
