@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/table';
 import { AuthContext } from '@/context/auth-context';
 import { DataContext } from '@/context/data-context';
-import EmployeeKpiListRow from '@/components/employee-kpi-list-row';
+import KpiListRow from '@/components/kpi-list-row';
 import KpiCard from '@/components/kpi-card';
 
 export default function EmployeeDashboardPage() {
@@ -34,7 +34,7 @@ export default function EmployeeDashboardPage() {
   const enrichedKpiRecords = userKpiRecords.map(record => {
     const kpiDetails = kpis.find(k => k.id === record.kpiId);
     // Preserve record.id by spreading kpiDetails first, then record, ensuring record.id is the final one.
-    return { ...kpiDetails, ...record };
+    return { ...kpiDetails, ...record, employeeName: user.name };
   });
 
   return (
@@ -71,19 +71,20 @@ export default function EmployeeDashboardPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[30%]">Tên KPI</TableHead>
-                  <TableHead>Tiến độ</TableHead>
+                  <TableHead className="w-[45%]">Tên KPI</TableHead>
+                  <TableHead className="w-[30%]">Tiến độ</TableHead>
                   <TableHead className="text-right">Hoàn thành</TableHead>
-                  <TableHead className="text-right w-[200px]">
+                  <TableHead className="text-right w-[150px]">
                     Hành động
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {enrichedKpiRecords.map(record => (
-                  <EmployeeKpiListRow
+                  <KpiListRow
                     key={record.id}
                     record={record as Kpi & KpiRecord}
+                    isEmployeeView={true}
                   />
                 ))}
               </TableBody>
