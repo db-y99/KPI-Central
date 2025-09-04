@@ -18,7 +18,14 @@ import {
 import { employees, kpis, kpiRecords } from '@/lib/data';
 import type { Kpi, KpiRecord } from '@/types';
 import KpiCard from './kpi-card';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Legend,
+} from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -29,31 +36,41 @@ import { isWithinInterval } from 'date-fns';
 
 interface IndividualReportProps {
   dateRange?: DateRange;
+  comparisonDateRange?: DateRange;
 }
 
-export default function IndividualReport({ dateRange }: IndividualReportProps) {
+const filterRecordsByDate = (
+  records: KpiRecord[],
+  dateRange?: DateRange
+) => {
+  if (!dateRange?.from || !dateRange?.to) {
+    return [];
+  }
+  return records.filter(record =>
+    isWithinInterval(new Date(record.endDate), {
+      start: dateRange.from as Date,
+      end: dateRange.to as Date,
+    })
+  );
+};
+
+export default function IndividualReport({
+  dateRange,
+  comparisonDateRange,
+}: IndividualReportProps) {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(
     null
   );
 
   const selectedEmployee = employees.find(e => e.id === selectedEmployeeId);
 
-  const filteredKpiRecords = useMemo(() => {
-    let records = kpiRecords.filter(r => r.employeeId === selectedEmployeeId);
-
-    if (dateRange?.from && dateRange?.to) {
-      records = records.filter(record =>
-        isWithinInterval(new Date(record.endDate), {
-          start: dateRange.from as Date,
-          end: dateRange.to as Date,
-        })
-      );
-    }
-    return records;
-  }, [selectedEmployeeId, dateRange]);
-
   const enrichedKpiRecords = useMemo(() => {
-    return filteredKpiRecords.map(record => {
+    const employeeRecords = kpiRecords.filter(
+      r => r.employeeId === selectedEmployeeId
+    );
+    const mainPeriodRecords = filterRecordsByDate(employeeRecords, dateRange);
+
+    return mainPeriodRecords.map(record => {
       const kpiDetails = kpis.find(k => k.id === record.kpiId);
       return {
         ...record,
@@ -64,12 +81,57 @@ export default function IndividualReport({ dateRange }: IndividualReportProps) {
             : 0,
       };
     });
-  }, [filteredKpiRecords]);
+  }, [selectedEmployeeId, dateRange]);
+
+  const comparisonData = useMemo(() => {
+    if (!comparisonDateRange) return [];
+    const employeeRecords = kpiRecords.filter(
+      r => r.employeeId === selectedEmployeeId
+    );
+    const comparisonPeriodRecords = filterRecordsByDate(
+      employeeRecords,
+      comparisonDateRange
+    );
+    return comparisonPeriodRecords.map(record => {
+      const kpiDetails = kpis.find(k => k.id === record.kpiId);
+      return {
+        ...record,
+        ...kpiDetails,
+        completion:
+          record.target > 0
+            ? Math.round((record.actual / record.target) * 100)
+            : 0,
+      };
+    });
+  }, [selectedEmployeeId, comparisonDateRange]);
+
+  const combinedChartData = useMemo(() => {
+    const dataMap = new Map<string, { name: string; current?: number; previous?: number }>();
+
+    enrichedKpiRecords.forEach(record => {
+      if (record.name) {
+        dataMap.set(record.name, { name: record.name, current: record.completion });
+      }
+    });
+
+    comparisonData.forEach(record => {
+      if (record.name) {
+        const existing = dataMap.get(record.name) || { name: record.name };
+        dataMap.set(record.name, { ...existing, previous: record.completion });
+      }
+    });
+    
+    return Array.from(dataMap.values());
+  }, [enrichedKpiRecords, comparisonData]);
 
   const chartConfig = {
-    completion: {
-      label: 'Hoàn thành',
+    current: {
+      label: 'Kỳ hiện tại',
       color: 'hsl(var(--chart-1))',
+    },
+    previous: {
+      label: 'Kỳ so sánh',
+      color: 'hsl(var(--chart-2))',
     },
   };
 
@@ -78,7 +140,7 @@ export default function IndividualReport({ dateRange }: IndividualReportProps) {
       <CardHeader>
         <CardTitle>Báo cáo hiệu suất cá nhân</CardTitle>
         <CardDescription>
-          Chọn một nhân viên và khoảng thời gian để xem hiệu suất KPI của họ.
+          Chọn nhân viên và các kỳ để xem và so sánh hiệu suất KPI.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -106,20 +168,22 @@ export default function IndividualReport({ dateRange }: IndividualReportProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {enrichedKpiRecords.length > 0 ? (
+                {combinedChartData.length > 0 ? (
                   <ChartContainer
                     config={chartConfig}
-                    className="h-[250px] w-full"
+                    className="h-[300px] w-full"
                   >
                     <ResponsiveContainer>
-                      <BarChart data={enrichedKpiRecords} margin={{ top: 20 }}>
+                      <BarChart data={combinedChartData} margin={{ top: 20 }}>
                         <XAxis
                           dataKey="name"
                           tickLine={false}
                           tickMargin={10}
                           axisLine={false}
                           tickFormatter={value =>
-                            value.length > 15 ? value.slice(0, 15) + '...' : value
+                            value.length > 15
+                              ? value.slice(0, 15) + '...'
+                              : value
                           }
                         />
                         <YAxis unit="%" />
@@ -127,11 +191,21 @@ export default function IndividualReport({ dateRange }: IndividualReportProps) {
                           cursor={false}
                           content={<ChartTooltipContent indicator="dot" />}
                         />
+                        <Legend />
                         <Bar
-                          dataKey="completion"
-                          fill="var(--color-completion)"
+                          dataKey="current"
+                          fill="var(--color-current)"
                           radius={4}
+                          name="Kỳ hiện tại"
                         />
+                        {comparisonDateRange && (
+                           <Bar
+                             dataKey="previous"
+                             fill="var(--color-previous)"
+                             radius={4}
+                             name="Kỳ so sánh"
+                           />
+                        )}
                       </BarChart>
                     </ResponsiveContainer>
                   </ChartContainer>
@@ -142,15 +216,23 @@ export default function IndividualReport({ dateRange }: IndividualReportProps) {
                 )}
               </CardContent>
             </Card>
+            
+            {enrichedKpiRecords.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Chi tiết KPI (Kỳ hiện tại)</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                         {enrichedKpiRecords.map(record => (
+                           <KpiCard
+                             key={record.id}
+                             record={record as Kpi & KpiRecord}
+                           />
+                         ))}
+                    </CardContent>
+                </Card>
+            )}
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {enrichedKpiRecords.map(record => (
-                <KpiCard
-                  key={record.id}
-                  record={record as Kpi & KpiRecord}
-                />
-              ))}
-            </div>
 
             {enrichedKpiRecords.length === 0 && selectedEmployeeId && (
               <p className="text-center text-muted-foreground">
