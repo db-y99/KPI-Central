@@ -97,7 +97,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
     <div className="flex h-full flex-col bg-card text-card-foreground">
       <div
         className={cn(
-          'flex h-16 items-center border-b px-4',
+          'flex h-16 shrink-0 items-center border-b px-4',
           !isCollapsed ? 'justify-between' : 'justify-center'
         )}
       >
@@ -152,7 +152,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       </nav>
 
       {/* User section */}
-      <div className="mt-auto border-t p-2">
+      <div className="mt-auto shrink-0 border-t p-2">
         <Separator className={cn('my-2', isCollapsed && 'hidden')} />
         <TooltipProvider delayDuration={0}>
           <Tooltip>
@@ -216,9 +216,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
   );
 
   const mainContent = (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="relative flex h-screen flex-1 flex-col overflow-y-auto">
       <DashboardHeader />
-      <main className="flex-1 overflow-y-auto bg-background">{children}</main>
+      <main className="flex-1 bg-background">{children}</main>
     </div>
   );
 
@@ -254,10 +254,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen bg-background">
       <aside
         className={cn(
-          'hidden border-r transition-all duration-300 ease-in-out md:flex md:flex-col',
+          'hidden h-full border-r transition-all duration-300 ease-in-out md:flex md:flex-col',
           isCollapsed ? 'w-20' : 'w-64'
         )}
       >
