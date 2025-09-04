@@ -44,10 +44,10 @@ interface KpiCardProps {
 }
 
 const statusConfig = {
-    pending: { label: 'Đang thực hiện', color: 'bg-gray-500', icon: Info },
+    pending: { label: 'Đang làm', color: 'bg-gray-500', icon: Info },
     awaiting_approval: { label: 'Chờ duyệt', color: 'bg-yellow-500', icon: AlertCircle },
     approved: { label: 'Đã duyệt', color: 'bg-green-500', icon: ThumbsUp },
-    rejected: { label: 'Cần làm lại', color: 'bg-red-500', icon: ThumbsDown },
+    rejected: { label: 'Làm lại', color: 'bg-red-500', icon: ThumbsDown },
 };
 
 
@@ -145,8 +145,9 @@ export default function KpiCard({
           <Tooltip>
               <TooltipTrigger asChild>
                   <div className="absolute top-3 right-3">
-                      <Badge variant="outline" size="icon" className={cn("border-0 text-white", currentStatus.color)}>
-                          <StatusIcon className="h-4 w-4" />
+                      <Badge variant="secondary" className={cn("border-0 text-white", currentStatus.color)}>
+                           <StatusIcon className="mr-1.5 h-3 w-3" />
+                           <span className="text-xs">{currentStatus.label}</span>
                       </Badge>
                   </div>
               </TooltipTrigger>
