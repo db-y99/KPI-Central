@@ -22,10 +22,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
     setIsCollapsed(!isCollapsed);
   };
 
-  if (pathname === '/login') {
-    return <>{children}</>;
-  }
-
   const sidebarContent = (
     <div className="flex h-full flex-col bg-card text-card-foreground">
       <div className={cn("flex h-16 items-center border-b px-4", !isCollapsed ? "justify-between" : "justify-center")}>
@@ -83,7 +79,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <div className="flex flex-1 flex-col overflow-hidden">
         <DashboardHeader
           title={pathname.startsWith('/reports') ? "Báo cáo" : "Bảng điều khiển"}
-          user={user!}
         />
         <main className="flex-1 overflow-y-auto bg-background">
           {children}
@@ -110,7 +105,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               <Award className="size-7 text-primary" />
               <span className="text-lg font-semibold">KPI Central</span>
           </div>
-          <DashboardHeader user={user!} title="" />
+          <DashboardHeader title="" />
         </header>
          <div className="flex flex-1 flex-col overflow-hidden">
             <main className="flex-1 overflow-y-auto bg-background">

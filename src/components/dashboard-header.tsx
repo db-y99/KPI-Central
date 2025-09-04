@@ -19,11 +19,10 @@ import { cn } from '@/lib/utils';
 
 interface DashboardHeaderProps {
   title: string;
-  user?: Employee;
 }
 
-export default function DashboardHeader({ title, user }: DashboardHeaderProps) {
-  const { logout } = useContext(AuthContext);
+export default function DashboardHeader({ title }: DashboardHeaderProps) {
+  const { user, logout } = useContext(AuthContext);
   const router = useRouter();
   const isMobile = useIsMobile();
 
