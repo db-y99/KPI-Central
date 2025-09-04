@@ -15,6 +15,7 @@ import { AuthContext } from '@/context/auth-context';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 export default function DashboardHeader() {
   const { user, logout } = useContext(AuthContext);
@@ -33,6 +34,8 @@ export default function DashboardHeader() {
       title = 'Giao KPI';
   } else if (pathname.startsWith('/admin')) {
     title = 'Tổng quan của quản lý';
+  } else if (pathname.startsWith('/employee/profile')) {
+    title = 'Hồ sơ cá nhân';
   }
 
 
@@ -74,7 +77,9 @@ export default function DashboardHeader() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Hồ sơ</DropdownMenuItem>
+               <Link href={user.role === 'admin' ? '/admin/profile' : '/employee/profile'} passHref>
+                  <DropdownMenuItem>Hồ sơ</DropdownMenuItem>
+                </Link>
               <DropdownMenuItem>Cài đặt</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>Đăng xuất</DropdownMenuItem>
