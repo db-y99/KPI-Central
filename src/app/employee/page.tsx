@@ -18,7 +18,8 @@ export default function EmployeeDashboardPage() {
 
   const enrichedKpiRecords = userKpiRecords.map(record => {
     const kpiDetails = kpis.find(k => k.id === record.kpiId);
-    return { ...record, ...kpiDetails };
+     // Preserve record.id by spreading kpiDetails first, then record, ensuring record.id is the final one.
+    return { ...kpiDetails, ...record };
   });
 
   return (

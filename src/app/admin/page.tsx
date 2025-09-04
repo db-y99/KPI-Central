@@ -8,7 +8,8 @@ export default function AdminDashboardPage() {
   const enrichedKpiRecords = kpiRecords.map(record => {
     const kpiDetails = kpis.find(k => k.id === record.kpiId);
     const employeeDetails = employees.find(e => e.id === record.employeeId);
-    return { ...record, ...kpiDetails, employeeName: employeeDetails?.name };
+    // Preserve record.id by spreading kpiDetails first, then record, ensuring record.id is the final one.
+    return { ...kpiDetails, ...record, employeeName: employeeDetails?.name };
   });
 
   return (
