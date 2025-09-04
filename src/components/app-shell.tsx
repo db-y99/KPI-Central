@@ -9,8 +9,8 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
-  SidebarTrigger,
   SidebarSeparator,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -33,7 +33,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <div className="flex w-full items-center justify-between p-2">
             <div className="flex items-center gap-2">
               <Award className="size-7 text-primary" />
-              <span className="text-xl font-semibold data-[collapsed=true]:hidden">
+              <span className="text-xl font-semibold" data-collapsed="true">
                 KPI Central
               </span>
             </div>
@@ -52,7 +52,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               >
                 <Link href="/">
                   <Home />
-                  <span data-[collapsed=true]:hidden>Bảng điều khiển</span>
+                  <span data-collapsed="true">Bảng điều khiển</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -65,7 +65,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               >
                 <Link href="/reports">
                   <BarChart2 />
-                  <span data-[collapsed=true]:hidden>Báo cáo</span>
+                  <span data-collapsed="true">Báo cáo</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

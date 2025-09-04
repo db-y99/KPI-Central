@@ -34,7 +34,7 @@ export default function DashboardHeader({ title, user }: DashboardHeaderProps) {
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
       <div className="flex items-center gap-4">
-        <SidebarTrigger className={cn(isMobile ? 'block' : 'hidden', open && 'hidden')} />
+        {isMobile && <SidebarTrigger className={cn(open && 'hidden')} />}
         <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
       </div>
       {user && (
