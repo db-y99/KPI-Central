@@ -72,30 +72,32 @@ export default function KpiCard({ record, showEmployee = false }: KpiCardProps) 
         <CardTitle className="text-lg">{record.name}</CardTitle>
         <CardDescription>{record.description}</CardDescription>
       </CardHeader>
-      <CardContent className="flex-grow space-y-4">
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm font-medium min-h-[40px]">
-            <span>
-              Thực tế:{' '}
-              <span className="font-bold">
-                {new Intl.NumberFormat('vi-VN').format(actualValue)} {record.unit}
+      <CardContent className="flex flex-col flex-grow">
+        <div className="flex-grow space-y-4">
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm font-medium min-h-[40px]">
+              <span>
+                Thực tế:{' '}
+                <span className="font-bold">
+                  {new Intl.NumberFormat('vi-VN').format(actualValue)} {record.unit}
+                </span>
               </span>
-            </span>
-            <span className="text-muted-foreground text-right">
-              Chỉ tiêu:{' '}
-              {new Intl.NumberFormat('vi-VN').format(record.target)} {record.unit}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-             <Progress value={Math.min(completionPercentage, 100)} className="w-full" />
-             <div
-                className={cn('w-12 text-right text-lg font-bold', progressColorClass)}
-             >
-                {completionPercentage}%
-             </div>
+              <span className="text-muted-foreground text-right">
+                Chỉ tiêu:{' '}
+                {new Intl.NumberFormat('vi-VN').format(record.target)} {record.unit}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+               <Progress value={Math.min(completionPercentage, 100)} className="w-full" />
+               <div
+                  className={cn('w-12 text-right text-lg font-bold', progressColorClass)}
+               >
+                  {completionPercentage}%
+               </div>
+            </div>
           </div>
         </div>
-        <div className="text-xs text-muted-foreground space-y-1">
+        <div className="text-xs text-muted-foreground space-y-1 mt-4">
           <div>
             Tần suất: <Badge variant="outline" className="text-xs">{record.frequency}</Badge>
           </div>
