@@ -33,7 +33,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <div className="flex items-center justify-between p-2">
             <div className="flex items-center gap-2">
               <Award className="size-7 text-primary" />
-              <span className="text-xl font-semibold">KPI Central</span>
+              <span className="text-xl font-semibold data-[collapsed=true]:hidden">KPI Central</span>
             </div>
             <SidebarTrigger />
           </div>
@@ -50,7 +50,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               >
                 <Link href="/">
                   <Home />
-                  <span>Bảng điều khiển</span>
+                  <span className="data-[collapsed=true]:hidden">Bảng điều khiển</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -63,7 +63,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               >
                 <Link href="/reports">
                   <BarChart2 />
-                  <span>Báo cáo</span>
+                  <span className="data-[collapsed=true]:hidden">Báo cáo</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
