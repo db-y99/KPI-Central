@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useContext, useRef } from 'react';
 import {
   Card,
   CardContent,
@@ -18,14 +18,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PenSquare, User } from 'lucide-react';
+import { PenSquare, User, Upload, FileCheck } from 'lucide-react';
 import type { Kpi, KpiRecord } from '@/types';
 import RewardCalculator from './reward-calculator';
 import { cn } from '@/lib/utils';
 import { Badge } from './ui/badge';
+import { DataContext } from '@/context/data-context';
+import { useToast } from '@/hooks/use-toast';
 
 interface KpiCardProps {
   record: Kpi & KpiRecord & { employeeName?: string };
@@ -36,19 +40,42 @@ export default function KpiCard({
   record,
   showEmployee = false,
 }: KpiCardProps) {
-  const [actualValue, setActualValue] = useState(record.actual);
+  const { updateKpiRecord, submitReport } = useContext(DataContext);
+  const { toast } = useToast();
+
   const [inputValue, setInputValue] = useState(record.actual.toString());
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const completionPercentage =
-    record.target > 0 ? Math.round((actualValue / record.target) * 100) : 0;
+    record.target > 0 ? Math.round((record.actual / record.target) * 100) : 0;
 
   const handleUpdate = () => {
     const newActual = parseFloat(inputValue);
     if (!isNaN(newActual)) {
-      setActualValue(newActual);
+      updateKpiRecord(record.id, { actual: newActual });
     }
     setUpdateDialogOpen(false);
+  };
+  
+  const handleSubmitReport = () => {
+    const file = fileInputRef.current?.files?.[0];
+    if (file) {
+      submitReport(record.id, file.name);
+      toast({
+        title: "Thành công!",
+        description: `Đã nộp báo cáo "${file.name}" cho KPI "${record.name}".`
+      })
+      setReportDialogOpen(false);
+    } else {
+       toast({
+        title: "Lỗi",
+        description: "Vui lòng chọn một tệp để nộp.",
+        variant: 'destructive'
+      })
+    }
   };
 
   const isOverAchieved = completionPercentage > 100;
@@ -78,7 +105,7 @@ export default function KpiCard({
             Thực tế:
             <br />
             <span className="font-bold">
-              {new Intl.NumberFormat('vi-VN').format(actualValue)} {record.unit}
+              {new Intl.NumberFormat('vi-VN').format(record.actual)} {record.unit}
             </span>
           </span>
           <span className="text-right text-muted-foreground">
@@ -99,6 +126,12 @@ export default function KpiCard({
             {new Date(record.startDate).toLocaleDateString('vi-VN')} -{' '}
             {new Date(record.endDate).toLocaleDateString('vi-VN')}
           </div>
+           {record.submittedReport && (
+            <div className="flex items-center gap-1.5 pt-1 text-green-600">
+                <FileCheck className="h-4 w-4" />
+                <span className="font-medium">{record.submittedReport}</span>
+            </div>
+           )}
         </div>
       </CardContent>
       <CardFooter className="flex flex-col items-start gap-4 p-6 pt-0">
@@ -111,10 +144,10 @@ export default function KpiCard({
             </div>
             <Progress value={completionPercentage} className="h-2" />
         </div>
-        <div className="flex w-full gap-2">
+        <div className="grid w-full grid-cols-2 gap-2">
             <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline">
                 <PenSquare className="mr-2 h-4 w-4" /> Cập nhật
                 </Button>
             </DialogTrigger>
@@ -138,7 +171,38 @@ export default function KpiCard({
                 <Button onClick={handleUpdate}>Lưu thay đổi</Button>
             </DialogContent>
             </Dialog>
-            <RewardCalculator record={{ ...record, actual: actualValue }} />
+
+             <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="outline">
+                        <Upload className="mr-2 h-4 w-4" /> Nộp báo cáo
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Nộp tệp báo cáo</DialogTitle>
+                        <DialogDescription>
+                            Tải lên tệp báo cáo liên quan cho KPI: {record.name}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid w-full max-w-sm items-center gap-1.5 py-4">
+                        <Label htmlFor="report-file">Chọn tệp</Label>
+                        <Input id="report-file" type="file" ref={fileInputRef} />
+                    </div>
+                    <DialogFooter>
+                       <DialogClose asChild>
+                          <Button type="button" variant="secondary">
+                            Hủy
+                          </Button>
+                        </DialogClose>
+                        <Button type="button" onClick={handleSubmitReport}>Lưu</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+           
+            <div className="col-span-2">
+                 <RewardCalculator record={record} />
+            </div>
         </div>
       </CardFooter>
     </Card>

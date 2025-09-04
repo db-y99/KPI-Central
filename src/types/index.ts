@@ -17,7 +17,7 @@ export type Kpi = {
   name: string;
   description: string;
   department: string;
-  formula: string;
+  formula?: string;
   unit: string;
   frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annually';
 };
@@ -30,4 +30,5 @@ export type KpiRecord = {
   actual: number;
   startDate: string;
   endDate: string;
+  submittedReport?: string | null;
 };
