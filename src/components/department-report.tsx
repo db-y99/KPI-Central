@@ -33,9 +33,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Progress } from './ui/progress';
 import { type DateRange } from 'react-day-picker';
-import { isWithinInterval } from 'date-fns';
-import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
+import { isWithinInterval, format } from 'date-fns';
+import { ArrowDown, ArrowUp, Minus, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from './ui/button';
+import { unparse } from 'papaparse';
 
 interface DepartmentReportProps {
   dateRange?: DateRange;
@@ -92,6 +94,8 @@ export default function DepartmentReport({
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<
     string | null
   >(null);
+
+  const selectedDepartment = departments.find(d => d.id === selectedDepartmentId);
 
   const departmentEmployees = useMemo(() => {
     if (!selectedDepartmentId) return [];
@@ -169,6 +173,31 @@ export default function DepartmentReport({
   };
 
   const hasData = currentPeriodData.some(d => d.kpiCount > 0);
+  
+  const handleExport = () => {
+    if (!selectedDepartment || !dateRange?.from) return;
+
+    const exportData = combinedData.map(item => ({
+        "Tên nhân viên": item.name,
+        "Số KPI (hiện tại)": item.currentKpiCount,
+        ...(comparisonDateRange && { "Số KPI (so sánh)": item.previousKpiCount }),
+        "Hoàn thành TB (hiện tại, %)": item.current ?? 0,
+        ...(comparisonDateRange && { "Hoàn thành TB (so sánh, %)": item.previous ?? 0 }),
+        ...(comparisonDateRange && { "Thay đổi (%)": item.change }),
+    }));
+    
+    const csv = unparse(exportData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    const fromDate = format(dateRange.from, 'yyyy-MM-dd');
+    link.setAttribute('download', `bao_cao_phong_${selectedDepartment.name.replace(/ /g, '_')}_${fromDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   return (
     <Card>
@@ -203,21 +232,27 @@ export default function DepartmentReport({
               <>
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>
-                      Tổng quan hiệu suất:{' '}
-                      {
-                        departments.find(d => d.id === selectedDepartmentId)
-                          ?.name
-                      }
-                    </CardTitle>
-                    <div className="text-right">
-                      <p className="text-sm text-muted-foreground">
-                        TB Phòng ban (Kỳ hiện tại)
-                      </p>
-                      <p className="text-2xl font-bold text-primary">
-                        {departmentAverage}%
-                      </p>
+                    <div>
+                        <CardTitle>
+                        Tổng quan hiệu suất:{' '}
+                        {
+                            departments.find(d => d.id === selectedDepartmentId)
+                            ?.name
+                        }
+                        </CardTitle>
+                        <div className="text-right">
+                        <p className="text-sm text-muted-foreground">
+                            TB Phòng ban (Kỳ hiện tại)
+                        </p>
+                        <p className="text-2xl font-bold text-primary">
+                            {departmentAverage}%
+                        </p>
+                        </div>
                     </div>
+                    <Button variant="outline" onClick={handleExport} disabled={combinedData.length === 0}>
+                        <Download className="mr-2" />
+                        Xuất CSV
+                    </Button>
                   </CardHeader>
                   <CardContent>
                     <ChartContainer

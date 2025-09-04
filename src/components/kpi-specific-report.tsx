@@ -33,10 +33,13 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Progress } from './ui/progress';
 import { type DateRange } from 'react-day-picker';
-import { isWithinInterval } from 'date-fns';
-import { ArrowDown, ArrowUp, Minus } from 'lucide-react';
+import { isWithinInterval, format } from 'date-fns';
+import { ArrowDown, ArrowUp, Minus, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { KpiRecord } from '@/types';
+import { Button } from './ui/button';
+import { unparse } from 'papaparse';
+
 
 interface KpiSpecificReportProps {
   dateRange?: DateRange;
@@ -144,6 +147,28 @@ export default function KpiSpecificReport({
       color: 'hsl(var(--chart-2))',
     },
   };
+  
+  const handleExport = () => {
+    if (!selectedKpi || !dateRange?.from) return;
+
+    const exportData = combinedData.map(item => ({
+        "Tên nhân viên": item.name,
+        "Hoàn thành (hiện tại, %)": item.current ?? 0,
+        ...(comparisonDateRange && { "Hoàn thành (so sánh, %)": item.previous ?? 0 }),
+        ...(comparisonDateRange && { "Thay đổi (%)": item.change }),
+    }));
+    
+    const csv = unparse(exportData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    const fromDate = format(dateRange.from, 'yyyy-MM-dd');
+    link.setAttribute('download', `bao_cao_kpi_${selectedKpi.name.replace(/ /g, '_')}_${fromDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const hasData = currentPeriodData.length > 0;
 
@@ -179,11 +204,17 @@ export default function KpiSpecificReport({
             {hasData ? (
               <>
                 <Card>
-                  <CardHeader>
-                    <CardTitle>
-                      Tổng quan hiệu suất: {selectedKpi?.name}
-                    </CardTitle>
-                     <CardDescription>Đơn vị: {selectedKpi?.unit}</CardDescription>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>
+                        Tổng quan hiệu suất: {selectedKpi?.name}
+                        </CardTitle>
+                        <CardDescription>Đơn vị: {selectedKpi?.unit}</CardDescription>
+                    </div>
+                     <Button variant="outline" onClick={handleExport} disabled={combinedData.length === 0}>
+                        <Download className="mr-2" />
+                        Xuất CSV
+                    </Button>
                   </CardHeader>
                   <CardContent>
                     <ChartContainer
