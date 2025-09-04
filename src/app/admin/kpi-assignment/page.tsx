@@ -1,0 +1,201 @@
+'use client';
+import { useState } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { employees, kpis } from '@/lib/data';
+import type { Employee, Kpi } from '@/types';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
+
+export default function KpiAssignmentPage() {
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+  const [selectedKpiId, setSelectedKpiId] = useState<string | null>(null);
+  const [target, setTarget] = useState('');
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
+
+  const { toast } = useToast();
+
+  const selectedEmployee = employees.find(e => e.id === selectedEmployeeId);
+  const selectedKpi = kpis.find(k => k.id === selectedKpiId);
+
+  const handleSubmit = () => {
+    if (!selectedEmployeeId || !selectedKpiId || !target || !startDate || !endDate) {
+      toast({
+        variant: 'destructive',
+        title: 'Lỗi',
+        description: 'Vui lòng điền đầy đủ tất cả các trường.',
+      });
+      return;
+    }
+
+    // In a real app, this would be an API call to create a KpiRecord
+    console.log({
+      employeeId: selectedEmployeeId,
+      kpiId: selectedKpiId,
+      target: parseFloat(target),
+      startDate: format(startDate, 'yyyy-MM-dd'),
+      endDate: format(endDate, 'yyyy-MM-dd'),
+    });
+
+    toast({
+      title: 'Thành công!',
+      description: `Đã giao KPI "${selectedKpi?.name}" cho nhân viên "${selectedEmployee?.name}".`,
+    });
+
+    // Reset form
+    setSelectedEmployeeId(null);
+    setSelectedKpiId(null);
+    setTarget('');
+    setStartDate(undefined);
+    setEndDate(undefined);
+  };
+
+  return (
+    <div className="p-6 md:p-8">
+      <Card className="mx-auto max-w-2xl">
+        <CardHeader>
+          <CardTitle>Giao KPI cho nhân viên</CardTitle>
+          <CardDescription>
+            Chọn nhân viên, KPI và thiết lập các thông số để giao việc.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label>1. Chọn nhân viên</Label>
+            <Select onValueChange={setSelectedEmployeeId} value={selectedEmployeeId ?? ''}>
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn một nhân viên..." />
+              </SelectTrigger>
+              <SelectContent>
+                {employees.map(employee => (
+                  <SelectItem key={employee.id} value={employee.id}>
+                    {employee.name} - {employee.position}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>2. Chọn KPI để giao</Label>
+            <Select onValueChange={setSelectedKpiId} value={selectedKpiId ?? ''}>
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn một KPI..." />
+              </SelectTrigger>
+              <SelectContent>
+                {kpis.map(kpi => (
+                  <SelectItem key={kpi.id} value={kpi.id}>
+                    {kpi.name} ({kpi.department})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {selectedKpi && (
+             <Card className="bg-muted/50">
+                <CardContent className="pt-6 text-sm">
+                    <p><strong>Mô tả:</strong> {selectedKpi.description}</p>
+                    <p><strong>Đơn vị:</strong> {selectedKpi.unit}</p>
+                    <p><strong>Tần suất:</strong> {selectedKpi.frequency}</p>
+                </CardContent>
+             </Card>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="target">3. Đặt chỉ tiêu (Target)</Label>
+            <Input
+              id="target"
+              type="number"
+              value={target}
+              onChange={e => setTarget(e.target.value)}
+              placeholder={`Nhập chỉ tiêu theo đơn vị "${selectedKpi?.unit || '...'}"`}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label>4. Ngày bắt đầu</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={'outline'}
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !startDate && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, 'dd/MM/yyyy') : <span>Chọn ngày</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-2">
+              <Label>5. Ngày kết thúc</Label>
+               <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={'outline'}
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !endDate && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, 'dd/MM/yyyy') : <span>Chọn ngày</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+          
+          <Button onClick={handleSubmit} className="w-full">
+            Giao KPI
+          </Button>
+
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

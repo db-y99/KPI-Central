@@ -3,7 +3,16 @@ import type { ReactNode } from 'react';
 import { useState, useContext } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BarChart2, Award, ChevronLeft, ChevronRight, PanelLeft } from 'lucide-react';
+import {
+  Home,
+  BarChart2,
+  Award,
+  ChevronLeft,
+  ChevronRight,
+  PanelLeft,
+  ListPlus,
+  Target,
+} from 'lucide-react';
 import { AuthContext } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,7 +35,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
-  
+
   const isManager = user?.position.toLowerCase().includes('manager');
 
   const navLinks = [
@@ -35,6 +44,20 @@ export default function AppShell({ children }: { children: ReactNode }) {
       label: 'Bảng điều khiển',
       icon: Home,
       isActive: pathname === '/admin' || pathname === '/employee',
+    },
+    {
+      href: '/admin/kpi-definitions',
+      label: 'Quản lý KPI',
+      icon: ListPlus,
+      isActive: pathname.startsWith('/admin/kpi-definitions'),
+      isManagerOnly: true,
+    },
+    {
+      href: '/admin/kpi-assignment',
+      label: 'Giao KPI',
+      icon: Target,
+      isActive: pathname.startsWith('/admin/kpi-assignment'),
+      isManagerOnly: true,
     },
     {
       href: '/admin/reports',
@@ -54,13 +77,16 @@ export default function AppShell({ children }: { children: ReactNode }) {
         )}
       >
         <div
-          className={cn('flex items-center gap-2', isCollapsed ? 'hidden' : 'flex')}
+          className={cn('flex items-center gap-2', isCollapsed && 'hidden')}
         >
           <Award className="size-7 text-primary" />
           <span className="text-xl font-semibold">KPI Central</span>
         </div>
         <div
-          className={cn('flex items-center', isCollapsed ? 'w-full justify-center' : '')}
+          className={cn(
+            'flex items-center',
+            isCollapsed ? 'w-full justify-center' : ''
+          )}
         >
           <Button
             variant="ghost"
@@ -75,26 +101,29 @@ export default function AppShell({ children }: { children: ReactNode }) {
       </div>
       <nav className="flex-1 space-y-2 p-2">
         <TooltipProvider delayDuration={0}>
-          {navLinks.map(link => 
-            (!link.isManagerOnly || isManager) && (
-            <Tooltip key={link.label}>
-              <TooltipTrigger asChild>
-                <Button
-                  asChild
-                  variant={link.isActive ? 'secondary' : 'ghost'}
-                  className={cn('w-full', !isCollapsed && 'justify-start')}
-                >
-                  <Link href={link.href}>
-                    <link.icon className="size-5" />
-                    <span className={cn('ml-4', isCollapsed && 'hidden')}>
-                      {link.label}
-                    </span>
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              {isCollapsed && <TooltipContent side="right">{link.label}</TooltipContent>}
-            </Tooltip>
-           )
+          {navLinks.map(
+            link =>
+              (!link.isManagerOnly || isManager) && (
+                <Tooltip key={link.label}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      asChild
+                      variant={link.isActive ? 'secondary' : 'ghost'}
+                      className={cn('w-full', !isCollapsed && 'justify-start')}
+                    >
+                      <Link href={link.href}>
+                        <link.icon className="size-5" />
+                        <span className={cn('ml-4', isCollapsed && 'hidden')}>
+                          {link.label}
+                        </span>
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  {isCollapsed && (
+                    <TooltipContent side="right">{link.label}</TooltipContent>
+                  )}
+                </Tooltip>
+              )
           )}
         </TooltipProvider>
       </nav>
@@ -130,7 +159,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <DashboardHeader />
         </header>
         <div className="flex flex-1 flex-col overflow-hidden">
-          <main className="flex-1 overflow-y-auto bg-background">{children}</main>
+          <main className="flex-1 overflow-y-auto bg-background">
+            {children}
+          </main>
         </div>
       </div>
     );
@@ -140,7 +171,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen">
       <aside
         className={cn(
-          'hidden md:flex md:flex-col transition-all duration-300 ease-in-out border-r',
+          'hidden border-r transition-all duration-300 ease-in-out md:flex md:flex-col',
           isCollapsed ? 'w-20' : 'w-64'
         )}
       >
