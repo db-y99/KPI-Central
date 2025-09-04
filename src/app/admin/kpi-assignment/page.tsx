@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import {
   Card,
   CardContent,
@@ -24,13 +24,14 @@ import {
 } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
-import { employees, kpis } from '@/lib/data';
 import type { Employee, Kpi } from '@/types';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { DataContext } from '@/context/data-context';
 
 export default function KpiAssignmentPage() {
+  const { employees, kpis } = useContext(DataContext);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [selectedKpiId, setSelectedKpiId] = useState<string | null>(null);
   const [target, setTarget] = useState('');

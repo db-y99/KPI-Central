@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/context/auth-context';
+import { DataProvider } from '@/context/data-context';
 
 export const metadata: Metadata = {
   title: 'KPI Central',
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.Node;
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="vi" className="dark">
@@ -25,7 +26,7 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <AuthProvider>
-            {children}
+          <DataProvider>{children}</DataProvider>
         </AuthProvider>
         <Toaster />
       </body>

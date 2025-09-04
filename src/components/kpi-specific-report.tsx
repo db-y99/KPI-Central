@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useContext } from 'react';
 import {
   Card,
   CardContent,
@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { employees, kpis, kpiRecords } from '@/lib/data';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Legend } from 'recharts';
 import {
   ChartContainer,
@@ -32,13 +31,14 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Progress } from './ui/progress';
-import { type DateRange } from 'react-day-picker';
+import type { DateRange } from 'react-day-picker';
 import { isWithinInterval, format } from 'date-fns';
 import { ArrowDown, ArrowUp, Minus, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { KpiRecord } from '@/types';
+import type { KpiRecord, Employee } from '@/types';
 import { Button } from './ui/button';
 import { unparse } from 'papaparse';
+import { DataContext } from '@/context/data-context';
 
 
 interface KpiSpecificReportProps {
@@ -48,6 +48,7 @@ interface KpiSpecificReportProps {
 
 const calculateKpiDataForPeriod = (
   allRecords: KpiRecord[],
+  employees: Employee[],
   dateRange?: DateRange
 ) => {
   if (!dateRange?.from || !dateRange?.to) {
@@ -80,6 +81,7 @@ export default function KpiSpecificReport({
   dateRange,
   comparisonDateRange,
 }: KpiSpecificReportProps) {
+  const { employees, kpis, kpiRecords } = useContext(DataContext);
   const [selectedKpiId, setSelectedKpiId] = useState<string | null>(null);
 
   const selectedKpi = kpis.find(k => k.id === selectedKpiId);
@@ -87,16 +89,16 @@ export default function KpiSpecificReport({
   const recordsForKpi = useMemo(() => {
       if (!selectedKpiId) return [];
       return kpiRecords.filter(r => r.kpiId === selectedKpiId);
-  }, [selectedKpiId]);
+  }, [selectedKpiId, kpiRecords]);
 
   const currentPeriodData = useMemo(
-    () => calculateKpiDataForPeriod(recordsForKpi, dateRange),
-    [recordsForKpi, dateRange]
+    () => calculateKpiDataForPeriod(recordsForKpi, employees, dateRange),
+    [recordsForKpi, dateRange, employees]
   );
   
   const comparisonPeriodData = useMemo(
-    () => calculateKpiDataForPeriod(recordsForKpi, comparisonDateRange),
-    [recordsForKpi, comparisonDateRange]
+    () => calculateKpiDataForPeriod(recordsForKpi, employees, comparisonDateRange),
+    [recordsForKpi, comparisonDateRange, employees]
   );
 
   const combinedData = useMemo(() => {

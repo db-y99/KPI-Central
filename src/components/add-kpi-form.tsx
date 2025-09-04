@@ -1,5 +1,6 @@
 'use client';
 
+import { useContext } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -21,8 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { departments } from '@/lib/data';
 import type { Kpi } from '@/types';
+import { DataContext } from '@/context/data-context';
 
 const kpiSchema = z.object({
   name: z.string().min(1, 'Tên KPI không được để trống.'),
@@ -43,6 +44,7 @@ interface AddKpiFormProps {
 }
 
 export default function AddKpiForm({ onSave, onClose }: AddKpiFormProps) {
+  const { departments } = useContext(DataContext);
   const form = useForm<KpiFormValues>({
     resolver: zodResolver(kpiSchema),
     defaultValues: {

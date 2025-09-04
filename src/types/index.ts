@@ -30,5 +30,5 @@ export type KpiRecord = {
   actual: number;
   startDate: string;
   endDate: string;
-  submittedReport?: string | null;
+  submittedReport?: string;
 };

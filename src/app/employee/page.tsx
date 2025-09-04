@@ -1,13 +1,14 @@
 'use client';
 import { useContext } from 'react';
 import KpiCard from '@/components/kpi-card';
-import { kpis, kpiRecords } from '@/lib/data';
 import type { Kpi, KpiRecord } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AuthContext } from '@/context/auth-context';
+import { DataContext } from '@/context/data-context';
 
 export default function EmployeeDashboardPage() {
   const { user } = useContext(AuthContext);
+  const { kpis, kpiRecords } = useContext(DataContext);
 
   // The layout will handle loading and redirection
   if (!user) {

@@ -1,9 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { LayoutGrid, List } from 'lucide-react';
 import KpiCard from '@/components/kpi-card';
 import KpiListRow from '@/components/kpi-list-row';
-import { kpis, kpiRecords, employees } from '@/lib/data';
 import type { Kpi, KpiRecord } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,8 +13,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { DataContext } from '@/context/data-context';
 
 export default function AdminDashboardPage() {
+  const { kpis, kpiRecords, employees } = useContext(DataContext);
   const [view, setView] = useState('grid');
 
   const enrichedKpiRecords = kpiRecords.map(record => {

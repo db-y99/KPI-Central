@@ -1,5 +1,6 @@
 'use client';
 
+import { useContext } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -20,8 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { departments } from '@/lib/data';
 import type { Employee } from '@/types';
+import { DataContext } from '@/context/data-context';
 
 const employeeSchema = z.object({
   name: z.string().min(1, 'Tên nhân viên không được để trống.'),
@@ -40,6 +41,7 @@ interface AddEmployeeFormProps {
 }
 
 export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProps) {
+  const { departments } = useContext(DataContext);
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
     defaultValues: {

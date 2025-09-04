@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import {
   Card,
   CardContent,
@@ -17,7 +17,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { PlusCircle, MoreHorizontal, Pen, Trash2 } from 'lucide-react';
-import { kpis as initialKpis } from '@/lib/data';
 import type { Kpi } from '@/types';
 import {
   DropdownMenu,
@@ -34,16 +33,17 @@ import {
 } from '@/components/ui/dialog';
 import AddKpiForm from '@/components/add-kpi-form';
 import { useToast } from '@/hooks/use-toast';
+import { DataContext } from '@/context/data-context';
 
 
 export default function KpiDefinitionsPage() {
-  const [kpis, setKpis] = useState<Kpi[]>(initialKpis);
+  const { kpis, addKpi, deleteKpi } = useContext(DataContext);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { toast } = useToast();
 
 
   const handleSaveKpi = (newKpi: Kpi) => {
-    setKpis(prevKpis => [...prevKpis, newKpi]);
+    addKpi(newKpi);
     toast({
       title: 'Thành công!',
       description: `Đã thêm KPI "${newKpi.name}" thành công.`,
@@ -63,7 +63,7 @@ export default function KpiDefinitionsPage() {
     // Show a confirmation and then delete
     if (window.confirm('Bạn có chắc chắn muốn xóa KPI này không?')) {
       const kpiToDelete = kpis.find(k => k.id === kpiId);
-      setKpis(kpis.filter(k => k.id !== kpiId));
+      deleteKpi(kpiId);
       toast({
         title: 'Đã xóa!',
         description: `Đã xóa KPI "${kpiToDelete?.name}".`,
@@ -157,4 +157,3 @@ export default function KpiDefinitionsPage() {
     </div>
   );
 }
-

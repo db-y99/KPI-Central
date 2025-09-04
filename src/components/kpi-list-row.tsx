@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import {
   TableRow,
   TableCell,
@@ -17,28 +17,28 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PenSquare, Bot, User } from 'lucide-react';
+import { PenSquare, Bot } from 'lucide-react';
 import type { Kpi, KpiRecord } from '@/types';
 import RewardCalculator from './reward-calculator';
 import { cn } from '@/lib/utils';
-import { Badge } from './ui/badge';
+import { DataContext } from '@/context/data-context';
 
 interface KpiListRowProps {
   record: Kpi & KpiRecord & { employeeName?: string };
 }
 
 export default function KpiListRow({ record }: KpiListRowProps) {
-  const [actualValue, setActualValue] = useState(record.actual);
+  const { updateKpiRecord } = useContext(DataContext);
   const [inputValue, setInputValue] = useState(record.actual.toString());
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
 
   const completionPercentage =
-    record.target > 0 ? Math.round((actualValue / record.target) * 100) : 0;
+    record.target > 0 ? Math.round((record.actual / record.target) * 100) : 0;
 
   const handleUpdate = () => {
     const newActual = parseFloat(inputValue);
     if (!isNaN(newActual)) {
-      setActualValue(newActual);
+      updateKpiRecord(record.id, { actual: newActual });
     }
     setUpdateDialogOpen(false);
   };
@@ -91,8 +91,7 @@ export default function KpiListRow({ record }: KpiListRowProps) {
             </DialogContent>
             </Dialog>
           
-          {/* We can't nest a Dialog inside a Dialog, so we need to have a different way to show this */}
-          <RewardCalculator record={{...record, actual: actualValue}}>
+          <RewardCalculator record={{...record, actual: record.actual}}>
             <Button variant="default" size="icon">
               <Bot className="h-4 w-4" />
             </Button>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useContext } from 'react';
 import {
   Card,
   CardContent,
@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { employees, kpis, kpiRecords } from '@/lib/data';
 import type { Kpi, KpiRecord } from '@/types';
 import KpiCard from './kpi-card';
 import {
@@ -31,11 +30,12 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { type DateRange } from 'react-day-picker';
+import type { DateRange } from 'react-day-picker';
 import { isWithinInterval, format } from 'date-fns';
 import { Button } from './ui/button';
 import { Download } from 'lucide-react';
 import { unparse } from 'papaparse';
+import { DataContext } from '@/context/data-context';
 
 interface IndividualReportProps {
   dateRange?: DateRange;
@@ -61,6 +61,7 @@ export default function IndividualReport({
   dateRange,
   comparisonDateRange,
 }: IndividualReportProps) {
+  const { employees, kpis, kpiRecords } = useContext(DataContext);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(
     null
   );
@@ -84,7 +85,7 @@ export default function IndividualReport({
             : 0,
       };
     });
-  }, [selectedEmployeeId, dateRange]);
+  }, [selectedEmployeeId, dateRange, kpiRecords, kpis]);
 
   const comparisonData = useMemo(() => {
     if (!comparisonDateRange) return [];
@@ -106,7 +107,7 @@ export default function IndividualReport({
             : 0,
       };
     });
-  }, [selectedEmployeeId, comparisonDateRange]);
+  }, [selectedEmployeeId, comparisonDateRange, kpiRecords, kpis]);
 
   const combinedChartData = useMemo(() => {
     const dataMap = new Map<string, { name: string; current?: number; previous?: number }>();
@@ -153,7 +154,7 @@ export default function IndividualReport({
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
     const fromDate = format(dateRange.from, 'yyyy-MM-dd');
-    link.setAttribute('download', `bao_cao_ca_nhan_${selectedEmployee.name}_${fromDate}.csv`);
+    link.setAttribute('download', `bao_cao_ca_nhan_${selectedEmployee.name.replace(/ /g, '_')}_${fromDate}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

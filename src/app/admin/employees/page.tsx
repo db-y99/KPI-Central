@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import {
   Card,
   CardContent,
@@ -16,8 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { PlusCircle, MoreHorizontal, Pen, Trash2, Users } from 'lucide-react';
-import { employees as initialEmployees, departments } from '@/lib/data';
+import { PlusCircle, MoreHorizontal, Pen, Trash2 } from 'lucide-react';
 import type { Employee } from '@/types';
 import {
   DropdownMenu,
@@ -36,14 +35,16 @@ import AddEmployeeForm from '@/components/add-employee-form';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { DataContext } from '@/context/data-context';
+
 
 export default function EmployeeManagementPage() {
-  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
+  const { employees, addEmployee, deleteEmployee, departments } = useContext(DataContext);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const handleSaveEmployee = (newEmployee: Employee) => {
-    setEmployees(prev => [...prev, newEmployee]);
+    addEmployee(newEmployee);
     toast({
       title: 'Thành công!',
       description: `Đã thêm nhân viên "${newEmployee.name}" thành công.`,
@@ -61,7 +62,7 @@ export default function EmployeeManagementPage() {
   const handleDeleteEmployee = (employeeId: string) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa nhân viên này không? Thao tác này không thể hoàn tác.')) {
       const employeeToDelete = employees.find(e => e.id === employeeId);
-      setEmployees(employees.filter(e => e.id !== employeeId));
+      deleteEmployee(employeeId);
       toast({
         title: 'Đã xóa!',
         description: `Đã xóa nhân viên "${employeeToDelete?.name}".`,

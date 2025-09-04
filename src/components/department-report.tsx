@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useContext } from 'react';
 import {
   Card,
   CardContent,
@@ -15,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { departments, employees, kpiRecords } from '@/lib/data';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Legend } from 'recharts';
 import {
   ChartContainer,
@@ -32,83 +31,86 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Progress } from './ui/progress';
-import { type DateRange } from 'react-day-picker';
+import type { DateRange } from 'react-day-picker';
 import { isWithinInterval, format } from 'date-fns';
 import { ArrowDown, ArrowUp, Minus, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { unparse } from 'papaparse';
+import { DataContext } from '@/context/data-context';
+import type { Employee } from '@/types';
 
 interface DepartmentReportProps {
   dateRange?: DateRange;
   comparisonDateRange?: DateRange;
 }
 
-const calculateDepartmentData = (
-  employeesInDept: typeof employees,
-  dateRange?: DateRange
-) => {
-  if (!dateRange?.from || !dateRange?.to) {
-    return [];
-  }
-
-  return employeesInDept.map(employee => {
-    const employeeRecords = kpiRecords.filter(
-      r =>
-        r.employeeId === employee.id &&
-        isWithinInterval(new Date(r.endDate), {
-          start: dateRange.from as Date,
-          end: dateRange.to as Date,
-        })
-    );
-
-    if (employeeRecords.length === 0) {
-      return {
-        employeeId: employee.id,
-        name: employee.name,
-        avatar: employee.avatar,
-        avgCompletion: 0,
-        kpiCount: 0,
-      };
-    }
-    const totalCompletion = employeeRecords.reduce((acc, record) => {
-      const completion =
-        record.target > 0 ? (record.actual / record.target) * 100 : 0;
-      return acc + completion;
-    }, 0);
-    const avgCompletion = Math.round(totalCompletion / employeeRecords.length);
-    return {
-      employeeId: employee.id,
-      name: employee.name,
-      avatar: employee.avatar,
-      avgCompletion,
-      kpiCount: employeeRecords.length,
-    };
-  });
-};
-
 export default function DepartmentReport({
   dateRange,
   comparisonDateRange,
 }: DepartmentReportProps) {
+  const { departments, employees, kpiRecords } = useContext(DataContext);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<
     string | null
   >(null);
 
+  const calculateDepartmentData = (
+    employeesInDept: Employee[],
+    dateRange?: DateRange
+  ) => {
+    if (!dateRange?.from || !dateRange?.to) {
+      return [];
+    }
+
+    return employeesInDept.map(employee => {
+      const employeeRecords = kpiRecords.filter(
+        r =>
+          r.employeeId === employee.id &&
+          isWithinInterval(new Date(r.endDate), {
+            start: dateRange.from as Date,
+            end: dateRange.to as Date,
+          })
+      );
+
+      if (employeeRecords.length === 0) {
+        return {
+          employeeId: employee.id,
+          name: employee.name,
+          avatar: employee.avatar,
+          avgCompletion: 0,
+          kpiCount: 0,
+        };
+      }
+      const totalCompletion = employeeRecords.reduce((acc, record) => {
+        const completion =
+          record.target > 0 ? (record.actual / record.target) * 100 : 0;
+        return acc + completion;
+      }, 0);
+      const avgCompletion = Math.round(totalCompletion / employeeRecords.length);
+      return {
+        employeeId: employee.id,
+        name: employee.name,
+        avatar: employee.avatar,
+        avgCompletion,
+        kpiCount: employeeRecords.length,
+      };
+    });
+  };
+  
   const selectedDepartment = departments.find(d => d.id === selectedDepartmentId);
 
   const departmentEmployees = useMemo(() => {
     if (!selectedDepartmentId) return [];
     return employees.filter(e => e.departmentId === selectedDepartmentId);
-  }, [selectedDepartmentId]);
+  }, [selectedDepartmentId, employees]);
 
   const currentPeriodData = useMemo(
     () => calculateDepartmentData(departmentEmployees, dateRange),
-    [departmentEmployees, dateRange]
+    [departmentEmployees, dateRange, kpiRecords]
   );
   const comparisonPeriodData = useMemo(
     () => calculateDepartmentData(departmentEmployees, comparisonDateRange),
-    [departmentEmployees, comparisonDateRange]
+    [departmentEmployees, comparisonDateRange, kpiRecords]
   );
   
   const combinedData = useMemo(() => {
