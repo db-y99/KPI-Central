@@ -87,7 +87,7 @@ export default function KpiCard({ record, showEmployee = false }: KpiCardProps) 
           <div className="flex items-center gap-3">
              <Progress value={Math.min(completionPercentage, 100)} className="w-full" />
              <div
-                className={cn('text-right text-lg font-bold', progressColorClass)}
+                className={cn('w-12 text-right text-lg font-bold', progressColorClass)}
              >
                 {completionPercentage}%
              </div>
