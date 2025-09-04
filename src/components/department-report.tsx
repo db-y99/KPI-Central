@@ -180,7 +180,7 @@ export default function DepartmentReport({ dateRange }: DepartmentReportProps) {
                 <Card>
                   <CardHeader>
                     <CardTitle>Chi tiết nhân viên</CardTitle>
-                  </Header>
+                  </CardHeader>
                   <CardContent>
                     <Table>
                       <TableHeader>
