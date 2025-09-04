@@ -42,7 +42,7 @@ interface IndividualReportProps {
   comparisonDateRange?: DateRange;
 }
 
-const filterRecordsByDate = (
+const filterRecords = (
   records: KpiRecord[],
   dateRange?: DateRange
 ) => {
@@ -50,6 +50,7 @@ const filterRecordsByDate = (
     return [];
   }
   return records.filter(record =>
+    record.status === 'approved' && // Only include approved records
     isWithinInterval(new Date(record.endDate), {
       start: dateRange.from as Date,
       end: dateRange.to as Date,
@@ -72,7 +73,7 @@ export default function IndividualReport({
     const employeeRecords = kpiRecords.filter(
       r => r.employeeId === selectedEmployeeId
     );
-    const mainPeriodRecords = filterRecordsByDate(employeeRecords, dateRange);
+    const mainPeriodRecords = filterRecords(employeeRecords, dateRange);
 
     return mainPeriodRecords.map(record => {
       const kpiDetails = kpis.find(k => k.id === record.kpiId);
@@ -92,7 +93,7 @@ export default function IndividualReport({
     const employeeRecords = kpiRecords.filter(
       r => r.employeeId === selectedEmployeeId
     );
-    const comparisonPeriodRecords = filterRecordsByDate(
+    const comparisonPeriodRecords = filterRecords(
       employeeRecords,
       comparisonDateRange
     );
@@ -166,7 +167,7 @@ export default function IndividualReport({
       <CardHeader>
         <CardTitle>Báo cáo hiệu suất cá nhân</CardTitle>
         <CardDescription>
-          Chọn nhân viên và các kỳ để xem và so sánh hiệu suất KPI.
+          Chọn nhân viên và các kỳ để xem và so sánh hiệu suất KPI (chỉ tính các KPI đã được duyệt).
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -243,7 +244,7 @@ export default function IndividualReport({
                   </ChartContainer>
                 ) : (
                   <p className="text-center text-muted-foreground">
-                    Không có dữ liệu KPI cho nhân viên này trong khoảng thời gian đã chọn.
+                    Không có dữ liệu KPI đã được duyệt cho nhân viên này trong khoảng thời gian đã chọn.
                   </p>
                 )}
               </CardContent>
@@ -252,7 +253,7 @@ export default function IndividualReport({
             {enrichedKpiRecords.length > 0 && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Chi tiết KPI (Kỳ hiện tại)</CardTitle>
+                        <CardTitle>Chi tiết KPI đã duyệt (Kỳ hiện tại)</CardTitle>
                     </CardHeader>
                     <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                          {enrichedKpiRecords.map(record => (

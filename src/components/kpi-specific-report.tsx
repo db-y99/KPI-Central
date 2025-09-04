@@ -56,6 +56,7 @@ const calculateKpiDataForPeriod = (
   }
 
   const filteredRecords = allRecords.filter(r =>
+    r.status === 'approved' && // Only include approved records
     isWithinInterval(new Date(r.endDate), {
       start: dateRange.from as Date,
       end: dateRange.to as Date,
@@ -179,7 +180,7 @@ export default function KpiSpecificReport({
       <CardHeader>
         <CardTitle>Báo cáo hiệu suất theo KPI</CardTitle>
         <CardDescription>
-          Chọn một KPI để xem và so sánh hiệu suất của nhân viên.
+          Chọn một KPI để xem và so sánh hiệu suất của nhân viên (chỉ tính các KPI đã được duyệt).
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -332,7 +333,7 @@ export default function KpiSpecificReport({
               <Card>
                 <CardContent className="pt-6">
                   <p className="text-center text-muted-foreground">
-                    Không có dữ liệu cho KPI này trong khoảng thời gian đã chọn.
+                    Không có dữ liệu đã duyệt cho KPI này trong khoảng thời gian đã chọn.
                   </p>
                 </CardContent>
               </Card>

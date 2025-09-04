@@ -66,6 +66,7 @@ export default function DepartmentReport({
       const employeeRecords = kpiRecords.filter(
         r =>
           r.employeeId === employee.id &&
+          r.status === 'approved' && // Only include approved records
           isWithinInterval(new Date(r.endDate), {
             start: dateRange.from as Date,
             end: dateRange.to as Date,
@@ -181,8 +182,8 @@ export default function DepartmentReport({
 
     const exportData = combinedData.map(item => ({
         "Tên nhân viên": item.name,
-        "Số KPI (hiện tại)": item.currentKpiCount,
-        ...(comparisonDateRange && { "Số KPI (so sánh)": item.previousKpiCount }),
+        "Số KPI đã duyệt (hiện tại)": item.currentKpiCount,
+        ...(comparisonDateRange && { "Số KPI đã duyệt (so sánh)": item.previousKpiCount }),
         "Hoàn thành TB (hiện tại, %)": item.current ?? 0,
         ...(comparisonDateRange && { "Hoàn thành TB (so sánh, %)": item.previous ?? 0 }),
         ...(comparisonDateRange && { "Thay đổi (%)": item.change }),
@@ -206,7 +207,7 @@ export default function DepartmentReport({
       <CardHeader>
         <CardTitle>Báo cáo hiệu suất phòng ban</CardTitle>
         <CardDescription>
-          Chọn phòng ban và các kỳ để so sánh hiệu suất nhân viên.
+          Chọn phòng ban và các kỳ để so sánh hiệu suất nhân viên (chỉ tính các KPI đã được duyệt).
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -304,9 +305,9 @@ export default function DepartmentReport({
                       <TableHeader>
                         <TableRow>
                           <TableHead>Nhân viên</TableHead>
-                          <TableHead>KPIs (hiện tại)</TableHead>
+                          <TableHead>KPIs đã duyệt (hiện tại)</TableHead>
                            {comparisonDateRange && (
-                                <TableHead>KPIs (so sánh)</TableHead>
+                                <TableHead>KPIs đã duyệt (so sánh)</TableHead>
                            )}
                           <TableHead className="text-right">
                             Hoàn thành TB (hiện tại)
@@ -372,7 +373,7 @@ export default function DepartmentReport({
               <Card>
                 <CardContent className="pt-6">
                   <p className="text-center text-muted-foreground">
-                    Không có dữ liệu KPI cho phòng ban này trong khoảng thời gian
+                    Không có dữ liệu KPI đã được duyệt cho phòng ban này trong khoảng thời gian
                     đã chọn.
                   </p>
                 </CardContent>
