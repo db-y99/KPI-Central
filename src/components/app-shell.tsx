@@ -9,6 +9,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarInset,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -28,9 +29,12 @@ export default function AppShell({ children }: { children: ReactNode }) {
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <div className="flex items-center gap-2 p-2">
-            <Award className="size-7 text-primary" />
-            <span className="text-xl font-semibold">KPI Central</span>
+          <div className="flex items-center justify-between p-2">
+            <div className="flex items-center gap-2">
+              <Award className="size-7 text-primary" />
+              <span className="text-xl font-semibold">KPI Central</span>
+            </div>
+            <SidebarTrigger />
           </div>
         </SidebarHeader>
         <SidebarContent>

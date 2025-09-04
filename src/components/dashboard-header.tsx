@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { AuthContext } from '@/context/auth-context';
+import { SidebarTrigger, useSidebar } from './ui/sidebar';
 
 interface DashboardHeaderProps {
   title: string;
@@ -22,6 +23,7 @@ interface DashboardHeaderProps {
 export default function DashboardHeader({ title, user }: DashboardHeaderProps) {
   const { logout } = useContext(AuthContext);
   const router = useRouter();
+  const { isMobile } = useSidebar();
 
   const handleLogout = () => {
     logout();
@@ -30,7 +32,10 @@ export default function DashboardHeader({ title, user }: DashboardHeaderProps) {
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
-      <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+      <div className="flex items-center gap-4">
+        {isMobile && <SidebarTrigger />}
+        <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+      </div>
       {user && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
