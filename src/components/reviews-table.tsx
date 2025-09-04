@@ -4,12 +4,12 @@ import { useContext, useMemo, useState } from 'react';
 import type { DateRange } from 'react-day-picker';
 import { isWithinInterval } from 'date-fns';
 import { DataContext } from '@/context/data-context';
-import type { Employee } from '@/types';
+import type { Employee, Kpi } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
-import { Download, ChevronsRight } from 'lucide-react';
+import { Download, ChevronsRight, TrendingUp, TrendingDown } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +23,7 @@ interface ReviewData {
   totalKpis: number;
   averageCompletion: number;
   grade: string;
+  rewardPenalty: number;
 }
 
 const getGrade = (completion: number): string => {
@@ -41,9 +42,34 @@ const gradeColors: { [key: string]: string } = {
     'D': 'bg-red-600 hover:bg-red-700 text-white',
 };
 
+const calculateRewardPenalty = (records: any[], kpis: Kpi[]): number => {
+    return records.reduce((acc, record) => {
+        const kpiDetail = kpis.find(k => k.id === record.kpiId);
+        if (!kpiDetail) return acc;
+
+        // Penalty logic
+        if (kpiDetail.penalty && record.actual > record.target) {
+            return acc - kpiDetail.penalty * record.actual;
+        }
+
+        // Reward logic
+        if (kpiDetail.reward && record.actual >= record.target) {
+            // For boolean-like KPIs (target=0, actual=1 or target=1, actual=1)
+            if (record.target === 0 && record.actual > 0) {
+                 return acc + kpiDetail.reward * record.actual;
+            }
+             if (record.target > 0 && record.actual >= record.target){
+                 return acc + kpiDetail.reward;
+             }
+        }
+        
+        return acc;
+    }, 0);
+}
+
 
 export default function ReviewsTable({ dateRange }: ReviewsTableProps) {
-  const { employees, kpiRecords } = useContext(DataContext);
+  const { employees, kpis, kpiRecords } = useContext(DataContext);
   const [reviewData, setReviewData] = useState<ReviewData[]>([]);
   const { toast } = useToast();
 
@@ -65,19 +91,20 @@ export default function ReviewsTable({ dateRange }: ReviewsTableProps) {
       }
 
       const totalCompletion = employeeRecords.reduce((acc, record) => {
-        const completion = record.target > 0 ? (record.actual / record.target) * 100 : 0;
+        const completion = record.target > 0 ? (record.actual / record.target) * 100 : (record.actual > 0 ? 100 : 0);
         return acc + completion;
       }, 0);
 
       const averageCompletion = Math.round(totalCompletion / employeeRecords.length);
       const grade = getGrade(averageCompletion);
+      const rewardPenalty = calculateRewardPenalty(employeeRecords, kpis);
 
-      return { employee, totalKpis: employeeRecords.length, averageCompletion, grade };
+      return { employee, totalKpis: employeeRecords.length, averageCompletion, grade, rewardPenalty };
     }).filter((item): item is ReviewData => item !== null)
       .sort((a, b) => b.averageCompletion - a.averageCompletion);
       
     setReviewData(calculatedData);
-  }, [dateRange, employees, kpiRecords]);
+  }, [dateRange, employees, kpiRecords, kpis]);
 
   const handleGradeChange = (employeeId: string, newGrade: string) => {
     setReviewData(prevData =>
@@ -136,9 +163,10 @@ export default function ReviewsTable({ dateRange }: ReviewsTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Nhân viên</TableHead>
-              <TableHead className="text-center">Số KPI đã duyệt</TableHead>
+              <TableHead className="text-center">Số KPI</TableHead>
               <TableHead className="text-center">Hoàn thành TB</TableHead>
-              <TableHead className="w-[150px] text-center">Xếp loại đề xuất</TableHead>
+              <TableHead className="text-center">Thưởng/Phạt (VND)</TableHead>
+              <TableHead className="w-[150px] text-center">Xếp loại</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -158,6 +186,13 @@ export default function ReviewsTable({ dateRange }: ReviewsTableProps) {
                 </TableCell>
                 <TableCell className="text-center">{item.totalKpis}</TableCell>
                 <TableCell className="text-center font-bold">{item.averageCompletion}%</TableCell>
+                <TableCell className={cn("text-center font-bold", item.rewardPenalty > 0 ? "text-green-500" : "text-red-500")}>
+                    <div className="flex items-center justify-center gap-1">
+                        {item.rewardPenalty > 0 && <TrendingUp className="h-4 w-4" />}
+                        {item.rewardPenalty < 0 && <TrendingDown className="h-4 w-4" />}
+                        {new Intl.NumberFormat('vi-VN').format(item.rewardPenalty)}
+                    </div>
+                </TableCell>
                 <TableCell className="text-center">
                    <Select value={item.grade} onValueChange={(newGrade) => handleGradeChange(item.employee.id, newGrade)}>
                         <SelectTrigger className={cn("w-24 mx-auto border-0 font-semibold", gradeColors[item.grade])}>

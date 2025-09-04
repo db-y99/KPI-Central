@@ -20,6 +20,8 @@ export type Kpi = {
   formula?: string;
   unit: string;
   frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annually';
+  reward?: number;
+  penalty?: number;
 };
 
 export type KpiRecord = {
