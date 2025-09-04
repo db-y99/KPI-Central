@@ -1,24 +1,13 @@
 'use client';
 import { useContext } from 'react';
 import { useRouter } from 'next/navigation';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { AuthContext } from '@/context/auth-context';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
-import Link from 'next/link';
 
 export default function DashboardHeader() {
-  const { user, logout } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const router = useRouter();
   const isMobile = useIsMobile();
   const pathname = usePathname();
@@ -38,11 +27,6 @@ export default function DashboardHeader() {
     title = 'Hồ sơ cá nhân';
   }
 
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
-  };
-
   const headerContent = (
     <>
       {!isMobile && (
@@ -51,52 +35,15 @@ export default function DashboardHeader() {
       <div
         className={cn('flex items-center gap-4', isMobile && 'w-full justify-end')}
       >
-        {user && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="relative h-10 w-10 rounded-full"
-              >
-                <Avatar className="h-10 w-10">
-                  <AvatarImage
-                    src={user.avatar}
-                    alt={user.name}
-                    data-ai-hint="person"
-                  />
-                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {user.name}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user.position}
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {user.role === 'employee' && (
-                <Link href={'/employee/profile'} passHref>
-                  <DropdownMenuItem>Hồ sơ</DropdownMenuItem>
-                </Link>
-              )}
-              <DropdownMenuItem>Cài đặt</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>Đăng xuất</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+        {/* User Dropdown has been moved to the AppShell sidebar */}
       </div>
     </>
   );
 
   if (isMobile) {
-    return headerContent;
+    // On mobile, the header doesn't show the title, so we can return an empty fragment
+    // as the other elements (logo, sheet trigger) are handled in AppShell.
+    return <></>;
   }
 
   return (

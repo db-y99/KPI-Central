@@ -2,7 +2,7 @@
 import type { ReactNode } from 'react';
 import { useState, useContext } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Home,
   BarChart2,
@@ -13,6 +13,8 @@ import {
   ListPlus,
   Target,
   Users,
+  LogOut,
+  User,
 } from 'lucide-react';
 import { AuthContext } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
@@ -26,15 +28,23 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import DashboardHeader from './dashboard-header';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Separator } from './ui/separator';
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { user } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
+  const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const isMobile = useIsMobile();
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
   };
 
   const isAdmin = user?.role === 'admin';
@@ -47,13 +57,20 @@ export default function AppShell({ children }: { children: ReactNode }) {
       isActive: pathname === '/admin' || pathname === '/employee',
     },
     {
+      href: '/employee/profile',
+      label: 'Hồ sơ cá nhân',
+      icon: User,
+      isActive: pathname.startsWith('/employee/profile'),
+      isEmployeeOnly: true,
+    },
+    {
       href: '/admin/kpi-definitions',
       label: 'Quản lý KPI',
       icon: ListPlus,
       isActive: pathname.startsWith('/admin/kpi-definitions'),
       isAdminOnly: true,
     },
-     {
+    {
       href: '/admin/employees',
       label: 'Quản lý nhân viên',
       icon: Users,
@@ -84,9 +101,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           !isCollapsed ? 'justify-between' : 'justify-center'
         )}
       >
-        <div
-          className={cn('flex items-center gap-2', isCollapsed && 'hidden')}
-        >
+        <div className={cn('flex items-center gap-2', isCollapsed && 'hidden')}>
           <Award className="size-7 text-primary" />
           <span className="text-xl font-semibold">KPI Central</span>
         </div>
@@ -107,11 +122,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </Button>
         </div>
       </div>
-      <nav className="flex-1 space-y-2 p-2">
+      <nav className="flex-1 space-y-2 overflow-y-auto p-2">
         <TooltipProvider delayDuration={0}>
           {navLinks.map(
             link =>
-              (!link.isAdminOnly || isAdmin) && (
+              ((!link.isAdminOnly && !link.isEmployeeOnly) || (link.isAdminOnly && isAdmin) || (link.isEmployeeOnly && !isAdmin)) && (
                 <Tooltip key={link.label}>
                   <TooltipTrigger asChild>
                     <Button
@@ -135,6 +150,68 @@ export default function AppShell({ children }: { children: ReactNode }) {
           )}
         </TooltipProvider>
       </nav>
+
+      {/* User section */}
+      <div className="mt-auto border-t p-2">
+        <Separator className={cn('my-2', isCollapsed && 'hidden')} />
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                className={cn(
+                  'flex items-center gap-3 rounded-md p-2 text-sm',
+                  isCollapsed && 'justify-center'
+                )}
+              >
+                <Avatar className="h-9 w-9">
+                  <AvatarImage
+                    src={user?.avatar}
+                    alt={user?.name}
+                    data-ai-hint="person"
+                  />
+                  <AvatarFallback>{user?.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div
+                  className={cn('flex flex-col', isCollapsed && 'hidden')}
+                >
+                  <span className="font-semibold leading-tight">
+                    {user?.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {user?.position}
+                  </span>
+                </div>
+              </div>
+            </TooltipTrigger>
+            {isCollapsed && user && (
+              <TooltipContent side="right">
+                <p>{user.name}</p>
+                <p className="text-muted-foreground">{user.position}</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                className={cn('mt-1 w-full', !isCollapsed && 'justify-start')}
+                onClick={handleLogout}
+              >
+                <LogOut className="size-5" />
+                <span className={cn('ml-4', isCollapsed && 'hidden')}>
+                  Đăng xuất
+                </span>
+              </Button>
+            </TooltipTrigger>
+            {isCollapsed && (
+              <TooltipContent side="right">Đăng xuất</TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
+      </div>
     </div>
   );
 
@@ -156,7 +233,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 <span className="sr-only">Mở menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[250px] p-0">
+            <SheetContent side="left" className="w-[280px] p-0">
               {sidebarContent}
             </SheetContent>
           </Sheet>
@@ -164,7 +241,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <Award className="size-7 text-primary" />
             <span className="text-lg font-semibold">KPI Central</span>
           </div>
-          <DashboardHeader />
         </header>
         <div className="flex flex-1 flex-col overflow-hidden">
           <main className="flex-1 overflow-y-auto bg-background">
