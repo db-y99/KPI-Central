@@ -140,7 +140,25 @@ export default function KpiCard({
   const StatusIcon = currentStatus.icon;
 
   return (
-    <Card className="flex flex-col transition-all">
+    <Card className="relative flex flex-col transition-all">
+       <TooltipProvider>
+          <Tooltip>
+              <TooltipTrigger asChild>
+                  <div className="absolute top-3 right-3">
+                      <Badge variant="outline" size="icon" className={cn("border-0 text-white", currentStatus.color)}>
+                          <StatusIcon className="h-4 w-4" />
+                      </Badge>
+                  </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                  <p>{currentStatus.label}</p>
+                  {record.status === 'rejected' && record.approvalComment && (
+                      <p className="text-xs text-muted-foreground italic">Lý do: {record.approvalComment}</p>
+                  )}
+              </TooltipContent>
+          </Tooltip>
+      </TooltipProvider>
+
       <CardHeader>
         {showEmployee && record.employeeName && (
           <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
@@ -148,24 +166,7 @@ export default function KpiCard({
             <span>{record.employeeName}</span>
           </div>
         )}
-        <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">{record.name}</CardTitle>
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                       <Badge variant="outline" size="icon" className={cn("border-0 text-white", currentStatus.color)}>
-                           <StatusIcon className="h-4 w-4" />
-                        </Badge>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>{currentStatus.label}</p>
-                        {record.status === 'rejected' && record.approvalComment && (
-                           <p className="text-xs text-muted-foreground italic">Lý do: {record.approvalComment}</p>
-                        )}
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-        </div>
+        <CardTitle className="text-lg pr-8">{record.name}</CardTitle>
         <CardDescription className="truncate pt-1">{record.description}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow space-y-4">
@@ -198,15 +199,6 @@ export default function KpiCard({
         </div>
       </CardContent>
       <CardFooter className="flex flex-col items-start gap-4 p-6 pt-0">
-         <div className="w-full">
-            <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>Tiến độ</span>
-                <span className={cn('font-bold', completionPercentage >= 100 && 'text-green-500')}>
-                    {completionPercentage}%
-                </span>
-            </div>
-            <Progress value={completionPercentage} className="h-2" />
-        </div>
         <div className="grid w-full grid-cols-2 gap-2">
             {canUpdate && (
                 <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
@@ -309,6 +301,15 @@ export default function KpiCard({
                 </>
             )}
 
+        </div>
+         <div className="w-full">
+            <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                <span>Tiến độ</span>
+                <span className={cn('font-bold', completionPercentage >= 100 && 'text-green-500')}>
+                    {completionPercentage}%
+                </span>
+            </div>
+            <Progress value={completionPercentage} className="h-2" />
         </div>
       </CardFooter>
     </Card>
