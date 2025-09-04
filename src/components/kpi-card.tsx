@@ -74,12 +74,12 @@ export default function KpiCard({ record, showEmployee = false }: KpiCardProps) 
       </CardHeader>
       <CardContent className="flex-grow space-y-4">
         <div className="space-y-2">
-          <div className="flex justify-between text-sm font-medium">
+          <div className="flex justify-between text-sm font-medium min-h-[40px]">
             <span>
               Thực tế: {new Intl.NumberFormat('vi-VN').format(actualValue)}{' '}
               {record.unit}
             </span>
-            <span className="text-muted-foreground">
+            <span className="text-muted-foreground text-right">
               Chỉ tiêu: {new Intl.NumberFormat('vi-VN').format(record.target)}{' '}
               {record.unit}
             </span>
