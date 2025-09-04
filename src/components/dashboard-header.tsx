@@ -31,6 +31,8 @@ export default function DashboardHeader() {
     title = 'Hồ sơ cá nhân';
   }
 
+  const showViewSwitcher = pathname === '/admin' || pathname === '/employee';
+
   const headerContent = (
     <>
       {!isMobile && (
@@ -39,7 +41,7 @@ export default function DashboardHeader() {
       <div
         className={cn('flex items-center gap-4', isMobile && 'w-full justify-between')}
       >
-        {pathname === '/admin' && !isMobile && (
+        {showViewSwitcher && !isMobile && (
           <div className="flex items-center gap-2">
             <Button
               variant={view === 'grid' ? 'secondary' : 'ghost'}
@@ -66,7 +68,7 @@ export default function DashboardHeader() {
     // as the other elements (logo, sheet trigger) are handled in AppShell.
     return (
        <header className="sticky top-0 z-10 flex h-16 items-center justify-end border-b bg-background/80 px-6 backdrop-blur-sm">
-         {pathname === '/admin' && (
+         {showViewSwitcher && (
           <div className="flex items-center gap-2">
             <Button
               variant={view === 'grid' ? 'secondary' : 'ghost'}

@@ -18,10 +18,11 @@ import {
 import { AuthContext } from '@/context/auth-context';
 import { DataContext } from '@/context/data-context';
 import EmployeeKpiListRow from '@/components/employee-kpi-list-row';
+import KpiCard from '@/components/kpi-card';
 
 export default function EmployeeDashboardPage() {
   const { user } = useContext(AuthContext);
-  const { kpis, kpiRecords } = useContext(DataContext);
+  const { kpis, kpiRecords, view } = useContext(DataContext);
 
   // The layout will handle loading and redirection
   if (!user) {
@@ -49,6 +50,15 @@ export default function EmployeeDashboardPage() {
             </p>
           </CardContent>
         </Card>
+      ) : view === 'grid' ? (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {enrichedKpiRecords.map(record => (
+            <KpiCard
+              key={record.id}
+              record={record as Kpi & KpiRecord}
+            />
+          ))}
+        </div>
       ) : (
         <Card>
           <CardHeader>
