@@ -32,8 +32,14 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Progress } from './ui/progress';
+import { type DateRange } from 'react-day-picker';
+import { isWithinInterval } from 'date-fns';
 
-export default function DepartmentReport() {
+interface DepartmentReportProps {
+  dateRange?: DateRange;
+}
+
+export default function DepartmentReport({ dateRange }: DepartmentReportProps) {
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | null>(null);
 
   const departmentEmployees = useMemo(() => {
@@ -43,7 +49,19 @@ export default function DepartmentReport() {
 
   const departmentData = useMemo(() => {
     return departmentEmployees.map(employee => {
-      const employeeRecords = kpiRecords.filter(r => r.employeeId === employee.id);
+      let employeeRecords = kpiRecords.filter(
+        r => r.employeeId === employee.id
+      );
+
+      if (dateRange?.from && dateRange?.to) {
+        employeeRecords = employeeRecords.filter(record =>
+          isWithinInterval(new Date(record.endDate), {
+            start: dateRange.from as Date,
+            end: dateRange.to as Date,
+          })
+        );
+      }
+
       if (employeeRecords.length === 0) {
         return {
           name: employee.name,
@@ -65,15 +83,16 @@ export default function DepartmentReport() {
         kpiCount: employeeRecords.length,
       };
     });
-  }, [departmentEmployees]);
+  }, [departmentEmployees, dateRange]);
 
   const departmentAverage = useMemo(() => {
-    if (departmentData.length === 0) return 0;
-    const total = departmentData.reduce(
+    const validData = departmentData.filter(d => d.kpiCount > 0);
+    if (validData.length === 0) return 0;
+    const total = validData.reduce(
       (acc, item) => acc + item.avgCompletion,
       0
     );
-    return Math.round(total / departmentData.length);
+    return Math.round(total / validData.length);
   }, [departmentData]);
 
   const chartConfig = {
@@ -83,12 +102,14 @@ export default function DepartmentReport() {
     },
   };
 
+  const hasData = departmentData.some(d => d.kpiCount > 0);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Báo cáo hiệu suất phòng ban</CardTitle>
         <CardDescription>
-          Chọn một phòng ban để so sánh hiệu suất của các nhân viên.
+          Chọn phòng ban và khoảng thời gian để so sánh hiệu suất nhân viên.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -109,101 +130,109 @@ export default function DepartmentReport() {
 
         {selectedDepartmentId && (
           <div className="space-y-8">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>
-                  Tổng quan hiệu suất:{' '}
-                  {departments.find(d => d.id === selectedDepartmentId)?.name}
-                </CardTitle>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">TB Phòng ban</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {departmentAverage}%
-                  </p>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {departmentData.length > 0 ? (
-                  <ChartContainer
-                    config={chartConfig}
-                    className="h-[250px] w-full"
-                  >
-                    <ResponsiveContainer>
-                      <BarChart data={departmentData} margin={{ top: 20 }}>
-                        <XAxis
-                          dataKey="name"
-                          tickLine={false}
-                          tickMargin={10}
-                          axisLine={false}
-                        />
-                        <YAxis unit="%" />
-                        <ChartTooltip
-                          cursor={false}
-                          content={<ChartTooltipContent indicator="dot" />}
-                        />
-                        <Bar
-                          dataKey="avgCompletion"
-                          fill="var(--color-avgCompletion)"
-                          radius={4}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                ) : (
-                  <p>Không có dữ liệu cho biểu đồ.</p>
-                )}
-              </CardContent>
-            </Card>
+            {hasData ? (
+              <>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>
+                      Tổng quan hiệu suất:{' '}
+                      {departments.find(d => d.id === selectedDepartmentId)?.name}
+                    </CardTitle>
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">TB Phòng ban</p>
+                      <p className="text-2xl font-bold text-primary">
+                        {departmentAverage}%
+                      </p>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ChartContainer
+                      config={chartConfig}
+                      className="h-[250px] w-full"
+                    >
+                      <ResponsiveContainer>
+                        <BarChart data={departmentData} margin={{ top: 20 }}>
+                          <XAxis
+                            dataKey="name"
+                            tickLine={false}
+                            tickMargin={10}
+                            axisLine={false}
+                          />
+                          <YAxis unit="%" />
+                          <ChartTooltip
+                            cursor={false}
+                            content={<ChartTooltipContent indicator="dot" />}
+                          />
+                          <Bar
+                            dataKey="avgCompletion"
+                            fill="var(--color-avgCompletion)"
+                            radius={4}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Chi tiết nhân viên</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nhân viên</TableHead>
-                      <TableHead>Số KPI được giao</TableHead>
-                      <TableHead className="text-right">
-                        Tỷ lệ hoàn thành TB
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {departmentData.map(employee => (
-                      <TableRow key={employee.name}>
-                        <TableCell className="flex items-center gap-3 font-medium">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage
-                              src={employee.avatar}
-                              alt={employee.name}
-                              data-ai-hint="person"
-                            />
-                            <AvatarFallback>
-                              {employee.name.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          {employee.name}
-                        </TableCell>
-                        <TableCell>{employee.kpiCount}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-3">
-                            <span className="w-12 text-right">
-                              {employee.avgCompletion}%
-                            </span>
-                            <Progress
-                              value={employee.avgCompletion}
-                              className="w-24"
-                            />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Chi tiết nhân viên</CardTitle>
+                  </Header>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nhân viên</TableHead>
+                          <TableHead>Số KPI được giao</TableHead>
+                          <TableHead className="text-right">
+                            Tỷ lệ hoàn thành TB
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {departmentData.map(employee => (
+                          <TableRow key={employee.name}>
+                            <TableCell className="flex items-center gap-3 font-medium">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage
+                                  src={employee.avatar}
+                                  alt={employee.name}
+                                  data-ai-hint="person"
+                                />
+                                <AvatarFallback>
+                                  {employee.name.charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
+                              {employee.name}
+                            </TableCell>
+                            <TableCell>{employee.kpiCount}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-3">
+                                <span className="w-12 text-right">
+                                  {employee.avgCompletion}%
+                                </span>
+                                <Progress
+                                  value={employee.avgCompletion}
+                                  className="w-24"
+                                />
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+               <Card>
+                <CardContent className="pt-6">
+                   <p className="text-center text-muted-foreground">
+                    Không có dữ liệu KPI cho phòng ban này trong khoảng thời gian đã chọn.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
       </CardContent>

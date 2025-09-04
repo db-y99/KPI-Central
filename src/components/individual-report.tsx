@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -24,28 +24,47 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { type DateRange } from 'react-day-picker';
+import { isWithinInterval } from 'date-fns';
 
-export default function IndividualReport() {
+interface IndividualReportProps {
+  dateRange?: DateRange;
+}
+
+export default function IndividualReport({ dateRange }: IndividualReportProps) {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(
     null
   );
 
   const selectedEmployee = employees.find(e => e.id === selectedEmployeeId);
-  const employeeKpiRecords = kpiRecords.filter(
-    r => r.employeeId === selectedEmployeeId
-  );
 
-  const enrichedKpiRecords = employeeKpiRecords.map(record => {
-    const kpiDetails = kpis.find(k => k.id === record.kpiId);
-    return {
-      ...record,
-      ...kpiDetails,
-      completion:
-        record.target > 0
-          ? Math.round((record.actual / record.target) * 100)
-          : 0,
-    };
-  });
+  const filteredKpiRecords = useMemo(() => {
+    let records = kpiRecords.filter(r => r.employeeId === selectedEmployeeId);
+
+    if (dateRange?.from && dateRange?.to) {
+      records = records.filter(record =>
+        isWithinInterval(new Date(record.endDate), {
+          start: dateRange.from as Date,
+          end: dateRange.to as Date,
+        })
+      );
+    }
+    return records;
+  }, [selectedEmployeeId, dateRange]);
+
+  const enrichedKpiRecords = useMemo(() => {
+    return filteredKpiRecords.map(record => {
+      const kpiDetails = kpis.find(k => k.id === record.kpiId);
+      return {
+        ...record,
+        ...kpiDetails,
+        completion:
+          record.target > 0
+            ? Math.round((record.actual / record.target) * 100)
+            : 0,
+      };
+    });
+  }, [filteredKpiRecords]);
 
   const chartConfig = {
     completion: {
@@ -59,7 +78,7 @@ export default function IndividualReport() {
       <CardHeader>
         <CardTitle>Báo cáo hiệu suất cá nhân</CardTitle>
         <CardDescription>
-          Chọn một nhân viên để xem hiệu suất KPI của họ.
+          Chọn một nhân viên và khoảng thời gian để xem hiệu suất KPI của họ.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -117,7 +136,9 @@ export default function IndividualReport() {
                     </ResponsiveContainer>
                   </ChartContainer>
                 ) : (
-                  <p className="text-muted-foreground">Không có dữ liệu cho biểu đồ.</p>
+                  <p className="text-center text-muted-foreground">
+                    Không có dữ liệu KPI cho nhân viên này trong khoảng thời gian đã chọn.
+                  </p>
                 )}
               </CardContent>
             </Card>
@@ -131,9 +152,9 @@ export default function IndividualReport() {
               ))}
             </div>
 
-            {enrichedKpiRecords.length === 0 && (
-              <p className="text-muted-foreground">
-                Không có KPI nào được giao cho nhân viên này.
+            {enrichedKpiRecords.length === 0 && selectedEmployeeId && (
+              <p className="text-center text-muted-foreground">
+                Vui lòng thử chọn một nhân viên khác hoặc thay đổi khoảng thời gian.
               </p>
             )}
           </div>
