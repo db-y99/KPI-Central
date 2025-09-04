@@ -27,19 +27,16 @@ export default function DashboardHeader() {
   if (pathname.startsWith('/admin/reports')) {
     title = 'Báo cáo';
   } else if (pathname.startsWith('/admin/kpi-definitions')) {
-      title = 'Quản lý KPI';
+    title = 'Quản lý KPI';
   } else if (pathname.startsWith('/admin/employees')) {
-      title = 'Quản lý nhân viên';
+    title = 'Quản lý nhân viên';
   } else if (pathname.startsWith('/admin/kpi-assignment')) {
-      title = 'Giao KPI';
-  } else if (pathname.startsWith('/admin/profile')) {
-    title = 'Hồ sơ cá nhân';
+    title = 'Giao KPI';
   } else if (pathname.startsWith('/admin')) {
     title = 'Tổng quan của quản lý';
   } else if (pathname.startsWith('/employee/profile')) {
     title = 'Hồ sơ cá nhân';
   }
-
 
   const handleLogout = () => {
     logout();
@@ -51,7 +48,9 @@ export default function DashboardHeader() {
       {!isMobile && (
         <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
       )}
-      <div className={cn('flex items-center gap-4', isMobile && 'w-full justify-end')}>
+      <div
+        className={cn('flex items-center gap-4', isMobile && 'w-full justify-end')}
+      >
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -72,16 +71,20 @@ export default function DashboardHeader() {
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user.name}</p>
+                  <p className="text-sm font-medium leading-none">
+                    {user.name}
+                  </p>
                   <p className="text-xs leading-none text-muted-foreground">
                     {user.position}
                   </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-               <Link href={user.role === 'admin' ? '/admin/profile' : '/employee/profile'} passHref>
+              {user.role === 'employee' && (
+                <Link href={'/employee/profile'} passHref>
                   <DropdownMenuItem>Hồ sơ</DropdownMenuItem>
                 </Link>
+              )}
               <DropdownMenuItem>Cài đặt</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>Đăng xuất</DropdownMenuItem>
