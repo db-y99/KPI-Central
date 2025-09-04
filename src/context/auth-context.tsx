@@ -24,18 +24,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const storedUserId = localStorage.getItem('userId');
-      if (storedUserId) {
-        const foundUser = employees.find(e => e.id === storedUserId);
-        if (foundUser) {
-          setUser(foundUser);
+    // Prevent this from running on the server
+    if (typeof window !== 'undefined') {
+      try {
+        const storedUserId = localStorage.getItem('userId');
+        if (storedUserId) {
+          const foundUser = employees.find(e => e.id === storedUserId);
+          if (foundUser) {
+            setUser(foundUser);
+          }
         }
+      } catch (e) {
+        console.error('Failed to access localStorage:', e);
+      } finally {
+        setLoading(false);
       }
-    } catch (e) {
-      console.error('Failed to access localStorage:', e);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -48,6 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error('Failed to access localStorage:', e);
       }
       setUser(foundUser);
+      setLoading(false); // Ensure loading is false after login
       return true;
     }
     return false;
@@ -62,13 +66,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
-  if (loading) {
-    return <Loading />;
-  }
-
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>
-      {children}
+      {loading ? <Loading /> : children}
     </AuthContext.Provider>
   );
 };
