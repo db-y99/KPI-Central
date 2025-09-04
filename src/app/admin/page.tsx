@@ -39,7 +39,7 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
       ) : view === 'grid' ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
           {enrichedKpiRecords.map(record => (
             <KpiCard
               key={record.id}
