@@ -1,21 +1,25 @@
 'use client';
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import DashboardHeader from '@/components/dashboard-header';
 import ReportsTabs from '@/components/reports-tabs';
 import { AuthContext } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
+import Loading from '../loading';
 
 export default function ReportsPage() {
   const { user, loading } = useContext(AuthContext);
   const router = useRouter();
 
-  if (loading) {
-    return null;
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [loading, user, router]);
+
+  if (loading || !user) {
+    return <Loading />;
   }
-  if (!user) {
-    router.push('/login');
-    return null;
-  }
+
   // For reports, we might want to ensure the user is a manager.
   // This is a simple check, a real app would have more robust roles.
   const isManager = user.position.toLowerCase().includes('manager');

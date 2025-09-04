@@ -1,5 +1,5 @@
 'use client';
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import DashboardHeader from '@/components/dashboard-header';
 import KpiCard from '@/components/kpi-card';
 import { kpis, kpiRecords } from '@/lib/data';
@@ -7,17 +7,20 @@ import type { Kpi, KpiRecord } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AuthContext } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
+import Loading from './loading';
 
 export default function DashboardPage() {
   const { user, loading } = useContext(AuthContext);
   const router = useRouter();
 
-  if (loading) {
-    return null;
-  }
-  if (!user) {
-    router.push('/login');
-    return null;
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [loading, user, router]);
+
+  if (loading || !user) {
+    return <Loading />;
   }
 
   const userKpiRecords = kpiRecords.filter(r => r.employeeId === user.id);
