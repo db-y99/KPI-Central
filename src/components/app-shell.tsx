@@ -15,6 +15,7 @@ import {
   Users,
   LogOut,
   User,
+  Medal,
 } from 'lucide-react';
 import { AuthContext } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
@@ -89,6 +90,13 @@ export default function AppShell({ children }: { children: ReactNode }) {
       label: 'Báo cáo',
       icon: BarChart2,
       isActive: pathname.startsWith('/admin/reports'),
+      isAdminOnly: true,
+    },
+     {
+      href: '/admin/reviews',
+      label: 'Đánh giá & Xếp loại',
+      icon: Medal,
+      isActive: pathname.startsWith('/admin/reviews'),
       isAdminOnly: true,
     },
   ];
@@ -217,8 +225,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   const mainContent = (
     <div className="relative flex h-screen flex-1 flex-col overflow-y-auto">
-      <DashboardHeader />
-      <main className="flex-1 bg-background">{children}</main>
+       <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
+         <DashboardHeader />
+       </header>
+      <main className="flex-1 bg-muted/30">{children}</main>
     </div>
   );
 

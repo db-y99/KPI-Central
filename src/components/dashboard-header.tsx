@@ -25,6 +25,8 @@ export default function DashboardHeader() {
     title = 'Quản lý nhân viên';
   } else if (pathname.startsWith('/admin/kpi-assignment')) {
     title = 'Giao KPI';
+  } else if (pathname.startsWith('/admin/reviews')) {
+    title = 'Đánh giá & Xếp loại';
   } else if (pathname.startsWith('/admin')) {
     title = 'Tổng quan của quản lý';
   } else if (pathname.startsWith('/employee/profile')) {
@@ -41,7 +43,7 @@ export default function DashboardHeader() {
       <div
         className={cn('flex items-center gap-4', isMobile && 'w-full justify-between')}
       >
-        {showViewSwitcher && !isMobile && (
+        {showViewSwitcher && (
           <div className="flex items-center gap-2">
             <Button
               variant={view === 'grid' ? 'secondary' : 'ghost'}
@@ -90,9 +92,5 @@ export default function DashboardHeader() {
     );
   }
 
-  return (
-    <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
-      {headerContent}
-    </header>
-  );
+  return headerContent;
 }
