@@ -35,7 +35,7 @@ interface RewardCalculatorProps {
 const formSchema = z.object({
   performanceRatingFactors: z
     .string()
-    .min(10, 'Please provide some factors for consideration.'),
+    .min(10, 'Vui lòng cung cấp một số yếu tố để xem xét.'),
 });
 
 export default function RewardCalculator({ record }: RewardCalculatorProps) {
@@ -51,7 +51,7 @@ export default function RewardCalculator({ record }: RewardCalculatorProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       performanceRatingFactors:
-        'A: >100% target, B: 80-100%, C: 60-80%, D: <60%',
+        'A: >100% mục tiêu, B: 80-100%, C: 60-80%, D: <60%',
     },
   });
 
@@ -67,14 +67,14 @@ export default function RewardCalculator({ record }: RewardCalculatorProps) {
       if (response) {
         setResult(response);
       } else {
-        throw new Error('Failed to get a response from the AI.');
+        throw new Error('Không nhận được phản hồi từ AI.');
       }
     } catch (error) {
       console.error(error);
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Could not calculate reward. Please try again.',
+        title: 'Lỗi',
+        description: 'Không thể tính toán phần thưởng. Vui lòng thử lại.',
       });
     } finally {
       setIsLoading(false);
@@ -87,7 +87,7 @@ export default function RewardCalculator({ record }: RewardCalculatorProps) {
       onOpenChange={open => {
         setOpen(open);
         if (!open) {
-          // Reset state on close
+          // Đặt lại trạng thái khi đóng
           setResult(null);
           form.reset();
         }
@@ -100,18 +100,18 @@ export default function RewardCalculator({ record }: RewardCalculatorProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>AI Reward Calculator</DialogTitle>
+          <DialogTitle>Máy tính thưởng AI</DialogTitle>
           <DialogDescription>
-            Calculate performance rating and potential rewards for: {record.name}.
+            Tính toán xếp hạng hiệu suất và phần thưởng tiềm năng cho: {record.name}.
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
           <div className="text-sm">
             <p>
-              <strong>Actual:</strong> {record.actual}
+              <strong>Thực tế:</strong> {record.actual}
             </p>
             <p>
-              <strong>Target:</strong> {record.target}
+              <strong>Mục tiêu:</strong> {record.target}
             </p>
           </div>
           <Form {...form}>
@@ -124,10 +124,10 @@ export default function RewardCalculator({ record }: RewardCalculatorProps) {
                 name="performanceRatingFactors"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Performance Rating Factors</FormLabel>
+                    <FormLabel>Yếu tố xếp hạng hiệu suất</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="e.g., A: >100% target, B: 80-100%, ..."
+                        placeholder="VD: A: >100% mục tiêu, B: 80-100%, ..."
                         {...field}
                       />
                     </FormControl>
@@ -139,7 +139,7 @@ export default function RewardCalculator({ record }: RewardCalculatorProps) {
                 {isLoading && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Calculate
+                Tính toán
               </Button>
             </form>
           </Form>
@@ -147,17 +147,17 @@ export default function RewardCalculator({ record }: RewardCalculatorProps) {
           {result && (
             <Card className="mt-6 bg-accent/20">
               <CardHeader>
-                <CardTitle className="text-lg">AI Suggestion</CardTitle>
+                <CardTitle className="text-lg">Gợi ý từ AI</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <p>
-                  <strong>Performance Rating:</strong>{' '}
+                  <strong>Xếp hạng hiệu suất:</strong>{' '}
                   <span className="text-xl font-bold text-primary">
                     {result.performanceRating}
                   </span>
                 </p>
                 <p>
-                  <strong>Potential Rewards:</strong> {result.potentialRewards}
+                  <strong>Phần thưởng tiềm năng:</strong> {result.potentialRewards}
                 </p>
               </CardContent>
             </Card>

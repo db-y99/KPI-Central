@@ -78,7 +78,7 @@ export default function DepartmentReport() {
 
   const chartConfig = {
     avgCompletion: {
-      label: 'Avg. Completion',
+      label: 'Tỷ lệ hoàn thành trung bình',
       color: 'hsl(var(--chart-1))',
     },
   };
@@ -86,16 +86,16 @@ export default function DepartmentReport() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Department Performance Report</CardTitle>
+        <CardTitle>Báo cáo hiệu suất phòng ban</CardTitle>
         <CardDescription>
-          Select a department to compare employee performance.
+          Chọn một phòng ban để so sánh hiệu suất của các nhân viên.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="w-full md:w-1/3">
           <Select onValueChange={setSelectedDepartmentId}>
             <SelectTrigger>
-              <SelectValue placeholder="Select a department..." />
+              <SelectValue placeholder="Chọn một phòng ban..." />
             </SelectTrigger>
             <SelectContent>
               {departments.map(dept => (
@@ -112,11 +112,11 @@ export default function DepartmentReport() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>
-                  Performance Overview:{' '}
+                  Tổng quan hiệu suất:{' '}
                   {departments.find(d => d.id === selectedDepartmentId)?.name}
                 </CardTitle>
                 <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Dept. Average</p>
+                  <p className="text-sm text-muted-foreground">TB Phòng ban</p>
                   <p className="text-2xl font-bold text-primary">
                     {departmentAverage}%
                   </p>
@@ -150,23 +150,23 @@ export default function DepartmentReport() {
                     </ResponsiveContainer>
                   </ChartContainer>
                 ) : (
-                  <p>No data for chart.</p>
+                  <p>Không có dữ liệu cho biểu đồ.</p>
                 )}
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Employee Details</CardTitle>
+                <CardTitle>Chi tiết nhân viên</CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Employee</TableHead>
-                      <TableHead>KPIs Assigned</TableHead>
+                      <TableHead>Nhân viên</TableHead>
+                      <TableHead>Số KPI được giao</TableHead>
                       <TableHead className="text-right">
-                        Avg. Completion
+                        Tỷ lệ hoàn thành TB
                       </TableHead>
                     </TableRow>
                   </TableHeader>

@@ -49,7 +49,7 @@ export default function IndividualReport() {
 
   const chartConfig = {
     completion: {
-      label: 'Completion',
+      label: 'Hoàn thành',
       color: 'hsl(var(--chart-1))',
     },
   };
@@ -57,16 +57,16 @@ export default function IndividualReport() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Individual Performance Report</CardTitle>
+        <CardTitle>Báo cáo hiệu suất cá nhân</CardTitle>
         <CardDescription>
-          Select an employee to view their KPI performance.
+          Chọn một nhân viên để xem hiệu suất KPI của họ.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="w-full md:w-1/3">
           <Select onValueChange={setSelectedEmployeeId}>
             <SelectTrigger>
-              <SelectValue placeholder="Select an employee..." />
+              <SelectValue placeholder="Chọn một nhân viên..." />
             </SelectTrigger>
             <SelectContent>
               {employees.map(employee => (
@@ -83,7 +83,7 @@ export default function IndividualReport() {
             <Card>
               <CardHeader>
                 <CardTitle>
-                  Performance Overview: {selectedEmployee?.name}
+                  Tổng quan hiệu suất: {selectedEmployee?.name}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -117,7 +117,7 @@ export default function IndividualReport() {
                     </ResponsiveContainer>
                   </ChartContainer>
                 ) : (
-                  <p className="text-muted-foreground">No data for chart.</p>
+                  <p className="text-muted-foreground">Không có dữ liệu cho biểu đồ.</p>
                 )}
               </CardContent>
             </Card>
@@ -133,7 +133,7 @@ export default function IndividualReport() {
 
             {enrichedKpiRecords.length === 0 && (
               <p className="text-muted-foreground">
-                No KPIs assigned to this employee.
+                Không có KPI nào được giao cho nhân viên này.
               </p>
             )}
           </div>

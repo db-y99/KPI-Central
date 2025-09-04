@@ -33,11 +33,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 asChild
                 isActive={pathname === '/'}
                 size="lg"
-                tooltip="Dashboard"
+                tooltip="Bảng điều khiển"
               >
                 <Link href="/">
                   <Home />
-                  <span>Dashboard</span>
+                  <span>Bảng điều khiển</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -46,11 +46,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 asChild
                 isActive={pathname.startsWith('/reports')}
                 size="lg"
-                tooltip="Reports"
+                tooltip="Báo cáo"
               >
                 <Link href="/reports">
                   <BarChart2 />
-                  <span>Reports</span>
+                  <span>Báo cáo</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

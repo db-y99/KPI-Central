@@ -16,12 +16,12 @@ import {z} from 'genkit';
 const CalculatePerformanceRewardsInputSchema = z.object({
   kpiResults: z
     .number()
-    .describe('The actual results achieved for the KPI.'),
-  target: z.number().describe('The target value set for the KPI.'),
+    .describe('Kết quả thực tế đạt được cho KPI.'),
+  target: z.number().describe('Giá trị mục tiêu được đặt cho KPI.'),
   performanceRatingFactors: z
     .string()
     .describe(
-      'Factors influencing performance rating (e.g., A, B, C, D).'
+      'Các yếu tố ảnh hưởng đến việc xếp hạng hiệu suất (ví dụ: A, B, C, D).'
     ),
 });
 export type CalculatePerformanceRewardsInput = z.infer<
@@ -32,10 +32,10 @@ export type CalculatePerformanceRewardsInput = z.infer<
 const CalculatePerformanceRewardsOutputSchema = z.object({
   performanceRating: z
     .string()
-    .describe('The calculated performance rating (e.g., A, B, C, D).'),
+    .describe('Xếp hạng hiệu suất đã tính toán (ví dụ: A, B, C, D).'),
   potentialRewards: z
     .string()
-    .describe('A description of potential rewards based on performance.'),
+    .describe('Mô tả các phần thưởng tiềm năng dựa trên hiệu suất.'),
 });
 export type CalculatePerformanceRewardsOutput = z.infer<
   typeof CalculatePerformanceRewardsOutputSchema
@@ -53,19 +53,19 @@ const calculatePerformanceRewardsPrompt = ai.definePrompt({
   name: 'calculatePerformanceRewardsPrompt',
   input: {schema: CalculatePerformanceRewardsInputSchema},
   output: {schema: CalculatePerformanceRewardsOutputSchema},
-  prompt: `Based on the KPI results, target, and performance rating factors, determine the performance rating and potential rewards.
+  prompt: `Dựa trên kết quả KPI, mục tiêu và các yếu tố xếp hạng hiệu suất, hãy xác định xếp hạng hiệu suất và các phần thưởng tiềm năng.
 
-KPI Results: {{{kpiResults}}}
-Target: {{{target}}}
-Performance Rating Factors: {{{performanceRatingFactors}}}
+Kết quả KPI: {{{kpiResults}}}
+Mục tiêu: {{{target}}}
+Yếu tố xếp hạng hiệu suất: {{{performanceRatingFactors}}}
 
-Consider the following criteria when determining performance rating and rewards:
-- If KPI Results >= Target, the performance rating is A, and potential rewards include a bonus and promotion consideration.
-- If KPI Results >= 0.8 * Target, the performance rating is B, and potential rewards include a bonus.
-- If KPI Results >= 0.6 * Target, the performance rating is C, and potential rewards include maintaining the current position.
-- If KPI Results < 0.6 * Target, the performance rating is D, and potential rewards include performance improvement plan.
+Hãy xem xét các tiêu chí sau khi xác định xếp hạng hiệu suất và phần thưởng:
+- Nếu Kết quả KPI >= Mục tiêu, xếp hạng hiệu suất là A, và phần thưởng tiềm năng bao gồm thưởng và xem xét thăng chức.
+- Nếu Kết quả KPI >= 0.8 * Mục tiêu, xếp hạng hiệu suất là B, và phần thưởng tiềm năng bao gồm thưởng.
+- Nếu Kết quả KPI >= 0.6 * Mục tiêu, xếp hạng hiệu suất là C, và phần thưởng tiềm năng bao gồm duy trì vị trí hiện tại.
+- Nếu Kết quả KPI < 0.6 * Mục tiêu, xếp hạng hiệu suất là D, và phần thưởng tiềm năng bao gồm kế hoạch cải thiện hiệu suất.
 
-Provide a concise performance rating (A, B, C, or D) and a brief description of potential rewards.
+Cung cấp một xếp hạng hiệu suất ngắn gọn (A, B, C, hoặc D) và một mô tả ngắn về các phần thưởng tiềm năng.
 `,
 });
 

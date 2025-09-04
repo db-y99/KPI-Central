@@ -5,7 +5,7 @@ import AppShell from '@/components/app-shell';
 
 export const metadata: Metadata = {
   title: 'KPI Central',
-  description: 'Manage and track your Key Performance Indicators effectively.',
+  description: 'Quản lý và theo dõi các chỉ số hiệu suất chính của bạn một cách hiệu quả.',
 };
 
 export default function RootLayout({
@@ -14,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="vi" className="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

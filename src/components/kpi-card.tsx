@@ -31,7 +31,7 @@ interface KpiCardProps {
 }
 
 export default function KpiCard({ record }: KpiCardProps) {
-  // Local state for demo purposes. In a real app, this would come from a server state management solution.
+  // Trạng thái cục bộ cho mục đích demo. Trong một ứng dụng thực tế, điều này sẽ đến từ giải pháp quản lý trạng thái máy chủ.
   const [actualValue, setActualValue] = useState(record.actual);
   const [inputValue, setInputValue] = useState(record.actual.toString());
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
@@ -48,7 +48,7 @@ export default function KpiCard({ record }: KpiCardProps) {
   };
 
   const isOverAchieved = completionPercentage > 100;
-  // Green if over 100, accent if 80-100, yellow if 50-80, red otherwise.
+  // Màu xanh lá nếu vượt 100, màu nhấn nếu 80-100, màu vàng nếu 50-80, màu đỏ nếu ngược lại.
   const progressColorClass = isOverAchieved
     ? 'text-green-500'
     : completionPercentage >= 80

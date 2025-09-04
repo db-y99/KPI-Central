@@ -4,7 +4,7 @@ import { employees, kpis, kpiRecords } from '@/lib/data';
 import type { Kpi, KpiRecord } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-// Assume the logged-in user is 'Nguyễn Văn A' (e1) for demonstration
+// Giả sử người dùng đăng nhập là 'Nguyễn Văn A' (e1) để minh họa
 const LOGGED_IN_EMPLOYEE_ID = 'e1';
 
 export default function DashboardPage() {
@@ -21,7 +21,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <DashboardHeader title="Dashboard" user={user} />
+      <DashboardHeader title="Bảng điều khiển" user={user} />
       <div className="flex-1 space-y-8 overflow-y-auto p-6 md:p-8">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {enrichedKpiRecords.map(record => (
@@ -32,11 +32,11 @@ export default function DashboardPage() {
         {enrichedKpiRecords.length === 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>No KPIs Assigned</CardTitle>
+              <CardTitle>Chưa có KPI nào được giao</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                You do not have any KPIs assigned for the current period.
+                Bạn chưa có KPI nào được giao trong kỳ này.
               </p>
             </CardContent>
           </Card>

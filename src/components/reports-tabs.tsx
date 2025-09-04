@@ -6,8 +6,8 @@ export default function ReportsTabs() {
   return (
     <Tabs defaultValue="individual" className="w-full">
       <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
-        <TabsTrigger value="individual">Individual Report</TabsTrigger>
-        <TabsTrigger value="department">Department Report</TabsTrigger>
+        <TabsTrigger value="individual">Báo cáo cá nhân</TabsTrigger>
+        <TabsTrigger value="department">Báo cáo phòng ban</TabsTrigger>
       </TabsList>
       <TabsContent value="individual">
         <IndividualReport />
