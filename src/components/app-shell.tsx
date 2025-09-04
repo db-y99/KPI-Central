@@ -12,6 +12,7 @@ import {
   PanelLeft,
   ListPlus,
   Target,
+  Users,
 } from 'lucide-react';
 import { AuthContext } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
@@ -50,6 +51,13 @@ export default function AppShell({ children }: { children: ReactNode }) {
       label: 'Quản lý KPI',
       icon: ListPlus,
       isActive: pathname.startsWith('/admin/kpi-definitions'),
+      isAdminOnly: true,
+    },
+     {
+      href: '/admin/employees',
+      label: 'Quản lý nhân viên',
+      icon: Users,
+      isActive: pathname.startsWith('/admin/employees'),
       isAdminOnly: true,
     },
     {

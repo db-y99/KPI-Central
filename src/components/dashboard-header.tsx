@@ -25,9 +25,16 @@ export default function DashboardHeader() {
   let title = 'Bảng điều khiển';
   if (pathname.startsWith('/admin/reports')) {
     title = 'Báo cáo';
+  } else if (pathname.startsWith('/admin/kpi-definitions')) {
+      title = 'Quản lý KPI';
+  } else if (pathname.startsWith('/admin/employees')) {
+      title = 'Quản lý nhân viên';
+  } else if (pathname.startsWith('/admin/kpi-assignment')) {
+      title = 'Giao KPI';
   } else if (pathname.startsWith('/admin')) {
     title = 'Tổng quan của quản lý';
   }
+
 
   const handleLogout = () => {
     logout();
