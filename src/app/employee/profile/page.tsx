@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import Loading from '@/app/loading';
-import { List, Target, CheckCircle, Clock } from 'lucide-react';
+import { List, Target, CheckCircle, Clock, TrendingUp, Award } from 'lucide-react';
 
 export default function ProfilePage() {
   const { user } = useContext(AuthContext);
@@ -24,6 +24,15 @@ export default function ProfilePage() {
       const completion = record.target > 0 ? (record.actual / record.target) * 100 : 0;
       return completion >= 100;
   }).length;
+  
+  const overachievedKpis = userKpiRecords.filter(record => record.actual > record.target).length;
+
+  const totalCompletionPercentage = userKpiRecords.reduce((acc, record) => {
+    const completion = record.target > 0 ? (record.actual / record.target) * 100 : 0;
+    return acc + completion;
+  }, 0);
+  
+  const averageCompletion = userKpiRecords.length > 0 ? Math.round(totalCompletionPercentage / userKpiRecords.length) : 0;
 
   const inProgressKpis = userKpiRecords.length - completedKpis;
 
@@ -59,21 +68,26 @@ export default function ProfilePage() {
             <CardDescription>Thống kê hiệu suất làm việc của bạn.</CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                 <div className="p-4 rounded-lg bg-muted">
                     <List className="mx-auto mb-2 h-8 w-8 text-primary" />
                     <p className="text-2xl font-bold">{userKpiRecords.length}</p>
-                    <p className="text-sm text-muted-foreground">Tổng số KPI được giao</p>
+                    <p className="text-sm text-muted-foreground">Tổng KPI</p>
                 </div>
                  <div className="p-4 rounded-lg bg-muted">
                     <CheckCircle className="mx-auto mb-2 h-8 w-8 text-green-500" />
                     <p className="text-2xl font-bold">{completedKpis}</p>
-                    <p className="text-sm text-muted-foreground">KPI đã hoàn thành</p>
+                    <p className="text-sm text-muted-foreground">KPI Hoàn thành</p>
                 </div>
                  <div className="p-4 rounded-lg bg-muted">
-                    <Clock className="mx-auto mb-2 h-8 w-8 text-yellow-500" />
-                    <p className="text-2xl font-bold">{inProgressKpis}</p>
-                    <p className="text-sm text-muted-foreground">KPI đang thực hiện</p>
+                    <TrendingUp className="mx-auto mb-2 h-8 w-8 text-blue-500" />
+                    <p className="text-2xl font-bold">{averageCompletion}%</p>
+                    <p className="text-sm text-muted-foreground">Hoàn thành TB</p>
+                </div>
+                 <div className="p-4 rounded-lg bg-muted">
+                    <Award className="mx-auto mb-2 h-8 w-8 text-amber-500" />
+                    <p className="text-2xl font-bold">{overachievedKpis}</p>
+                    <p className="text-sm text-muted-foreground">KPI Vượt chỉ tiêu</p>
                 </div>
             </div>
         </CardContent>
