@@ -1,0 +1,63 @@
+'use client';
+import type { ReactNode } from 'react';
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarInset,
+} from '@/components/ui/sidebar';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Home, BarChart2, Award } from 'lucide-react';
+
+export default function AppShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+
+  return (
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader>
+          <div className="flex items-center gap-2 p-2">
+            <Award className="size-7 text-primary" />
+            <span className="text-xl font-semibold">KPI Central</span>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/'}
+                size="lg"
+                tooltip="Dashboard"
+              >
+                <Link href="/">
+                  <Home />
+                  <span>Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith('/reports')}
+                size="lg"
+                tooltip="Reports"
+              >
+                <Link href="/reports">
+                  <BarChart2 />
+                  <span>Reports</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarContent>
+      </Sidebar>
+      <SidebarInset>{children}</SidebarInset>
+    </SidebarProvider>
+  );
+}

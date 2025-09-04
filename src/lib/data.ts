@@ -1,0 +1,151 @@
+import type { Department, Employee, Kpi, KpiRecord } from '@/types';
+
+export const departments: Department[] = [
+  { id: 'd1', name: 'Kinh doanh' },
+  { id: 'd2', name: 'Marketing' },
+  { id: 'd3', name: 'Nhân sự' },
+];
+
+export const employees: Employee[] = [
+  {
+    id: 'e1',
+    name: 'Nguyễn Văn A',
+    position: 'Sales Executive',
+    departmentId: 'd1',
+    avatar: 'https://picsum.photos/seed/e1/100/100',
+  },
+  {
+    id: 'e2',
+    name: 'Trần Thị B',
+    position: 'Sales Manager',
+    departmentId: 'd1',
+    avatar: 'https://picsum.photos/seed/e2/100/100',
+  },
+  {
+    id: 'e3',
+    name: 'Lê Văn C',
+    position: 'Marketing Specialist',
+    departmentId: 'd2',
+    avatar: 'https://picsum.photos/seed/e3/100/100',
+  },
+  {
+    id: 'e4',
+    name: 'Phạm Thị D',
+    position: 'Digital Marketing Lead',
+    departmentId: 'd2',
+    avatar: 'https://picsum.photos/seed/e4/100/100',
+  },
+  {
+    id: 'e5',
+    name: 'Hoàng Văn E',
+    position: 'HR Officer',
+    departmentId: 'd3',
+    avatar: 'https://picsum.photos/seed/e5/100/100',
+  },
+];
+
+export const kpis: Kpi[] = [
+  {
+    id: 'kpi1',
+    name: 'Doanh số bán hàng',
+    department: 'Kinh doanh',
+    description: 'Tổng doanh số từ các hợp đồng đã ký',
+    formula: 'SUM(giá trị hợp đồng)',
+    unit: 'VND',
+    frequency: 'monthly',
+  },
+  {
+    id: 'kpi2',
+    name: 'Số lượng khách hàng mới',
+    department: 'Kinh doanh',
+    description: 'Số lượng khách hàng ký hợp đồng lần đầu',
+    formula: 'COUNT(khách hàng mới)',
+    unit: 'Khách hàng',
+    frequency: 'monthly',
+  },
+  {
+    id: 'kpi3',
+    name: 'Tỷ lệ chuyển đổi',
+    department: 'Marketing',
+    description:
+      'Tỷ lệ khách hàng tiềm năng trở thành khách hàng thực tế',
+    formula: '(Số khách hàng / Số leads) * 100',
+    unit: '%',
+    frequency: 'quarterly',
+  },
+  {
+    id: 'kpi4',
+    name: 'Chi phí trên mỗi lead',
+    department: 'Marketing',
+    description: 'Tổng chi phí marketing / tổng số leads',
+    formula: 'Chi phí / Leads',
+    unit: 'VND',
+    frequency: 'monthly',
+  },
+  {
+    id: 'kpi5',
+    name: 'Tỷ lệ nghỉ việc',
+    department: 'Nhân sự',
+    description: 'Tỷ lệ nhân viên nghỉ việc trong kỳ',
+    formula: '(Số NV nghỉ / Tổng số NV) * 100',
+    unit: '%',
+    frequency: 'annually',
+  },
+];
+
+export const kpiRecords: KpiRecord[] = [
+  {
+    id: 'rec1',
+    kpiId: 'kpi1',
+    employeeId: 'e1',
+    target: 500000000,
+    actual: 450000000,
+    startDate: '2024-07-01',
+    endDate: '2024-07-31',
+  },
+  {
+    id: 'rec2',
+    kpiId: 'kpi2',
+    employeeId: 'e1',
+    target: 20,
+    actual: 22,
+    startDate: '2024-07-01',
+    endDate: '2024-07-31',
+  },
+  {
+    id: 'rec3',
+    kpiId: 'kpi1',
+    employeeId: 'e2',
+    target: 1200000000,
+    actual: 1350000000,
+    startDate: '2024-07-01',
+    endDate: '2024-07-31',
+  },
+  {
+    id: 'rec4',
+    kpiId: 'kpi3',
+    employeeId: 'e3',
+    target: 15,
+    actual: 12,
+    startDate: '2024-07-01',
+    endDate: '2024-09-30',
+  },
+  {
+    id: 'rec5',
+    kpiId: 'kpi4',
+    employeeId: 'e4',
+    target: 50000,
+    actual: 45000,
+    startDate: '2024-07-01',
+    endDate: '2024-07-31',
+  },
+  {
+    id: 'rec6',
+    kpiId: 'kpi5',
+    employeeId: 'e5',
+    target: 5,
+    actual: 7,
+    startDate: '2024-01-01',
+    endDate: '2024-12-31',
+  },
+];
