@@ -92,9 +92,9 @@ export default function KpiCard({ record, showEmployee = false }: KpiCardProps) 
           </div>
         </div>
         <div className="text-xs text-muted-foreground space-y-1">
-          <p>
+          <div>
             Tần suất: <Badge variant="outline" className="text-xs">{record.frequency}</Badge>
-          </p>
+          </div>
           <p>
             Thời gian:{' '}
             {new Date(record.startDate).toLocaleDateString('vi-VN')} -{' '}
