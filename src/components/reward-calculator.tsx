@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Bot, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -30,6 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface RewardCalculatorProps {
   record: Kpi & KpiRecord;
+  children?: ReactNode;
 }
 
 const formSchema = z.object({
@@ -38,7 +39,7 @@ const formSchema = z.object({
     .min(10, 'Vui lòng cung cấp một số yếu tố để xem xét.'),
 });
 
-export default function RewardCalculator({ record }: RewardCalculatorProps) {
+export default function RewardCalculator({ record, children }: RewardCalculatorProps) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{
@@ -94,9 +95,11 @@ export default function RewardCalculator({ record }: RewardCalculatorProps) {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="default" className="w-full">
-          <Bot className="mr-2 h-4 w-4" /> Tính thưởng
-        </Button>
+        {children ?? (
+           <Button variant="default" className="w-full">
+            <Bot className="mr-2 h-4 w-4" /> Tính thưởng
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
