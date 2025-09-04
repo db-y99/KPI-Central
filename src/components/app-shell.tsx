@@ -17,8 +17,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const { user } = useContext(AuthContext);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const isMobile = useIsMobile();
-  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
-
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
@@ -35,10 +33,12 @@ export default function AppShell({ children }: { children: ReactNode }) {
             <Award className="size-7 text-primary" />
             <span className="text-xl font-semibold">KPI Central</span>
          </div>
-        <Button variant="ghost" size="icon" className="hidden md:flex" onClick={toggleSidebar}>
-          {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
-          <span className="sr-only">Thu gọn Sidebar</span>
-        </Button>
+         <div className={cn("flex items-center", isCollapsed ? 'w-full justify-center' : '')}>
+            <Button variant="ghost" size="icon" className="hidden md:flex" onClick={toggleSidebar}>
+              {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
+              <span className="sr-only">Thu gọn Sidebar</span>
+            </Button>
+         </div>
       </div>
       <nav className="flex-1 space-y-2 p-2">
         <TooltipProvider delayDuration={0}>
@@ -57,21 +57,23 @@ export default function AppShell({ children }: { children: ReactNode }) {
             </TooltipTrigger>
             {isCollapsed && <TooltipContent side="right">Bảng điều khiển</TooltipContent>}
           </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-               <Button
-                asChild
-                variant={pathname.startsWith('/reports') ? 'secondary' : 'ghost'}
-                className={cn("w-full", !isCollapsed && "justify-start")}
-              >
-                <Link href="/reports">
-                  <BarChart2 className="size-5" />
-                   <span className={cn("ml-4", isCollapsed && "hidden")}>Báo cáo</span>
-                </Link>
-              </Button>
-            </TooltipTrigger>
-             {isCollapsed && <TooltipContent side="right">Báo cáo</TooltipContent>}
-          </Tooltip>
+          {user?.position.toLowerCase().includes('manager') && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  asChild
+                  variant={pathname.startsWith('/reports') ? 'secondary' : 'ghost'}
+                  className={cn("w-full", !isCollapsed && "justify-start")}
+                >
+                  <Link href="/reports">
+                    <BarChart2 className="size-5" />
+                    <span className={cn("ml-4", isCollapsed && "hidden")}>Báo cáo</span>
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              {isCollapsed && <TooltipContent side="right">Báo cáo</TooltipContent>}
+            </Tooltip>
+          )}
         </TooltipProvider>
       </nav>
     </div>
@@ -79,7 +81,10 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   const mainContent = (
       <div className="flex flex-1 flex-col overflow-hidden">
-        <DashboardHeader title={pathname.startsWith('/reports') ? "Báo cáo" : "Bảng điều khiển"} user={user!} />
+        <DashboardHeader
+          title={pathname.startsWith('/reports') ? "Báo cáo" : "Bảng điều khiển"}
+          user={user!}
+        />
         <main className="flex-1 overflow-y-auto bg-background">
           {children}
         </main>
@@ -90,7 +95,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
     return (
       <div className="min-h-screen w-full">
          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm md:hidden">
-           <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
+           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
                 <PanelLeft className="size-5" />
@@ -105,8 +110,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               <Award className="size-7 text-primary" />
               <span className="text-lg font-semibold">KPI Central</span>
           </div>
-           {/* Placeholder for user menu which is now in DashboardHeader */}
-           <div/>
+          <DashboardHeader user={user!} title="" />
         </header>
          <div className="flex flex-1 flex-col overflow-hidden">
             <main className="flex-1 overflow-y-auto bg-background">

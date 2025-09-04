@@ -4,6 +4,7 @@ import ReportsTabs from '@/components/reports-tabs';
 import { AuthContext } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import Loading from '../loading';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function ReportsPage() {
   const { user, loading } = useContext(AuthContext);
@@ -28,9 +29,16 @@ export default function ReportsPage() {
       {isManager ? (
         <ReportsTabs />
       ) : (
-        <div className="text-center text-muted-foreground">
-          Bạn không có quyền truy cập trang này.
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Không có quyền truy cập</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Bạn không có quyền truy cập trang này. Vui lòng liên hệ quản trị viên.
+            </p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
