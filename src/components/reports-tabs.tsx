@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import IndividualReport from './individual-report';
 import DepartmentReport from './department-report';
+import KpiSpecificReport from './kpi-specific-report'; // Import component mới
 import { DateRangePicker } from './date-range-picker';
 import { type DateRange } from 'react-day-picker';
 import { startOfMonth, endOfMonth } from 'date-fns';
@@ -19,9 +20,10 @@ export default function ReportsTabs() {
   return (
     <Tabs defaultValue="individual" className="w-full space-y-4">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <TabsList className="grid w-full grid-cols-2 md:w-auto">
+        <TabsList className="grid w-full grid-cols-3 md:w-auto">
           <TabsTrigger value="individual">Báo cáo cá nhân</TabsTrigger>
           <TabsTrigger value="department">Báo cáo phòng ban</TabsTrigger>
+          <TabsTrigger value="kpi-specific">Báo cáo theo KPI</TabsTrigger>
         </TabsList>
       </div>
 
@@ -43,6 +45,9 @@ export default function ReportsTabs() {
       </TabsContent>
       <TabsContent value="department">
         <DepartmentReport dateRange={date} comparisonDateRange={comparisonDate} />
+      </TabsContent>
+       <TabsContent value="kpi-specific">
+        <KpiSpecificReport dateRange={date} comparisonDateRange={comparisonDate} />
       </TabsContent>
     </Tabs>
   );
