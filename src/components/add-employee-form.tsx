@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -21,8 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Employee } from '@/types';
 import { DataContext } from '@/context/data-context';
+import { Loader2 } from 'lucide-react';
 
 const employeeSchema = z.object({
   name: z.string().min(1, 'Tên nhân viên không được để trống.'),
@@ -36,12 +36,14 @@ const employeeSchema = z.object({
 type EmployeeFormValues = z.infer<typeof employeeSchema>;
 
 interface AddEmployeeFormProps {
-  onSave: (data: Employee) => void;
+  onSave: () => void;
   onClose: () => void;
 }
 
 export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProps) {
-  const { departments } = useContext(DataContext);
+  const { departments, addEmployee, employees } = useContext(DataContext);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
     defaultValues: {
@@ -52,14 +54,24 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
     },
   });
 
-  const onSubmit = (data: EmployeeFormValues) => {
-    const newEmployee: Employee = {
-      id: `e${Date.now()}`, // Temporary unique ID
-      avatar: `https://picsum.photos/seed/e${Date.now()}/100/100`,
-      ...data,
-    };
-    onSave(newEmployee);
-    onClose();
+  const onSubmit = async (data: EmployeeFormValues) => {
+    setIsSubmitting(true);
+    try {
+      const nextIdNumber = (employees.length > 0 ? Math.max(...employees.map(e => parseInt(e.id.substring(1)))) : 0) + 1;
+      const newEmployeeData = {
+        id: `e${nextIdNumber}`, // This ID is for client-side representation, Firestore will generate its own unique document ID.
+        avatar: `https://picsum.photos/seed/e${Date.now()}/100/100`,
+        ...data,
+      };
+      await addEmployee(newEmployeeData);
+      onSave(); // This can now just be a confirmation callback
+      onClose();
+    } catch (error) {
+      console.error("Failed to add employee:", error);
+      // Optionally, show an error toast to the user
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -72,7 +84,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
             <FormItem>
               <FormLabel>Tên nhân viên</FormLabel>
               <FormControl>
-                <Input placeholder="VD: Trần Thị B" {...field} />
+                <Input placeholder="VD: Trần Thị B" {...field} disabled={isSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -85,7 +97,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
              <FormItem>
               <FormLabel>Chức vụ</FormLabel>
               <FormControl>
-                <Input placeholder="VD: Sales Executive" {...field} />
+                <Input placeholder="VD: Sales Executive" {...field} disabled={isSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -101,6 +113,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={isSubmitting}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -128,6 +141,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={isSubmitting}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -145,7 +159,10 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
           />
         </div>
         <div className="flex justify-end pt-4">
-          <Button type="submit">Lưu nhân viên</Button>
+          <Button type="submit" disabled={isSubmitting}>
+             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Lưu nhân viên
+          </Button>
         </div>
       </form>
     </Form>

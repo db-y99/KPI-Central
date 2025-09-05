@@ -1,21 +1,22 @@
 'use client';
 
 import { createContext, useState, useEffect, type ReactNode } from 'react';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import type { Employee } from '@/types';
-import { employees } from '@/lib/data';
 import Loading from '@/app/loading';
 
 interface AuthContextType {
   user: Employee | null;
   loading: boolean;
-  login: (employeeId: string) => boolean;
+  login: (employeeId: string) => Promise<boolean>;
   logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  login: () => false,
+  login: async () => false,
   logout: () => {},
 });
 
@@ -24,36 +25,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // This effect runs once on mount to check for a logged-in user.
-    // It should only run on the client-side.
-    if (typeof window !== 'undefined') {
-      let foundUser: Employee | undefined | null = null;
-      try {
-        const storedUserId = localStorage.getItem('userId');
-        if (storedUserId) {
-          foundUser = employees.find(e => e.id === storedUserId);
-          setUser(foundUser || null);
+    const checkUser = async () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const storedUserId = localStorage.getItem('userId');
+          if (storedUserId) {
+            const q = query(collection(db, 'employees'), where('id', '==', storedUserId));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+              const userDoc = querySnapshot.docs[0];
+              // Note: The document ID from firestore is used, not the 'id' field from the document data
+              setUser({ id: userDoc.id, ...userDoc.data() } as Employee);
+            }
+          }
+        } catch (e) {
+          console.error('Failed to access localStorage or Firestore:', e);
+        } finally {
+          setLoading(false);
         }
-      } catch (e) {
-        console.error('Failed to access localStorage:', e);
       }
-      // Regardless of the outcome, the initial loading is finished.
+    };
+    checkUser();
+  }, []);
+
+  const login = async (employeeId: string): Promise<boolean> => {
+    setLoading(true);
+    try {
+      const q = query(collection(db, 'employees'), where('id', '==', employeeId.toLowerCase()));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const foundUser = querySnapshot.docs[0];
+        const userData = { id: foundUser.id, ...foundUser.data() } as Employee
+        setUser(userData);
+        localStorage.setItem('userId', userData.id);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Login error: ", error);
+      return false;
+    } finally {
       setLoading(false);
     }
-  }, []); // Empty dependency array ensures this runs only once on mount
-
-  const login = (employeeId: string): boolean => {
-    const foundUser = employees.find(e => e.id === employeeId.toLowerCase());
-    if (foundUser) {
-      try {
-        localStorage.setItem('userId', foundUser.id);
-      } catch (e) {
-        console.error('Failed to access localStorage:', e);
-      }
-      setUser(foundUser);
-      return true;
-    }
-    return false;
   };
 
   const logout = () => {

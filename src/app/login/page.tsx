@@ -57,9 +57,9 @@ export default function LoginPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoggingIn(true);
-    const success = login(values.employeeId);
+    const success = await login(values.employeeId);
     if (success) {
       toast({
         title: 'Thành công',
@@ -140,7 +140,7 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            Nhân viên: e1, e3, e4, e5 | Admin: e2
+            Sử dụng dữ liệu mẫu từ Firestore.
           </p>
         </CardContent>
       </Card>

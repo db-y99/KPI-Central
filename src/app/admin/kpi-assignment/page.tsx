@@ -22,7 +22,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Loader2 } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import type { Employee, Kpi } from '@/types';
 import { cn } from '@/lib/utils';
@@ -31,19 +31,20 @@ import { useToast } from '@/hooks/use-toast';
 import { DataContext } from '@/context/data-context';
 
 export default function KpiAssignmentPage() {
-  const { employees, kpis } = useContext(DataContext);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
-  const [selectedKpiId, setSelectedKpiId] = useState<string | null>(null);
+  const { employees, kpis, assignKpi } = useContext(DataContext);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | undefined>();
+  const [selectedKpiId, setSelectedKpiId] = useState<string | undefined>();
   const [target, setTarget] = useState('');
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { toast } = useToast();
 
   const selectedEmployee = employees.find(e => e.id === selectedEmployeeId);
   const selectedKpi = kpis.find(k => k.id === selectedKpiId);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedEmployeeId || !selectedKpiId || !target || !startDate || !endDate) {
       toast({
         variant: 'destructive',
@@ -52,27 +53,39 @@ export default function KpiAssignmentPage() {
       });
       return;
     }
+    
+    setIsSubmitting(true);
 
-    // In a real app, this would be an API call to create a KpiRecord
-    console.log({
-      employeeId: selectedEmployeeId,
-      kpiId: selectedKpiId,
-      target: parseFloat(target),
-      startDate: format(startDate, 'yyyy-MM-dd'),
-      endDate: format(endDate, 'yyyy-MM-dd'),
-    });
+    try {
+        await assignKpi({
+          employeeId: selectedEmployeeId,
+          kpiId: selectedKpiId,
+          target: parseFloat(target),
+          startDate: format(startDate, 'yyyy-MM-dd'),
+          endDate: format(endDate, 'yyyy-MM-dd'),
+        });
+        
+        toast({
+          title: 'Thành công!',
+          description: `Đã giao KPI "${selectedKpi?.name}" cho nhân viên "${selectedEmployee?.name}".`,
+        });
 
-    toast({
-      title: 'Thành công!',
-      description: `Đã giao KPI "${selectedKpi?.name}" cho nhân viên "${selectedEmployee?.name}".`,
-    });
-
-    // Reset form
-    setSelectedEmployeeId(null);
-    setSelectedKpiId(null);
-    setTarget('');
-    setStartDate(undefined);
-    setEndDate(undefined);
+        // Reset form
+        setSelectedEmployeeId(undefined);
+        setSelectedKpiId(undefined);
+        setTarget('');
+        setStartDate(undefined);
+        setEndDate(undefined);
+    } catch (error) {
+         toast({
+            variant: 'destructive',
+            title: 'Lỗi',
+            description: 'Đã có lỗi xảy ra khi giao KPI. Vui lòng thử lại.',
+        });
+        console.error("Failed to assign KPI: ", error);
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -87,7 +100,7 @@ export default function KpiAssignmentPage() {
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label>1. Chọn nhân viên</Label>
-            <Select onValueChange={setSelectedEmployeeId} value={selectedEmployeeId ?? ''}>
+            <Select onValueChange={setSelectedEmployeeId} value={selectedEmployeeId}>
               <SelectTrigger>
                 <SelectValue placeholder="Chọn một nhân viên..." />
               </SelectTrigger>
@@ -103,7 +116,7 @@ export default function KpiAssignmentPage() {
 
           <div className="space-y-2">
             <Label>2. Chọn KPI để giao</Label>
-            <Select onValueChange={setSelectedKpiId} value={selectedKpiId ?? ''}>
+            <Select onValueChange={setSelectedKpiId} value={selectedKpiId}>
               <SelectTrigger>
                 <SelectValue placeholder="Chọn một KPI..." />
               </SelectTrigger>
@@ -135,6 +148,7 @@ export default function KpiAssignmentPage() {
               value={target}
               onChange={e => setTarget(e.target.value)}
               placeholder={`Nhập chỉ tiêu theo đơn vị "${selectedKpi?.unit || '...'}"`}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -149,6 +163,7 @@ export default function KpiAssignmentPage() {
                       'w-full justify-start text-left font-normal',
                       !startDate && 'text-muted-foreground'
                     )}
+                    disabled={isSubmitting}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {startDate ? format(startDate, 'dd/MM/yyyy') : <span>Chọn ngày</span>}
@@ -174,6 +189,7 @@ export default function KpiAssignmentPage() {
                       'w-full justify-start text-left font-normal',
                       !endDate && 'text-muted-foreground'
                     )}
+                    disabled={isSubmitting}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {endDate ? format(endDate, 'dd/MM/yyyy') : <span>Chọn ngày</span>}
@@ -191,7 +207,8 @@ export default function KpiAssignmentPage() {
             </div>
           </div>
           
-          <Button onClick={handleSubmit} className="w-full">
+          <Button onClick={handleSubmit} className="w-full" disabled={isSubmitting}>
+             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Giao KPI
           </Button>
 

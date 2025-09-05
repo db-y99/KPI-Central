@@ -16,8 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { PlusCircle, MoreHorizontal, Pen, Trash2 } from 'lucide-react';
-import type { Employee } from '@/types';
+import { PlusCircle, MoreHorizontal, Pen, Trash2, Loader2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,43 +35,55 @@ import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { DataContext } from '@/context/data-context';
+import Loading from '@/app/loading';
 
 
 export default function EmployeeManagementPage() {
-  const { employees, addEmployee, deleteEmployee, departments } = useContext(DataContext);
+  const { employees, addEmployee, deleteEmployee, departments, loading } = useContext(DataContext);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { toast } = useToast();
-
-  const handleSaveEmployee = (newEmployee: Employee) => {
-    addEmployee(newEmployee);
+  
+  const handleSaveEmployee = () => {
     toast({
       title: 'Thành công!',
-      description: `Đã thêm nhân viên "${newEmployee.name}" thành công.`,
+      description: `Đã thêm nhân viên thành công.`,
     });
   };
 
   const handleEditEmployee = (employeeId: string) => {
-    // This will be implemented later
     toast({
         title: 'Tính năng đang phát triển',
         description: 'Chức năng sửa thông tin nhân viên sẽ được cập nhật sớm.',
     });
   };
 
-  const handleDeleteEmployee = (employeeId: string) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa nhân viên này không? Thao tác này không thể hoàn tác.')) {
-      const employeeToDelete = employees.find(e => e.id === employeeId);
-      deleteEmployee(employeeId);
-      toast({
-        title: 'Đã xóa!',
-        description: `Đã xóa nhân viên "${employeeToDelete?.name}".`,
-        variant: 'destructive'
-      });
+  const handleDeleteEmployee = async (employeeId: string) => {
+    const employeeToDelete = employees.find(e => e.id === employeeId);
+    if (window.confirm(`Bạn có chắc chắn muốn xóa nhân viên "${employeeToDelete?.name}" không? Thao tác này không thể hoàn tác và sẽ xóa tất cả KPI liên quan.`)) {
+      try {
+        await deleteEmployee(employeeId);
+        toast({
+            title: 'Đã xóa!',
+            description: `Đã xóa nhân viên "${employeeToDelete?.name}".`,
+            variant: 'destructive'
+        });
+      } catch (error) {
+        toast({
+            title: 'Lỗi',
+            description: 'Không thể xóa nhân viên. Vui lòng thử lại.',
+            variant: 'destructive'
+        });
+        console.error("Failed to delete employee: ", error);
+      }
     }
   };
   
   const getDepartmentName = (departmentId: string) => {
       return departments.find(d => d.id === departmentId)?.name ?? 'Không rõ';
+  }
+
+  if (loading) {
+    return <Loading />
   }
 
   return (

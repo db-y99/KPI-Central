@@ -1,13 +1,21 @@
 'use client';
 
-import { createContext, useState, type ReactNode } from 'react';
-import type { Department, Employee, Kpi, KpiRecord } from '@/types';
+import { createContext, useState, type ReactNode, useEffect, useContext } from 'react';
 import {
-  employees as initialEmployees,
-  kpis as initialKpis,
-  kpiRecords as initialKpiRecords,
-  departments as initialDepartments
-} from '@/lib/data';
+  collection,
+  getDocs,
+  doc,
+  addDoc,
+  deleteDoc,
+  updateDoc,
+  writeBatch,
+  query,
+  where,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import type { Department, Employee, Kpi, KpiRecord } from '@/types';
+import { AuthContext } from './auth-context';
+
 
 type ViewType = 'grid' | 'list';
 
@@ -16,14 +24,16 @@ interface DataContextType {
   employees: Employee[];
   kpis: Kpi[];
   kpiRecords: KpiRecord[];
-  addEmployee: (employee: Employee) => void;
-  deleteEmployee: (employeeId: string) => void;
-  addKpi: (kpi: Kpi) => void;
-  deleteKpi: (kpiId: string) => void;
-  updateKpiRecord: (recordId: string, updates: Partial<KpiRecord>) => void;
-  submitReport: (recordId: string, reportName: string) => void;
-  approveKpi: (recordId: string) => void;
-  rejectKpi: (recordId: string, comment: string) => void;
+  loading: boolean;
+  addEmployee: (employee: Omit<Employee, 'id'>) => Promise<void>;
+  deleteEmployee: (employeeId: string) => Promise<void>;
+  addKpi: (kpi: Omit<Kpi, 'id'>) => Promise<void>;
+  deleteKpi: (kpiId: string) => Promise<void>;
+  assignKpi: (assignment: Omit<KpiRecord, 'id' | 'actual' | 'status' | 'submittedReport' | 'approvalComment'>) => Promise<void>;
+  updateKpiRecord: (recordId: string, updates: Partial<KpiRecord>) => Promise<void>;
+  submitReport: (recordId: string, reportName: string) => Promise<void>;
+  approveKpi: (recordId: string) => Promise<void>;
+  rejectKpi: (recordId: string, comment: string) => Promise<void>;
   view: ViewType;
   setView: (view: ViewType) => void;
 }
@@ -33,66 +43,130 @@ export const DataContext = createContext<DataContextType>({
   employees: [],
   kpis: [],
   kpiRecords: [],
-  addEmployee: () => {},
-  deleteEmployee: () => {},
-  addKpi: () => {},
-  deleteKpi: () => {},
-  updateKpiRecord: () => {},
-  submitReport: () => {},
-  approveKpi: () => {},
-  rejectKpi: () => {},
+  loading: true,
+  addEmployee: async () => {},
+  deleteEmployee: async () => {},
+  addKpi: async () => {},
+  deleteKpi: async () => {},
+  assignKpi: async () => {},
+  updateKpiRecord: async () => {},
+  submitReport: async () => {},
+  approveKpi: async () => {},
+  rejectKpi: async () => {},
   view: 'grid',
   setView: () => {},
 });
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
-  const [departments, setDepartments] = useState<Department[]>(initialDepartments);
-  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
-  const [kpis, setKpis] = useState<Kpi[]>(initialKpis);
-  const [kpiRecords, setKpiRecords] = useState<KpiRecord[]>(initialKpiRecords);
+  const { user } = useContext(AuthContext);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [kpis, setKpis] = useState<Kpi[]>([]);
+  const [kpiRecords, setKpiRecords] = useState<KpiRecord[]>([]);
+  const [loading, setLoading] = useState(true);
   const [view, setView] = useState<ViewType>('grid');
 
-  const addEmployee = (employee: Employee) => {
-    setEmployees(prev => [...prev, employee]);
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+        const [deptsSnap, empsSnap, kpisSnap, kpiRecordsSnap] = await Promise.all([
+            getDocs(collection(db, 'departments')),
+            getDocs(collection(db, 'employees')),
+            getDocs(collection(db, 'kpis')),
+            getDocs(collection(db, 'kpiRecords')),
+        ]);
+        
+        const depts = deptsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Department));
+        const emps = empsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Employee));
+        const kpisData = kpisSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Kpi));
+        const kpiRecordsData = kpiRecordsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as KpiRecord));
+
+        setDepartments(depts);
+        setEmployees(emps);
+        setKpis(kpisData);
+        setKpiRecords(kpiRecordsData);
+    } catch (error) {
+        console.error("Error fetching initial data: ", error);
+    } finally {
+        setLoading(false);
+    }
   };
 
-  const deleteEmployee = (employeeId: string) => {
+
+  useEffect(() => {
+    fetchData();
+  }, [user]);
+
+  const addEmployee = async (employeeData: Omit<Employee, 'id'>) => {
+    const docRef = await addDoc(collection(db, 'employees'), employeeData);
+    setEmployees(prev => [...prev, { id: docRef.id, ...employeeData }]);
+  };
+
+  const deleteEmployee = async (employeeId: string) => {
+    // Also delete their kpiRecords
+    const batch = writeBatch(db);
+    const kpiQuery = query(collection(db, 'kpiRecords'), where('employeeId', '==', employeeId));
+    const kpiSnapshot = await getDocs(kpiQuery);
+    kpiSnapshot.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+    
+    const empDocRef = doc(db, 'employees', employeeId);
+    batch.delete(empDocRef);
+    
+    await batch.commit();
+
     setEmployees(prev => prev.filter(e => e.id !== employeeId));
+    setKpiRecords(prev => prev.filter(r => r.employeeId !== employeeId));
   };
 
-  const addKpi = (kpi: Kpi) => {
-    setKpis(prev => [...prev, kpi]);
+  const addKpi = async (kpiData: Omit<Kpi, 'id'>) => {
+    const docRef = await addDoc(collection(db, 'kpis'), kpiData);
+    setKpis(prev => [...prev, { id: docRef.id, ...kpiData }]);
   };
 
-  const deleteKpi = (kpiId: string) => {
+  const deleteKpi = async (kpiId: string) => {
+    await deleteDoc(doc(db, 'kpis', kpiId));
     setKpis(prev => prev.filter(k => k.id !== kpiId));
+    // Note: This doesn't delete assigned kpiRecords. That might be desired behavior (to preserve history).
   };
+  
+  const assignKpi = async (assignment: Omit<KpiRecord, 'id' | 'actual' | 'status' | 'submittedReport' | 'approvalComment'>) => {
+    const newRecord = {
+        ...assignment,
+        actual: 0,
+        status: 'pending',
+        submittedReport: '',
+        approvalComment: ''
+    } as const;
+    const docRef = await addDoc(collection(db, 'kpiRecords'), newRecord);
+    setKpiRecords(prev => [...prev, { id: docRef.id, ...newRecord }]);
+  }
 
-  const updateKpiRecord = (
+  const updateKpiRecord = async (
     recordId: string,
     updates: Partial<KpiRecord>
   ) => {
+    const recordRef = doc(db, 'kpiRecords', recordId);
+    await updateDoc(recordRef, updates);
     setKpiRecords(prev =>
       prev.map(r => (r.id === recordId ? { ...r, ...updates } : r))
     );
   };
   
-  const submitReport = (recordId: string, reportName: string) => {
-    setKpiRecords(prev =>
-      prev.map(r => (r.id === recordId ? { ...r, submittedReport: reportName, status: 'awaiting_approval' } : r))
-    );
+  const submitReport = async (recordId: string, reportName: string) => {
+    const updates = { submittedReport: reportName, status: 'awaiting_approval' };
+    await updateKpiRecord(recordId, updates);
   };
 
-  const approveKpi = (recordId: string) => {
-    setKpiRecords(prev =>
-      prev.map(r => (r.id === recordId ? { ...r, status: 'approved', approvalComment: '' } : r))
-    );
+  const approveKpi = async (recordId: string) => {
+    const updates = { status: 'approved', approvalComment: '' };
+    await updateKpiRecord(recordId, updates);
   };
 
-  const rejectKpi = (recordId: string, comment: string) => {
-    setKpiRecords(prev =>
-      prev.map(r => (r.id === recordId ? { ...r, status: 'rejected', approvalComment: comment } : r))
-    );
+  const rejectKpi = async (recordId: string, comment: string) => {
+     const updates = { status: 'rejected', approvalComment: comment };
+     await updateKpiRecord(recordId, updates);
   };
 
   const value = {
@@ -100,10 +174,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     employees,
     kpis,
     kpiRecords,
+    loading,
     addEmployee,
     deleteEmployee,
     addKpi,
     deleteKpi,
+    assignKpi,
     updateKpiRecord,
     submitReport,
     approveKpi,
