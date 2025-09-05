@@ -40,7 +40,7 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Nếu người dùng đã đăng nhập, chuyển hướng họ ra khỏi trang đăng nhập.
+    // Nếu quá trình xác thực không còn chạy và người dùng đã tồn tại, chuyển hướng họ
     if (!loading && user) {
       if (user.role === 'admin') {
         router.push('/admin');
@@ -73,14 +73,24 @@ export default function LoginPage() {
         title: 'Lỗi đăng nhập',
         description: result.error || 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.',
       });
-      setIsLoggingIn(false);
+    }
+    // Chỉ set isLoggingIn lại false nếu có lỗi, nếu thành công thì sẽ chuyển trang
+     if (!result.success) {
+        setIsLoggingIn(false);
     }
   }
 
-  // Hiển thị màn hình tải nếu chúng ta vẫn đang kiểm tra trạng thái xác thực hoặc nếu người dùng đã đăng nhập (và đang chuyển hướng)
-  if (loading || user) {
+  // Chỉ hiển thị màn hình tải khi đang kiểm tra xác thực ban đầu (loading) hoặc khi người dùng vừa nhấn nút (isLoggingIn).
+  // Không hiển thị loading chỉ vì `user` tồn tại, vì điều đó sẽ ngăn cản `useEffect` chuyển hướng.
+  if (loading || isLoggingIn) {
     return <Loading />;
   }
+  
+  // Nếu đã đăng nhập rồi thì không hiển thị form đăng nhập nữa (chờ useEffect chuyển hướng)
+  if(user) {
+    return <Loading/>
+  }
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
