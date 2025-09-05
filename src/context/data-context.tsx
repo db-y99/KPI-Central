@@ -26,7 +26,7 @@ interface DataContextType {
   kpis: Kpi[];
   kpiRecords: KpiRecord[];
   loading: boolean;
-  addEmployee: (employee: Omit<Employee, 'id'> & { id: string }) => Promise<void>;
+  addEmployee: () => Promise<void>; // Simplified, form now calls server action
   deleteEmployee: (employeeId: string) => Promise<void>;
   addKpi: (kpi: Omit<Kpi, 'id'>) => Promise<void>;
   deleteKpi: (kpiId: string) => Promise<void>;
@@ -78,7 +78,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         ]);
         
         const depts = deptsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Department));
-        const emps = empsSnap.docs.map(doc => doc.data() as Employee);
+        // Add the firestore doc id as uid
+        const emps = empsSnap.docs.map(doc => ({ ...doc.data(), uid: doc.id } as Employee));
         const kpisData = kpisSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Kpi));
         const kpiRecordsData = kpiRecordsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as KpiRecord));
 
@@ -95,41 +96,29 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
 
   useEffect(() => {
-    fetchData();
+    // Only fetch data if a user is logged in
+    if (user) {
+      fetchData();
+    } else {
+      // If no user, clear data and stop loading
+      setLoading(false);
+      setDepartments([]);
+      setEmployees([]);
+      setKpis([]);
+      setKpiRecords([]);
+    }
   }, [user]);
 
-  const addEmployee = async (employeeData: Omit<Employee, 'id'> & { id: string }) => {
-    // Now the `id` field is explicitly part of the data being saved.
-    await addDoc(collection(db, 'employees'), employeeData);
-    setEmployees(prev => [...prev, employeeData]);
+  // The form now calls a server action, so we just need a way to refresh the list
+  const addEmployee = async () => {
+    await fetchData(); // Just refetch all data for simplicity
   };
 
-  const deleteEmployee = async (employeeId: string) => {
-    const batch = writeBatch(db);
-    
-    // Find the document to delete by its `id` field.
-    const employeeQuery = query(collection(db, 'employees'), where('id', '==', employeeId));
-    const employeeSnapshot = await getDocs(employeeQuery);
-
-    if (employeeSnapshot.empty) {
-        console.error("Employee to delete not found with ID:", employeeId);
-        return;
-    }
-    const empDocRef = employeeSnapshot.docs[0].ref;
-    batch.delete(empDocRef);
-
-    // Find and delete related KPI records
-    const kpiQuery = query(collection(db, 'kpiRecords'), where('employeeId', '==', employeeId));
-    const kpiSnapshot = await getDocs(kpiQuery);
-    kpiSnapshot.forEach(doc => {
-      batch.delete(doc.ref);
-    });
-    
-    await batch.commit();
-
-    // Update client-side state
-    setEmployees(prev => prev.filter(e => e.id !== employeeId));
-    setKpiRecords(prev => prev.filter(r => r.employeeId !== employeeId));
+  const deleteEmployee = async (employeeUid: string) => {
+    // This is more complex now. You'd need a server action to delete the Auth user
+    // and the Firestore user. For now, we'll just prevent this.
+    alert("Việc xóa người dùng cần được thực hiện thông qua Firebase Console để đảm bảo an toàn.");
+    // In a real app, you'd call a server action here.
   };
 
   const addKpi = async (kpiData: Omit<Kpi, 'id'>) => {
@@ -179,7 +168,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const rejectKpi = async (recordId: string, comment: string) => {
      await updateKpiRecord(recordId, { status: 'rejected', approvalComment: comment });
   };
-
+  
   const value = {
     departments,
     employees,

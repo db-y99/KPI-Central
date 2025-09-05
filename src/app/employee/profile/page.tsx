@@ -54,7 +54,7 @@ export default function ProfilePage() {
     return <Loading />;
   }
 
-  const userKpiRecords = kpiRecords.filter(r => r.employeeId === user.id);
+  const userKpiRecords = kpiRecords.filter(r => r.employeeId === user.uid);
   const departmentName =
     departments.find(d => d.id === user.departmentId)?.name || 'Không rõ';
 
@@ -144,7 +144,7 @@ export default function ProfilePage() {
             <h3 className="text-xl font-semibold mb-4">Thông tin chi tiết</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <p>
-                <strong>Mã nhân viên:</strong> {user.id}
+                <strong>Email:</strong> {user.email}
               </p>
               <p>
                 <strong>Vai trò:</strong>{' '}
@@ -154,6 +154,9 @@ export default function ProfilePage() {
               </p>
               <p>
                 <strong>Phòng ban:</strong> {departmentName}
+              </p>
+               <p>
+                <strong>Mã nhân viên (cũ):</strong> {user.id}
               </p>
             </div>
           </div>

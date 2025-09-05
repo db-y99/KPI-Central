@@ -44,10 +44,7 @@ export default function EmployeeManagementPage() {
   const { toast } = useToast();
   
   const handleSaveEmployee = () => {
-    toast({
-      title: 'Thành công!',
-      description: `Đã thêm nhân viên thành công.`,
-    });
+    // Toast is now handled inside the form for better feedback
   };
 
   const handleEditEmployee = (employeeId: string) => {
@@ -57,25 +54,15 @@ export default function EmployeeManagementPage() {
     });
   };
 
-  const handleDeleteEmployee = async (employeeId: string) => {
-    const employeeToDelete = employees.find(e => e.id === employeeId);
-    if (window.confirm(`Bạn có chắc chắn muốn xóa nhân viên "${employeeToDelete?.name}" không? Thao tác này không thể hoàn tác và sẽ xóa tất cả KPI liên quan.`)) {
-      try {
-        await deleteEmployee(employeeId);
-        toast({
-            title: 'Đã xóa!',
-            description: `Đã xóa nhân viên "${employeeToDelete?.name}".`,
-            variant: 'destructive'
-        });
-      } catch (error) {
-        toast({
-            title: 'Lỗi',
-            description: 'Không thể xóa nhân viên. Vui lòng thử lại.',
-            variant: 'destructive'
-        });
-        console.error("Failed to delete employee: ", error);
-      }
-    }
+  const handleDeleteEmployee = async (employeeUid: string) => {
+    // Deleting users is now a more complex operation involving server-side logic
+    // We've disabled it in the context for now.
+    toast({
+        title: 'Tính năng bị vô hiệu hóa',
+        description: 'Để đảm bảo an toàn, việc xóa người dùng cần được thực hiện từ Firebase Console.',
+        variant: 'destructive'
+    });
+    // await deleteEmployee(employeeId); 
   };
   
   const getDepartmentName = (departmentId: string) => {
@@ -118,7 +105,7 @@ export default function EmployeeManagementPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nhân viên</TableHead>
-                <TableHead>Mã NV</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Chức vụ</TableHead>
                 <TableHead>Phòng ban</TableHead>
                 <TableHead>Vai trò</TableHead>
@@ -127,7 +114,7 @@ export default function EmployeeManagementPage() {
             </TableHeader>
             <TableBody>
               {employees.map(employee => (
-                <TableRow key={employee.id}>
+                <TableRow key={employee.uid}>
                   <TableCell className="font-medium">
                      <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9">
@@ -138,7 +125,7 @@ export default function EmployeeManagementPage() {
                      </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{employee.id}</Badge>
+                    {employee.email}
                   </TableCell>
                   <TableCell>{employee.position}</TableCell>
                   <TableCell>{getDepartmentName(employee.departmentId)}</TableCell>
@@ -156,13 +143,13 @@ export default function EmployeeManagementPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditEmployee(employee.id)}>
+                        <DropdownMenuItem onClick={() => handleEditEmployee(employee.uid!)}>
                           <Pen className="mr-2 h-4 w-4" />
                           Sửa
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-red-500 hover:text-red-500 focus:text-red-500"
-                          onClick={() => handleDeleteEmployee(employee.id)}
+                          onClick={() => handleDeleteEmployee(employee.uid!)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Xóa

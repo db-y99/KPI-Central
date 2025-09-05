@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -21,11 +21,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { DataContext } from '@/context/data-context';
 import { Loader2 } from 'lucide-react';
+import { createUser } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
+import { DataContext } from '@/context/data-context';
+import { useContext } from 'react';
 
 const employeeSchema = z.object({
   name: z.string().min(1, 'Tên nhân viên không được để trống.'),
+  email: z.string().email('Email không hợp lệ.'),
+  password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự.'),
   position: z.string().min(1, 'Chức vụ không được để trống.'),
   departmentId: z.string().min(1, 'Vui lòng chọn phòng ban.'),
   role: z.enum(['admin', 'employee'], {
@@ -41,13 +46,16 @@ interface AddEmployeeFormProps {
 }
 
 export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProps) {
-  const { departments, addEmployee, employees } = useContext(DataContext);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const { departments, addEmployee: refreshEmployeeList } = useContext(DataContext);
 
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
     defaultValues: {
       name: '',
+      email: '',
+      password: '',
       position: '',
       departmentId: '',
       role: 'employee',
@@ -57,19 +65,25 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
   const onSubmit = async (data: EmployeeFormValues) => {
     setIsSubmitting(true);
     try {
-      // Create a predictable employee ID
-      const nextIdNumber = (employees.length > 0 ? Math.max(...employees.map(e => parseInt(e.id.substring(1)))) : 0) + 1;
-      const newEmployeeData = {
-        id: `e${nextIdNumber}`,
-        avatar: `https://picsum.photos/seed/e${nextIdNumber}/100/100`,
-        ...data,
-      };
-      await addEmployee(newEmployeeData);
-      onSave();
-      onClose();
-    } catch (error) {
-      console.error("Failed to add employee:", error);
-      // Optionally, show an error toast to the user
+      const result = await createUser(data);
+      if (result.success) {
+        toast({
+          title: 'Thành công',
+          description: `Đã tạo tài khoản cho nhân viên ${data.name}.`,
+        });
+        await refreshEmployeeList(); // Refresh list after adding
+        onSave();
+        onClose();
+      } else {
+        throw new Error(result.error || 'Không thể tạo người dùng.');
+      }
+    } catch (error: any) {
+      console.error('Failed to add employee:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Lỗi',
+        description: error.message || 'Không thể tạo nhân viên. Email có thể đã tồn tại.',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -91,11 +105,39 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
             </FormItem>
           )}
         />
+         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="VD: b.tran@company.com" {...field} disabled={isSubmitting} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mật khẩu</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="••••••••" {...field} disabled={isSubmitting} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+        </div>
         <FormField
           control={form.control}
           name="position"
           render={({ field }) => (
-             <FormItem>
+            <FormItem>
               <FormLabel>Chức vụ</FormLabel>
               <FormControl>
                 <Input placeholder="VD: Sales Executive" {...field} disabled={isSubmitting} />
@@ -133,7 +175,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
               </FormItem>
             )}
           />
-           <FormField
+          <FormField
             control={form.control}
             name="role"
             render={({ field }) => (
@@ -161,7 +203,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
         </div>
         <div className="flex justify-end pt-4">
           <Button type="submit" disabled={isSubmitting}>
-             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Lưu nhân viên
           </Button>
         </div>

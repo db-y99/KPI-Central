@@ -4,7 +4,9 @@ export type Department = {
 };
 
 export type Employee = {
-  id: string;
+  id: string; // Legacy ID from previous system, e.g., "e1"
+  uid?: string; // This will be the Firebase Auth UID.
+  email: string;
   name: string;
   position: string;
   departmentId: string;
@@ -27,7 +29,7 @@ export type Kpi = {
 export type KpiRecord = {
   id: string;
   kpiId: string;
-  employeeId: string;
+  employeeId: string; // This should be the Firebase Auth UID
   target: number;
   actual: number;
   startDate: string;

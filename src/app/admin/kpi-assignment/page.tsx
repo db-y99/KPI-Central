@@ -32,7 +32,7 @@ import { DataContext } from '@/context/data-context';
 
 export default function KpiAssignmentPage() {
   const { employees, kpis, assignKpi } = useContext(DataContext);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | undefined>();
+  const [selectedEmployeeUid, setSelectedEmployeeUid] = useState<string | undefined>();
   const [selectedKpiId, setSelectedKpiId] = useState<string | undefined>();
   const [target, setTarget] = useState('');
   const [startDate, setStartDate] = useState<Date | undefined>();
@@ -41,11 +41,11 @@ export default function KpiAssignmentPage() {
 
   const { toast } = useToast();
 
-  const selectedEmployee = employees.find(e => e.id === selectedEmployeeId);
+  const selectedEmployee = employees.find(e => e.uid === selectedEmployeeUid);
   const selectedKpi = kpis.find(k => k.id === selectedKpiId);
 
   const handleSubmit = async () => {
-    if (!selectedEmployeeId || !selectedKpiId || !target || !startDate || !endDate) {
+    if (!selectedEmployeeUid || !selectedKpiId || !target || !startDate || !endDate) {
       toast({
         variant: 'destructive',
         title: 'Lỗi',
@@ -58,7 +58,7 @@ export default function KpiAssignmentPage() {
 
     try {
         await assignKpi({
-          employeeId: selectedEmployeeId,
+          employeeId: selectedEmployeeUid, // Use UID for assignment
           kpiId: selectedKpiId,
           target: parseFloat(target),
           startDate: format(startDate, 'yyyy-MM-dd'),
@@ -71,7 +71,7 @@ export default function KpiAssignmentPage() {
         });
 
         // Reset form
-        setSelectedEmployeeId(undefined);
+        setSelectedEmployeeUid(undefined);
         setSelectedKpiId(undefined);
         setTarget('');
         setStartDate(undefined);
@@ -100,13 +100,13 @@ export default function KpiAssignmentPage() {
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label>1. Chọn nhân viên</Label>
-            <Select onValueChange={setSelectedEmployeeId} value={selectedEmployeeId}>
+            <Select onValueChange={setSelectedEmployeeUid} value={selectedEmployeeUid}>
               <SelectTrigger>
                 <SelectValue placeholder="Chọn một nhân viên..." />
               </SelectTrigger>
               <SelectContent>
                 {employees.map(employee => (
-                  <SelectItem key={employee.id} value={employee.id}>
+                  <SelectItem key={employee.uid} value={employee.uid!}>
                     {employee.name} - {employee.position}
                   </SelectItem>
                 ))}

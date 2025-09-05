@@ -29,7 +29,8 @@ import { useToast } from '@/hooks/use-toast';
 import Loading from '../loading';
 
 const formSchema = z.object({
-  employeeId: z.string().min(1, 'Mã nhân viên không được để trống.'),
+  email: z.string().email('Email không hợp lệ.'),
+  password: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự.'),
 });
 
 export default function LoginPage() {
@@ -41,7 +42,7 @@ export default function LoginPage() {
   useEffect(() => {
     // If the user is already logged in, redirect them away from the login page.
     if (!loading && user) {
-       if (user.role === 'admin') {
+      if (user.role === 'admin') {
         router.push('/admin');
       } else {
         router.push('/employee');
@@ -49,18 +50,18 @@ export default function LoginPage() {
     }
   }, [user, loading, router]);
 
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      employeeId: '',
+      email: '',
+      password: '',
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoggingIn(true);
-    const success = await login(values.employeeId);
-    if (success) {
+    const result = await login(values.email, values.password);
+    if (result.success) {
       toast({
         title: 'Thành công',
         description: 'Đăng nhập thành công! Đang chuyển hướng...',
@@ -69,25 +70,17 @@ export default function LoginPage() {
     } else {
       toast({
         variant: 'destructive',
-        title: 'Lỗi',
-        description: 'Mã nhân viên không tồn tại. Vui lòng thử lại.',
+        title: 'Lỗi đăng nhập',
+        description: result.error || 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.',
       });
       setIsLoggingIn(false);
     }
   }
 
-  const handleQuickLogin = (employeeId: string) => {
-    form.setValue('employeeId', employeeId);
-    // Directly call onSubmit without waiting for form state to update
-    onSubmit({ employeeId });
-  };
-
-
   // Show loading screen if we are still checking auth state or if user is logged in (and redirecting)
   if (loading || user) {
     return <Loading />;
   }
-
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -98,7 +91,7 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl">KPI Central</CardTitle>
           <CardDescription>
-            Vui lòng đăng nhập bằng Mã Nhân viên của bạn.
+            Vui lòng đăng nhập bằng Email và Mật khẩu của bạn.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -106,15 +99,34 @@ export default function LoginPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="employeeId"
+                name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Mã nhân viên</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="VD: e1"
+                        placeholder="VD: db@y99.vn"
                         {...field}
                         disabled={isLoggingIn}
+                        type="email"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mật khẩu</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="••••••••"
+                        {...field}
+                        disabled={isLoggingIn}
+                        type="password"
                       />
                     </FormControl>
                     <FormMessage />
@@ -129,19 +141,11 @@ export default function LoginPage() {
               </Button>
             </form>
           </Form>
-
-          <div className="mt-4 grid grid-cols-2 gap-3">
-             <Button variant="outline" onClick={() => handleQuickLogin('e1')} disabled={isLoggingIn}>
-                Đăng nhập (Nhân viên)
-             </Button>
-              <Button variant="outline" onClick={() => handleQuickLogin('e2')} disabled={isLoggingIn}>
-                Đăng nhập (Admin)
-              </Button>
-          </div>
-
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            Sử dụng dữ liệu mẫu từ Firestore.
-          </p>
+           <p className="mt-6 text-center text-xs text-muted-foreground">
+             Tài khoản quản trị viên mặc định: <br />
+             Email: <span className="font-mono">db@y99.vn</span> <br/>
+             Mật khẩu: <span className="font-mono">Dby996868@</span>
+           </p>
         </CardContent>
       </Card>
     </div>

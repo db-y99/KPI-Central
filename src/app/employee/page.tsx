@@ -34,8 +34,10 @@ export default function EmployeeDashboardPage() {
     const today = new Date();
     const startOfCurrentQuarter = startOfQuarter(today);
     
+    // employeeId in KpiRecord should be the firebase user's UID.
+    // The user object from AuthContext now has the uid on it.
     const userKpiRecords = kpiRecords.filter(r => 
-        r.employeeId === user.id &&
+        r.employeeId === user.uid &&
         isAfter(new Date(r.endDate), startOfCurrentQuarter)
     );
 
@@ -46,7 +48,7 @@ export default function EmployeeDashboardPage() {
         return { ...kpiDetails, ...record, employeeName: user.name };
       })
       .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
-  }, [kpiRecords, kpis, user.id, user.name]);
+  }, [kpiRecords, kpis, user.uid, user.name]);
 
 
   return (

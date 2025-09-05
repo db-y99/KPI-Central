@@ -1,93 +1,105 @@
 'use client';
 
 import { createContext, useState, useEffect, type ReactNode } from 'react';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  type User as FirebaseAuthUser,
+} from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { db, auth as firebaseAuth } from '@/lib/firebase';
 import type { Employee } from '@/types';
 import Loading from '@/app/loading';
 
+interface LoginResult {
+  success: boolean;
+  error?: string;
+}
+
 interface AuthContextType {
   user: Employee | null;
+  firebaseUser: FirebaseAuthUser | null;
   loading: boolean;
-  login: (employeeId: string) => Promise<boolean>;
+  login: (email: string, pass: string) => Promise<LoginResult>;
   logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
+  firebaseUser: null,
   loading: true,
-  login: async () => false,
+  login: async () => ({ success: false, error: 'Context not ready' }),
   logout: () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<Employee | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseAuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkUser = async () => {
-      if (typeof window !== 'undefined') {
-        try {
-          const storedUserId = localStorage.getItem('userId');
-          if (storedUserId) {
-            // Now we query based on the employee ID field, which is correct
-            const q = query(collection(db, 'employees'), where('id', '==', storedUserId));
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-              const userDoc = querySnapshot.docs[0];
-              // Reconstruct the user object with the correct field `id`
-              setUser(userDoc.data() as Employee);
-            }
-          }
-        } catch (e) {
-          console.error('Failed to access localStorage or Firestore:', e);
-        } finally {
-          setLoading(false);
+    const unsubscribe = onAuthStateChanged(firebaseAuth, async (fbUser) => {
+      setFirebaseUser(fbUser);
+      if (fbUser) {
+        // User is signed in, get their profile from Firestore
+        const userDocRef = doc(db, 'employees', fbUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setUser(userDoc.data() as Employee);
+        } else {
+          // This case might happen if a user exists in Auth but not Firestore.
+          // For this app, we treat them as not logged in.
+          setUser(null);
         }
+      } else {
+        // User is signed out
+        setUser(null);
       }
-    };
-    checkUser();
+      setLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, []);
 
-  const login = async (employeeId: string): Promise<boolean> => {
+  const login = async (email: string, pass: string): Promise<LoginResult> => {
     setLoading(true);
-    const normalizedEmployeeId = employeeId.toLowerCase();
     try {
-      const q = query(collection(db, 'employees'), where('id', '==', normalizedEmployeeId));
-      const querySnapshot = await getDocs(q);
-      
-      if (!querySnapshot.empty) {
-        const foundUser = querySnapshot.docs[0];
-        const userData = foundUser.data() as Employee;
-        setUser(userData);
-        // Store the actual employee ID (e.g., 'e1'), not the Firestore document ID
-        localStorage.setItem('userId', userData.id);
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error("Login error: ", error);
-      return false;
+      await signInWithEmailAndPassword(firebaseAuth, email, pass);
+      // onAuthStateChanged will handle setting the user state
+      return { success: true };
+    } catch (error: any) {
+      console.error("Login error:", error);
+      let errorMessage = 'Email hoặc mật khẩu không hợp lệ.';
+       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+         errorMessage = 'Email hoặc mật khẩu không chính xác.';
+       } else if (error.code === 'auth/too-many-requests') {
+           errorMessage = 'Quá nhiều lần thử không thành công. Vui lòng thử lại sau.';
+       }
+      return { success: false, error: errorMessage };
     } finally {
-      setLoading(false);
+      // setLoading(false) is handled by onAuthStateChanged
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     try {
-      localStorage.removeItem('userId');
-    } catch (e) {
-      console.error('Failed to access localStorage:', e);
+      await signOut(firebaseAuth);
+      // onAuthStateChanged will handle cleanup
+    } catch (error) {
+      console.error('Logout error:', error);
     }
-    setUser(null);
   };
 
+  // We show a loading screen while the initial auth state is being determined.
   if (loading) {
     return <Loading />;
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, firebaseUser, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
