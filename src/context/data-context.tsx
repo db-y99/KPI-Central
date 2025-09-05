@@ -103,21 +103,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteEmployee = async (employeeId: string) => {
-    // Also delete their kpiRecords
     const batch = writeBatch(db);
     
-    // Find the employee document reference by its custom `id` field
     const employeeQuery = query(collection(db, 'employees'), where('id', '==', employeeId));
     const employeeSnapshot = await getDocs(employeeQuery);
 
     if (employeeSnapshot.empty) {
         console.error("Employee to delete not found with custom ID:", employeeId);
-        return; // Exit if the employee document doesn't exist
+        return;
     }
     const empDocRef = employeeSnapshot.docs[0].ref;
 
-
-    // Find and delete related KPI records
     const kpiQuery = query(collection(db, 'kpiRecords'), where('employeeId', '==', employeeId));
     const kpiSnapshot = await getDocs(kpiQuery);
     kpiSnapshot.forEach(doc => {
@@ -140,7 +136,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const deleteKpi = async (kpiId: string) => {
     await deleteDoc(doc(db, 'kpis', kpiId));
     setKpis(prev => prev.filter(k => k.id !== kpiId));
-    // Note: This doesn't delete assigned kpiRecords. That might be desired behavior (to preserve history).
   };
   
   const assignKpi = async (assignment: Omit<KpiRecord, 'id' | 'actual' | 'status' | 'submittedReport' | 'approvalComment'>) => {
