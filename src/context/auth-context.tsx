@@ -47,11 +47,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const userDocRef = doc(db, 'employees', fbUser.uid);
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
-          setUser(userDoc.data() as Employee);
+          // IMPORTANT: Add the uid to the user object from firestore data
+          setUser({ ...userDoc.data(), uid: fbUser.uid } as Employee);
         } else {
           // This case might happen if a user exists in Auth but not Firestore.
           // For this app, we treat them as not logged in.
           setUser(null);
+           await signOut(firebaseAuth); // Sign out the invalid user
         }
       } else {
         // User is signed out
@@ -65,10 +67,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, pass: string): Promise<LoginResult> => {
-    setLoading(true);
     try {
       await signInWithEmailAndPassword(firebaseAuth, email, pass);
-      // onAuthStateChanged will handle setting the user state
+      // onAuthStateChanged will handle setting the user state and loading state
       return { success: true };
     } catch (error: any) {
       console.error("Login error:", error);
@@ -79,15 +80,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
            errorMessage = 'Quá nhiều lần thử không thành công. Vui lòng thử lại sau.';
        }
       return { success: false, error: errorMessage };
-    } finally {
-      // setLoading(false) is handled by onAuthStateChanged
     }
   };
 
   const logout = async () => {
     try {
       await signOut(firebaseAuth);
-      // onAuthStateChanged will handle cleanup
+      // onAuthStateChanged will handle cleanup and set user to null
     } catch (error) {
       console.error('Logout error:', error);
     }

@@ -40,7 +40,7 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Nếu quá trình xác thực không còn chạy và người dùng đã tồn tại, chuyển hướng họ
+    // If auth is not loading and a user exists, redirect them.
     if (!loading && user) {
       if (user.role === 'admin') {
         router.push('/admin');
@@ -66,32 +66,24 @@ export default function LoginPage() {
         title: 'Thành công',
         description: 'Đăng nhập thành công! Đang chuyển hướng...',
       });
-      // useEffect ở trên sẽ xử lý việc chuyển hướng khi `user` được cập nhật.
+      // The useEffect hook above will handle the redirection once the user state is updated.
     } else {
       toast({
         variant: 'destructive',
         title: 'Lỗi đăng nhập',
         description: result.error || 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.',
       });
-    }
-    // Chỉ set isLoggingIn lại false nếu có lỗi, nếu thành công thì sẽ chuyển trang
-     if (!result.success) {
-        setIsLoggingIn(false);
+       setIsLoggingIn(false); // Only set loading to false on error
     }
   }
 
-  // Chỉ hiển thị màn hình tải khi đang kiểm tra xác thực ban đầu (loading) hoặc khi người dùng vừa nhấn nút (isLoggingIn).
-  // Không hiển thị loading chỉ vì `user` tồn tại, vì điều đó sẽ ngăn cản `useEffect` chuyển hướng.
-  if (loading || isLoggingIn) {
+  // Show loading screen if the app is still checking for an existing session,
+  // or if the user has already been authenticated and is waiting for redirection.
+  if (loading || user) {
     return <Loading />;
   }
   
-  // Nếu đã đăng nhập rồi thì không hiển thị form đăng nhập nữa (chờ useEffect chuyển hướng)
-  if(user) {
-    return <Loading/>
-  }
-
-
+  // Show the login form
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
