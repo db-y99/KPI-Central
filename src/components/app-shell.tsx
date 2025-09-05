@@ -92,13 +92,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
       isActive: pathname.startsWith('/admin/reports'),
       isAdminOnly: true,
     },
-     {
-      href: '/admin/reviews',
-      label: 'Đánh giá & Xếp loại',
-      icon: Medal,
-      isActive: pathname.startsWith('/admin/reviews'),
-      isAdminOnly: true,
-    },
   ];
 
   const sidebarContent = (
@@ -150,7 +143,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                       </Link>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="right">{link.label}</TooltipContent>
+                   {isCollapsed && <TooltipContent side="right">{link.label}</TooltipContent>}
                 </Tooltip>
               )
           )}
@@ -189,14 +182,14 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 </div>
               </div>
             </TooltipTrigger>
-            <TooltipContent side="right">
+            {isCollapsed && <TooltipContent side="right">
                 {user && (
                     <>
                         <p>{user.name}</p>
                         <p className="text-muted-foreground">{user.position}</p>
                     </>
                 )}
-            </TooltipContent>
+            </TooltipContent>}
           </Tooltip>
         </TooltipProvider>
 
@@ -214,7 +207,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 </span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right">Đăng xuất</TooltipContent>
+            {isCollapsed && <TooltipContent side="right">Đăng xuất</TooltipContent>}
           </Tooltip>
         </TooltipProvider>
       </div>
