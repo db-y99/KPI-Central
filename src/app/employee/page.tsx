@@ -1,5 +1,5 @@
 'use client';
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 import type { Kpi, KpiRecord } from '@/types';
 import {
   Card,
@@ -19,6 +19,7 @@ import { AuthContext } from '@/context/auth-context';
 import { DataContext } from '@/context/data-context';
 import KpiListRow from '@/components/kpi-list-row';
 import KpiCard from '@/components/kpi-card';
+import { startOfQuarter, isAfter } from 'date-fns';
 
 export default function EmployeeDashboardPage() {
   const { user } = useContext(AuthContext);
@@ -29,24 +30,35 @@ export default function EmployeeDashboardPage() {
     return null;
   }
 
-  const userKpiRecords = kpiRecords.filter(r => r.employeeId === user.id);
+  const enrichedKpiRecords = useMemo(() => {
+    const today = new Date();
+    const startOfCurrentQuarter = startOfQuarter(today);
+    
+    const userKpiRecords = kpiRecords.filter(r => 
+        r.employeeId === user.id &&
+        isAfter(new Date(r.endDate), startOfCurrentQuarter)
+    );
 
-  const enrichedKpiRecords = userKpiRecords.map(record => {
-    const kpiDetails = kpis.find(k => k.id === record.kpiId);
-    // Preserve record.id by spreading kpiDetails first, then record, ensuring record.id is the final one.
-    return { ...kpiDetails, ...record, employeeName: user.name };
-  });
+    return userKpiRecords
+      .map(record => {
+        const kpiDetails = kpis.find(k => k.id === record.kpiId);
+        // Preserve record.id by spreading kpiDetails first, then record, ensuring record.id is the final one.
+        return { ...kpiDetails, ...record, employeeName: user.name };
+      })
+      .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
+  }, [kpiRecords, kpis, user.id, user.name]);
+
 
   return (
     <div className="h-full p-6 md:p-8">
       {enrichedKpiRecords.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Chưa có KPI nào được giao</CardTitle>
+            <CardTitle>Bạn không có KPI nào trong kỳ này</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Bạn chưa có KPI nào được giao trong kỳ này.
+              Các KPI đã hoàn thành trong quá khứ có thể được xem lại trong trang Hồ sơ cá nhân của bạn.
             </p>
           </CardContent>
         </Card>
@@ -62,9 +74,9 @@ export default function EmployeeDashboardPage() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>KPI của bạn</CardTitle>
+            <CardTitle>KPI của bạn (Kỳ hiện tại)</CardTitle>
             <CardDescription>
-              Theo dõi và cập nhật tiến độ công việc của bạn.
+              Theo dõi và cập nhật tiến độ công việc của bạn trong quý này.
             </CardDescription>
           </CardHeader>
           <CardContent>

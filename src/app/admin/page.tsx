@@ -1,11 +1,10 @@
 'use client';
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 import { LayoutGrid, List } from 'lucide-react';
 import KpiCard from '@/components/kpi-card';
 import KpiListRow from '@/components/kpi-list-row';
 import type { Kpi, KpiRecord } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -14,27 +13,41 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { DataContext } from '@/context/data-context';
+import { startOfQuarter, isAfter } from 'date-fns';
+
 
 export default function AdminDashboardPage() {
   const { kpis, kpiRecords, employees, view } = useContext(DataContext);
 
-  const enrichedKpiRecords = kpiRecords.map(record => {
-    const kpiDetails = kpis.find(k => k.id === record.kpiId);
-    const employeeDetails = employees.find(e => e.id === record.employeeId);
-    // Preserve record.id by spreading kpiDetails first, then record, ensuring record.id is the final one.
-    return { ...kpiDetails, ...record, employeeName: employeeDetails?.name };
-  });
+  const enrichedKpiRecords = useMemo(() => {
+    const today = new Date();
+    const startOfCurrentQuarter = startOfQuarter(today);
+
+    return kpiRecords
+      .filter(record => {
+        const endDate = new Date(record.endDate);
+        // Show KPI if its end date is in the future or within the current quarter
+        return isAfter(endDate, startOfCurrentQuarter) || endDate.getTime() === startOfCurrentQuarter.getTime();
+      })
+      .map(record => {
+        const kpiDetails = kpis.find(k => k.id === record.kpiId);
+        const employeeDetails = employees.find(e => e.id === record.employeeId);
+        return { ...kpiDetails, ...record, employeeName: employeeDetails?.name };
+      })
+      .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
+  }, [kpiRecords, kpis, employees]);
+
 
   return (
     <div className="h-full p-6 md:p-8">
       {enrichedKpiRecords.length === 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Chưa có KPI nào được giao</CardTitle>
+            <CardTitle>Chưa có KPI nào được giao trong kỳ này</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Sử dụng trang "Giao KPI" để bắt đầu phân công công việc.
+              Sử dụng trang "Giao KPI" để bắt đầu phân công công việc. Các KPI từ các kỳ trước sẽ được lưu trữ trong trang Hồ sơ cá nhân của nhân viên.
             </p>
           </CardContent>
         </Card>
@@ -51,9 +64,9 @@ export default function AdminDashboardPage() {
       ) : (
         <Card>
            <CardHeader>
-            <CardTitle>Danh sách KPI nhân viên</CardTitle>
+            <CardTitle>Danh sách KPI nhân viên (Kỳ hiện tại)</CardTitle>
             <CardDescription>
-              Theo dõi, phê duyệt và quản lý KPI của nhân viên.
+              Theo dõi, phê duyệt và quản lý KPI của nhân viên trong quý này.
             </CardDescription>
           </CardHeader>
           <CardContent>
