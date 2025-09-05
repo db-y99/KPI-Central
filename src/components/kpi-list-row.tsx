@@ -60,8 +60,8 @@ export default function KpiListRow({ record, isEmployeeView = false }: KpiListRo
 
   const isAdmin = user?.role === 'admin';
   
-  const canUpdate = !isEmployeeView ? false : (record.status === 'pending' || record.status === 'rejected');
-  const canSubmit = !isEmployeeView ? false : (record.status === 'pending' && record.actual > 0);
+  const canUpdate = isEmployeeView && (record.status === 'pending' || record.status === 'rejected');
+  const canSubmit = isEmployeeView && record.status === 'pending' && record.actual > 0;
   const canApprove = isAdmin && record.status === 'awaiting_approval';
 
   const completionPercentage =
@@ -136,17 +136,8 @@ export default function KpiListRow({ record, isEmployeeView = false }: KpiListRo
             <span className="text-xs text-muted-foreground">
               {record.submittedReport ? `Đã nộp: ${record.submittedReport}` : (isEmployeeView ? "Chưa nộp báo cáo" : "")}
             </span>
-            {record.status === 'rejected' && record.approvalComment && isEmployeeView && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                       <span className="text-xs text-red-500 italic cursor-pointer">Lý do từ chối: {record.approvalComment}</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{record.approvalComment}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+            {isEmployeeView && record.status === 'rejected' && record.approvalComment && (
+                <span className="text-xs text-red-500 italic mt-1">Lý do từ chối: {record.approvalComment}</span>
             )}
         </div>
       </TableCell>

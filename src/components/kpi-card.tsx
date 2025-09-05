@@ -197,6 +197,11 @@ export default function KpiCard({
                 <span className="font-medium">{record.submittedReport}</span>
             </div>
            )}
+           {isEmployee && record.status === 'rejected' && record.approvalComment && (
+             <p className="pt-1 text-xs text-red-500 italic">
+                Lý do từ chối: {record.approvalComment}
+              </p>
+           )}
         </div>
       </CardContent>
       <CardFooter className="flex flex-col items-start gap-4 p-6 pt-0">

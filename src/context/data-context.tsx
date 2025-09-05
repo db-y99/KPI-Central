@@ -105,13 +105,25 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const deleteEmployee = async (employeeId: string) => {
     // Also delete their kpiRecords
     const batch = writeBatch(db);
+    
+    // Find the employee document reference by its custom `id` field
+    const employeeQuery = query(collection(db, 'employees'), where('id', '==', employeeId));
+    const employeeSnapshot = await getDocs(employeeQuery);
+
+    if (employeeSnapshot.empty) {
+        console.error("Employee to delete not found with custom ID:", employeeId);
+        return; // Exit if the employee document doesn't exist
+    }
+    const empDocRef = employeeSnapshot.docs[0].ref;
+
+
+    // Find and delete related KPI records
     const kpiQuery = query(collection(db, 'kpiRecords'), where('employeeId', '==', employeeId));
     const kpiSnapshot = await getDocs(kpiQuery);
     kpiSnapshot.forEach(doc => {
       batch.delete(doc.ref);
     });
     
-    const empDocRef = doc(db, 'employees', employeeId);
     batch.delete(empDocRef);
     
     await batch.commit();
@@ -155,18 +167,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const submitReport = async (recordId: string, reportName: string) => {
-    const updates = { submittedReport: reportName, status: 'awaiting_approval' };
-    await updateKpiRecord(recordId, updates);
+    await updateKpiRecord(recordId, { submittedReport: reportName, status: 'awaiting_approval' });
   };
 
   const approveKpi = async (recordId: string) => {
-    const updates = { status: 'approved', approvalComment: '' };
-    await updateKpiRecord(recordId, updates);
+    await updateKpiRecord(recordId, { status: 'approved', approvalComment: '' });
   };
 
   const rejectKpi = async (recordId: string, comment: string) => {
-     const updates = { status: 'rejected', approvalComment: comment };
-     await updateKpiRecord(recordId, updates);
+     await updateKpiRecord(recordId, { status: 'rejected', approvalComment: comment });
   };
 
   const value = {
