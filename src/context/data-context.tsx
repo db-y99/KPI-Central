@@ -11,6 +11,7 @@ import {
   writeBatch,
   query,
   where,
+  getDoc,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Department, Employee, Kpi, KpiRecord } from '@/types';
@@ -25,7 +26,7 @@ interface DataContextType {
   kpis: Kpi[];
   kpiRecords: KpiRecord[];
   loading: boolean;
-  addEmployee: (employee: Omit<Employee, 'id'>) => Promise<void>;
+  addEmployee: (employee: Omit<Employee, 'id'> & { id: string }) => Promise<void>;
   deleteEmployee: (employeeId: string) => Promise<void>;
   addKpi: (kpi: Omit<Kpi, 'id'>) => Promise<void>;
   deleteKpi: (kpiId: string) => Promise<void>;
@@ -76,10 +77,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             getDocs(collection(db, 'kpiRecords')),
         ]);
         
-        const depts = deptsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Department));
-        const emps = empsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Employee));
-        const kpisData = kpisSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Kpi));
-        const kpiRecordsData = kpiRecordsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as KpiRecord));
+        const depts = deptsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Department));
+        const emps = empsSnap.docs.map(doc => doc.data() as Employee);
+        const kpisData = kpisSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Kpi));
+        const kpiRecordsData = kpiRecordsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as KpiRecord));
 
         setDepartments(depts);
         setEmployees(emps);
@@ -97,46 +98,52 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     fetchData();
   }, [user]);
 
-  const addEmployee = async (employeeData: Omit<Employee, 'id'>) => {
-    const docRef = await addDoc(collection(db, 'employees'), employeeData);
-    setEmployees(prev => [...prev, { id: docRef.id, ...employeeData }]);
+  const addEmployee = async (employeeData: Omit<Employee, 'id'> & { id: string }) => {
+    // Now the `id` field is explicitly part of the data being saved.
+    await addDoc(collection(db, 'employees'), employeeData);
+    setEmployees(prev => [...prev, employeeData]);
   };
 
   const deleteEmployee = async (employeeId: string) => {
     const batch = writeBatch(db);
     
+    // Find the document to delete by its `id` field.
     const employeeQuery = query(collection(db, 'employees'), where('id', '==', employeeId));
     const employeeSnapshot = await getDocs(employeeQuery);
 
     if (employeeSnapshot.empty) {
-        console.error("Employee to delete not found with custom ID:", employeeId);
+        console.error("Employee to delete not found with ID:", employeeId);
         return;
     }
     const empDocRef = employeeSnapshot.docs[0].ref;
+    batch.delete(empDocRef);
 
+    // Find and delete related KPI records
     const kpiQuery = query(collection(db, 'kpiRecords'), where('employeeId', '==', employeeId));
     const kpiSnapshot = await getDocs(kpiQuery);
     kpiSnapshot.forEach(doc => {
       batch.delete(doc.ref);
     });
     
-    batch.delete(empDocRef);
-    
     await batch.commit();
 
+    // Update client-side state
     setEmployees(prev => prev.filter(e => e.id !== employeeId));
     setKpiRecords(prev => prev.filter(r => r.employeeId !== employeeId));
   };
 
   const addKpi = async (kpiData: Omit<Kpi, 'id'>) => {
     const docRef = await addDoc(collection(db, 'kpis'), kpiData);
-    setKpis(prev => [...prev, { id: docRef.id, ...kpiData }]);
+    setKpis(prev => [...prev, { ...kpiData, id: docRef.id }]);
   };
 
+
   const deleteKpi = async (kpiId: string) => {
-    await deleteDoc(doc(db, 'kpis', kpiId));
+    // Find the document by its Firestore ID to delete it
+    const kpiDocRef = doc(db, 'kpis', kpiId);
+    await deleteDoc(kpiDocRef);
     setKpis(prev => prev.filter(k => k.id !== kpiId));
-  };
+};
   
   const assignKpi = async (assignment: Omit<KpiRecord, 'id' | 'actual' | 'status' | 'submittedReport' | 'approvalComment'>) => {
     const newRecord = {
@@ -147,7 +154,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         approvalComment: ''
     } as const;
     const docRef = await addDoc(collection(db, 'kpiRecords'), newRecord);
-    setKpiRecords(prev => [...prev, { id: docRef.id, ...newRecord }]);
+    setKpiRecords(prev => [...prev, { ...newRecord, id: docRef.id }]);
   }
 
   const updateKpiRecord = async (

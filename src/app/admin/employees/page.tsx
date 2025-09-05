@@ -39,7 +39,7 @@ import Loading from '@/app/loading';
 
 
 export default function EmployeeManagementPage() {
-  const { employees, addEmployee, deleteEmployee, departments, loading } = useContext(DataContext);
+  const { employees, deleteEmployee, departments, loading } = useContext(DataContext);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { toast } = useToast();
   
@@ -118,6 +118,7 @@ export default function EmployeeManagementPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nhân viên</TableHead>
+                <TableHead>Mã NV</TableHead>
                 <TableHead>Chức vụ</TableHead>
                 <TableHead>Phòng ban</TableHead>
                 <TableHead>Vai trò</TableHead>
@@ -135,6 +136,9 @@ export default function EmployeeManagementPage() {
                         </Avatar>
                         <span>{employee.name}</span>
                      </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{employee.id}</Badge>
                   </TableCell>
                   <TableCell>{employee.position}</TableCell>
                   <TableCell>{getDepartmentName(employee.departmentId)}</TableCell>

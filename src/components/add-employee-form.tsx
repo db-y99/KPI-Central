@@ -57,14 +57,15 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
   const onSubmit = async (data: EmployeeFormValues) => {
     setIsSubmitting(true);
     try {
+      // Create a predictable employee ID
       const nextIdNumber = (employees.length > 0 ? Math.max(...employees.map(e => parseInt(e.id.substring(1)))) : 0) + 1;
       const newEmployeeData = {
-        id: `e${nextIdNumber}`, // This ID is for client-side representation, Firestore will generate its own unique document ID.
-        avatar: `https://picsum.photos/seed/e${Date.now()}/100/100`,
+        id: `e${nextIdNumber}`,
+        avatar: `https://picsum.photos/seed/e${nextIdNumber}/100/100`,
         ...data,
       };
       await addEmployee(newEmployeeData);
-      onSave(); // This can now just be a confirmation callback
+      onSave();
       onClose();
     } catch (error) {
       console.error("Failed to add employee:", error);

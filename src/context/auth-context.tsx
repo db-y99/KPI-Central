@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useState, useEffect, type ReactNode } from 'react';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Employee } from '@/types';
 import Loading from '@/app/loading';
@@ -30,12 +30,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
           const storedUserId = localStorage.getItem('userId');
           if (storedUserId) {
+            // Now we query based on the employee ID field, which is correct
             const q = query(collection(db, 'employees'), where('id', '==', storedUserId));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
               const userDoc = querySnapshot.docs[0];
-              // Note: The document ID from firestore is used, not the 'id' field from the document data
-              setUser({ id: userDoc.id, ...userDoc.data() } as Employee);
+              // Reconstruct the user object with the correct field `id`
+              setUser(userDoc.data() as Employee);
             }
           }
         } catch (e) {
@@ -50,14 +51,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (employeeId: string): Promise<boolean> => {
     setLoading(true);
+    const normalizedEmployeeId = employeeId.toLowerCase();
     try {
-      const q = query(collection(db, 'employees'), where('id', '==', employeeId.toLowerCase()));
+      const q = query(collection(db, 'employees'), where('id', '==', normalizedEmployeeId));
       const querySnapshot = await getDocs(q);
       
       if (!querySnapshot.empty) {
         const foundUser = querySnapshot.docs[0];
-        const userData = { id: foundUser.id, ...foundUser.data() } as Employee
+        const userData = foundUser.data() as Employee;
         setUser(userData);
+        // Store the actual employee ID (e.g., 'e1'), not the Firestore document ID
         localStorage.setItem('userId', userData.id);
         return true;
       }
