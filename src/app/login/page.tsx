@@ -40,7 +40,7 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // If auth is not loading and a user exists, redirect them.
+    // If auth check is done and a user exists, redirect them.
     if (!loading && user) {
       if (user.role === 'admin') {
         router.push('/admin');
@@ -60,30 +60,47 @@ export default function LoginPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoggingIn(true);
-    const result = await login(values.email, values.password);
-    if (result.success) {
-      toast({
-        title: 'Thành công',
-        description: 'Đăng nhập thành công! Đang chuyển hướng...',
-      });
-      // The useEffect hook above will handle the redirection once the user state is updated.
-    } else {
-      toast({
-        variant: 'destructive',
-        title: 'Lỗi đăng nhập',
-        description: result.error || 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.',
-      });
-       setIsLoggingIn(false); // Only set loading to false on error
+    try {
+        const result = await login(values.email, values.password);
+        if (result.success) {
+          toast({
+            title: 'Thành công',
+            description: 'Đăng nhập thành công! Đang chuyển hướng...',
+          });
+          // The useEffect hook above will handle the redirection once the user state is updated.
+        } else {
+          toast({
+            variant: 'destructive',
+            title: 'Lỗi đăng nhập',
+            description: result.error || 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.',
+          });
+           setIsLoggingIn(false); // Only set loading to false on error
+        }
+    } catch(error) {
+        // This handles unexpected errors in the login function itself
+         toast({
+            variant: 'destructive',
+            title: 'Lỗi hệ thống',
+            description: 'Đã có lỗi không mong muốn xảy ra.',
+          });
+        setIsLoggingIn(false);
     }
   }
 
-  // Show loading screen if the app is still checking for an existing session,
-  // or if the user has already been authenticated and is waiting for redirection.
-  if (loading || user) {
+  // Show a loading screen while the initial auth state is being determined.
+  // After that, if a user is found, the useEffect will redirect.
+  // If no user is found, the login form will be displayed.
+  if (loading) {
     return <Loading />;
   }
   
-  // Show the login form
+  // Show the login form only if auth is done and there's no user.
+  // If there's a user, the useEffect will soon redirect, so we can show a loader
+  // to prevent the form from flashing briefly.
+  if (user) {
+    return <Loading />;
+  }
+  
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">

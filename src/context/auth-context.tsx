@@ -11,7 +11,6 @@ import {
 import { doc, getDoc } from 'firebase/firestore';
 import { db, auth as firebaseAuth } from '@/lib/firebase';
 import type { Employee } from '@/types';
-import Loading from '@/app/loading';
 
 interface LoginResult {
   success: boolean;
@@ -43,6 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribe = onAuthStateChanged(firebaseAuth, async (fbUser) => {
       setFirebaseUser(fbUser);
       if (fbUser) {
+        setLoading(true);
         // User is signed in, get their profile from Firestore
         const userDocRef = doc(db, 'employees', fbUser.uid);
         const userDoc = await getDoc(userDocRef);
@@ -67,9 +67,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, pass: string): Promise<LoginResult> => {
+    // The onAuthStateChanged listener will handle the user state update
+    // so we don't need to set loading here.
     try {
       await signInWithEmailAndPassword(firebaseAuth, email, pass);
-      // onAuthStateChanged will handle setting the user state and loading state
       return { success: true };
     } catch (error: any) {
       console.error("Login error:", error);
@@ -91,12 +92,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Logout error:', error);
     }
   };
-
-  // We show a loading screen while the initial auth state is being determined.
-  if (loading) {
-    return <Loading />;
-  }
-
+  
+  // The provider now simply provides the context value without rendering a loading screen itself.
+  // The consuming components will decide what to render based on the loading state.
   return (
     <AuthContext.Provider value={{ user, firebaseUser, loading, login, logout }}>
       {children}
