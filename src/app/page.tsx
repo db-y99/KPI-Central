@@ -10,14 +10,17 @@ export default function DashboardRedirectPage() {
 
   useEffect(() => {
     if (loading) {
+      // Chờ cho đến khi quá trình xác thực hoàn tất
       return;
     }
 
     if (!user) {
+      // Nếu không có người dùng, chuyển hướng đến trang đăng nhập
       router.push('/login');
       return;
     }
 
+    // Nếu có người dùng, chuyển hướng dựa trên vai trò
     if (user.role === 'admin') {
       router.push('/admin');
     } else {
@@ -25,5 +28,6 @@ export default function DashboardRedirectPage() {
     }
   }, [loading, user, router]);
 
+  // Hiển thị màn hình tải trong khi kiểm tra và chuyển hướng
   return <Loading />;
 }

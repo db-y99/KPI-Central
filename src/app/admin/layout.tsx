@@ -10,16 +10,22 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && (!user || user.role !== 'admin')) {
+    // Nếu quá trình xác thực chưa hoàn tất, không làm gì cả.
+    if (loading) {
+      return;
+    }
+
+    // Nếu không có người dùng hoặc vai trò không phải là admin, chuyển hướng về trang đăng nhập.
+    if (!user || user.role !== 'admin') {
       router.push('/login');
     }
   }, [loading, user, router]);
 
-  if (loading || !user) {
+  // Hiển thị màn hình tải trong khi chờ xác thực hoặc nếu người dùng không hợp lệ (và đang được chuyển hướng).
+  if (loading || !user || user.role !== 'admin') {
     return <Loading />;
   }
 
-  // No need to show an access denied message here, as the useEffect will redirect.
-  // We just return the main shell.
+  // Nếu người dùng hợp lệ, hiển thị layout và nội dung.
   return <AppShell>{children}</AppShell>;
 }

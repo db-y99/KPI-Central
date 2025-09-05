@@ -40,7 +40,7 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // If the user is already logged in, redirect them away from the login page.
+    // Nếu người dùng đã đăng nhập, chuyển hướng họ ra khỏi trang đăng nhập.
     if (!loading && user) {
       if (user.role === 'admin') {
         router.push('/admin');
@@ -66,7 +66,7 @@ export default function LoginPage() {
         title: 'Thành công',
         description: 'Đăng nhập thành công! Đang chuyển hướng...',
       });
-      // The useEffect will handle redirection.
+      // useEffect ở trên sẽ xử lý việc chuyển hướng khi `user` được cập nhật.
     } else {
       toast({
         variant: 'destructive',
@@ -77,7 +77,7 @@ export default function LoginPage() {
     }
   }
 
-  // Show loading screen if we are still checking auth state or if user is logged in (and redirecting)
+  // Hiển thị màn hình tải nếu chúng ta vẫn đang kiểm tra trạng thái xác thực hoặc nếu người dùng đã đăng nhập (và đang chuyển hướng)
   if (loading || user) {
     return <Loading />;
   }
