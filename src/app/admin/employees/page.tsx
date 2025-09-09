@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { PlusCircle, MoreHorizontal, Pen, Trash2, Loader2 } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Pen, Trash2, Loader2, UserPlus } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,16 +31,24 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import AddEmployeeForm from '@/components/add-employee-form';
+import EditEmployeeForm from '@/components/edit-employee-form';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { DataContext } from '@/context/data-context';
+import { useLanguage } from '@/context/language-context';
 import Loading from '@/app/loading';
+import { useRouter } from 'next/navigation';
+import type { Employee } from '@/types';
 
 
 export default function EmployeeManagementPage() {
-  const { employees, deleteEmployee, departments, loading } = useContext(DataContext);
+  const { employees, updateEmployee, deleteEmployee, departments, loading } = useContext(DataContext);
+  const { t } = useLanguage();
+  const router = useRouter();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const { toast } = useToast();
   
   const handleSaveEmployee = () => {
@@ -48,10 +56,28 @@ export default function EmployeeManagementPage() {
   };
 
   const handleEditEmployee = (employeeId: string) => {
-    toast({
-        title: 'Tính năng đang phát triển',
-        description: 'Chức năng sửa thông tin nhân viên sẽ được cập nhật sớm.',
-    });
+    const employee = employees.find(emp => emp.uid === employeeId);
+    if (employee) {
+      setEditingEmployee(employee);
+      setIsEditDialogOpen(true);
+    } else {
+      toast({
+        title: 'Lỗi',
+        description: 'Không tìm thấy thông tin nhân viên.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleSaveEditEmployee = () => {
+    // Toast is handled inside the form
+    setIsEditDialogOpen(false);
+    setEditingEmployee(null);
+  };
+
+  const handleCloseEditDialog = () => {
+    setIsEditDialogOpen(false);
+    setEditingEmployee(null);
   };
 
   const handleDeleteEmployee = async (employeeUid: string) => {
@@ -79,37 +105,68 @@ export default function EmployeeManagementPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Quản lý nhân viên</CardTitle>
+              <CardTitle>{t.employees.title}</CardTitle>
               <CardDescription>
-                Thêm, sửa, hoặc xóa thông tin nhân viên trong tổ chức.
+                {t.employees.subtitle}
               </CardDescription>
             </div>
-             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Thêm nhân viên
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-xl">
-                <DialogHeader>
-                  <DialogTitle>Thêm nhân viên mới</DialogTitle>
-                </DialogHeader>
-                <AddEmployeeForm onSave={handleSaveEmployee} onClose={() => setIsAddDialogOpen(false)} />
-              </DialogContent>
-            </Dialog>
+             <div className="flex space-x-2">
+              <Button 
+                variant="outline"
+                onClick={() => router.push('/admin/create-employee')}
+                className="flex items-center gap-2"
+              >
+                <UserPlus className="h-4 w-4" />
+                Tạo nhân viên mới
+              </Button>
+              
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="btn-gradient">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    {t.employees.addEmployee}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-xl">
+                  <DialogHeader>
+                    <DialogTitle>{t.employees.addEmployeeTitle}</DialogTitle>
+                  </DialogHeader>
+                  <AddEmployeeForm onSave={handleSaveEmployee} onClose={() => setIsAddDialogOpen(false)} />
+                </DialogContent>
+              </Dialog>
+
+              {/* Edit Employee Dialog */}
+              {isEditDialogOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                  <div className="fixed inset-0 bg-black/50" onClick={() => {
+                    setIsEditDialogOpen(false);
+                    setEditingEmployee(null);
+                  }} />
+                  <div className="relative bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl mx-4">
+                    <h2 className="text-lg font-semibold mb-4">Sửa thông tin nhân viên</h2>
+                    {editingEmployee && (
+                      <EditEmployeeForm 
+                        employee={editingEmployee} 
+                        onSave={handleSaveEditEmployee} 
+                        onClose={handleCloseEditDialog} 
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nhân viên</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Chức vụ</TableHead>
-                <TableHead>Phòng ban</TableHead>
-                <TableHead>Vai trò</TableHead>
-                <TableHead className="text-right">Hành động</TableHead>
+                <TableHead>{t.employees.name}</TableHead>
+                <TableHead>{t.employees.email}</TableHead>
+                <TableHead>{t.employees.position}</TableHead>
+                <TableHead>{t.employees.department}</TableHead>
+                <TableHead>{t.employees.role}</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -131,7 +188,7 @@ export default function EmployeeManagementPage() {
                   <TableCell>{getDepartmentName(employee.departmentId)}</TableCell>
                   <TableCell>
                     <Badge variant={employee.role === 'admin' ? 'default' : 'secondary'}>
-                        {employee.role === 'admin' ? 'Quản trị viên' : 'Nhân viên'}
+                        {employee.role === 'admin' ? t.employees.admin : t.employees.employee}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -145,14 +202,14 @@ export default function EmployeeManagementPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEditEmployee(employee.uid!)}>
                           <Pen className="mr-2 h-4 w-4" />
-                          Sửa
+                          {t.common.edit}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-red-500 hover:text-red-500 focus:text-red-500"
                           onClick={() => handleDeleteEmployee(employee.uid!)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
-                          Xóa
+                          {t.common.delete}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

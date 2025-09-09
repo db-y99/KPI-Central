@@ -3,6 +3,9 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/context/auth-context';
 import { DataProvider } from '@/context/data-context';
+import { LanguageProvider } from '@/context/language-context';
+import { ThemeProvider } from '@/context/theme-context';
+import { ClientLayout } from '@/components/client-layout';
 
 export const metadata: Metadata = {
   title: 'KPI Central',
@@ -15,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className="dark">
+    <html>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
@@ -25,9 +28,17 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <AuthProvider>
-          <DataProvider>{children}</DataProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            <ClientLayout>
+              <AuthProvider>
+                <DataProvider>
+                  {children}
+                </DataProvider>
+              </AuthProvider>
+            </ClientLayout>
+          </LanguageProvider>
+        </ThemeProvider>
         <Toaster />
       </body>
     </html>

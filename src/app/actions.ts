@@ -23,15 +23,44 @@ const db = getFirestore();
 
 interface CreateUserParams {
   email: string;
+  username: string;
   password?: string;
+  confirmPassword?: string;
   name: string;
   position: string;
   departmentId: string;
   role: 'admin' | 'employee';
+  phone?: string;
+  address?: string;
+  startDate: string;
+  employeeId: string;
 }
 
 export async function createUser(userData: CreateUserParams) {
   try {
+    // Validate password confirmation
+    if (userData.password !== userData.confirmPassword) {
+      return { success: false, error: 'Mật khẩu xác nhận không khớp' };
+    }
+
+    // Check if username already exists
+    const usernameQuery = await db.collection('employees')
+      .where('username', '==', userData.username)
+      .get();
+    
+    if (!usernameQuery.empty) {
+      return { success: false, error: 'Tên đăng nhập đã tồn tại' };
+    }
+
+    // Check if employeeId already exists
+    const employeeIdQuery = await db.collection('employees')
+      .where('employeeId', '==', userData.employeeId)
+      .get();
+    
+    if (!employeeIdQuery.empty) {
+      return { success: false, error: 'Mã nhân viên đã tồn tại' };
+    }
+
     // 1. Create user in Firebase Authentication
     const userRecord = await auth.createUser({
       email: userData.email,
@@ -46,18 +75,31 @@ export async function createUser(userData: CreateUserParams) {
     // 2. Create corresponding employee document in Firestore
     const employeeData = {
       id: `e${nextIdNumber}`, // Legacy ID, might still be useful
+      uid: userRecord.uid, // Firebase Auth UID
       name: userData.name,
+      email: userData.email,
+      username: userData.username,
       position: userData.position,
       departmentId: userData.departmentId,
       role: userData.role,
-      email: userData.email,
+      phone: userData.phone || '',
+      address: userData.address || '',
+      startDate: userData.startDate,
+      employeeId: userData.employeeId,
       avatar: `https://picsum.photos/seed/${userRecord.uid}/100/100`,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     // Use the Auth UID as the document ID in Firestore
     await db.collection('employees').doc(userRecord.uid).set(employeeData);
 
-    return { success: true, uid: userRecord.uid };
+    return { 
+      success: true, 
+      uid: userRecord.uid,
+      message: `Tài khoản nhân viên ${userData.name} đã được tạo thành công!`
+    };
   } catch (error: any) {
     console.error('Error creating user:', error);
     // It's good practice to delete the auth user if firestore write fails

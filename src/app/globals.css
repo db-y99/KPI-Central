@@ -4,70 +4,69 @@
 
 @layer base {
   :root {
-    --background: 204 10% 96.1%; /* Slightly off-white */
-    --foreground: 180 5% 20%;
+    --background: 180 30% 98%;
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 180 5% 20%;
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 180 5% 20%;
-    --primary: 180 82% 35%; /* Cyan */
-    --primary-foreground: 0 0% 98%;
-    --secondary: 180 10% 90%;
-    --secondary-foreground: 180 5% 20%;
-    --muted: 180 10% 90%;
-    --muted-foreground: 180 5% 40%;
-    --accent: 190 95% 45%; /* Brighter Cyan */
-    --accent-foreground: 0 0% 98%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 180 10% 85%;
-    --input: 180 10% 85%;
-    --ring: 180 82% 35%;
-    --radius: 0.5rem;
-    --chart-1: 180 82% 35%;
-    --chart-2: 190 95% 45%;
-    --chart-3: 200 80% 55%;
-    --chart-4: 170 70% 40%;
-    --chart-5: 185 60% 50%;
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 180 5% 20%;
-    --sidebar-border: 180 10% 85%;
-    --sidebar-accent: 180 10% 94%;
-    --sidebar-accent-foreground: 180 5% 20%;
-    --sidebar-ring: 180 82% 35%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --chart-1: 221.2 83.2% 53.3%;
+    --chart-2: 142.1 76.2% 36.3%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 346.8 77.2% 49.8%;
+    --chart-5: 262.1 83.3% 57.8%;
+    --sidebar-background: 180 30% 98%;
+    --sidebar-foreground: 222.2 84% 4.9%;
+    --sidebar-border: 180 30% 95%;
+    --sidebar-accent: 180 30% 95%;
+    --sidebar-accent-foreground: 222.2 84% 4.9%;
+    --sidebar-ring: 221.2 83.2% 53.3%;
   }
 
   .dark {
-    --background: 195 20% 12%; /* Dark cyan-ish background */
-    --foreground: 180 5% 95%;
-    --card: 195 20% 15%;
-    --card-foreground: 180 5% 95%;
-    --popover: 195 20% 15%;
-    --popover-foreground: 180 5% 95%;
-    --primary: 180 75% 50%; /* Cyan */
-    --primary-foreground: 0 0% 98%;
-    --secondary: 195 20% 20%;
-    --secondary-foreground: 180 5% 95%;
-    --muted: 195 20% 20%;
-    --muted-foreground: 180 5% 65%;
-    --accent: 190 95% 55%; /* Brighter Cyan */
-    --accent-foreground: 0 0% 98%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 195 20% 25%;
-    --input: 195 20% 25%;
-    --ring: 180 75% 50%;
-    --chart-1: 180 75% 50%;
-    --chart-2: 190 95% 55%;
-    --chart-3: 200 80% 65%;
-    --chart-4: 170 70% 50%;
-    --chart-5: 185 60% 60%;
-    --sidebar-background: 195 20% 12%;
-    --sidebar-foreground: 180 5% 95%;
-    --sidebar-border: 195 20% 25%;
-    --sidebar-accent: 195 20% 20%;
-    --sidebar-accent-foreground: 180 5% 95%;
-    --sidebar-ring: 180 75% 50%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 94.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 340 75% 55%;
+    --chart-5: 280 65% 60%;
+    --sidebar-background: 222.2 84% 4.9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-ring: 224.3 76.3% 94.1%;
   }
 }
 
@@ -78,8 +77,324 @@
   body {
     @apply bg-background text-foreground;
   }
+  html {
+    @apply bg-background;
+  }
   
-  .dark body {
-    background-image: linear-gradient(to bottom right, hsl(195, 30%, 12%), hsl(222.2, 84%, 4.9%));
+  /* Light mode background override */
+  html:not(.dark) {
+    background-color: rgb(248, 252, 252) !important;
+  }
+  html:not(.dark) body {
+    background-color: rgb(248, 252, 252) !important;
+  }
+}
+
+@layer components {
+  /* Modern gradient backgrounds */
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(221.2 83.2% 45%) 100%);
+  }
+  
+  .gradient-secondary {
+    background: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(210 40% 90%) 100%);
+  }
+  
+  .gradient-accent {
+    background: linear-gradient(135deg, hsl(142.1 76.2% 36.3%) 0%, hsl(142.1 76.2% 50%) 100%);
+  }
+  
+  .gradient-warning {
+    background: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(38 92% 65%) 100%);
+  }
+  
+  .gradient-danger {
+    background: linear-gradient(135deg, hsl(346.8 77.2% 49.8%) 0%, hsl(346.8 77.2% 65%) 100%);
+  }
+  
+  /* Card styles */
+  .card-modern {
+    @apply bg-card border border-border rounded-2xl shadow-sm hover:shadow-md transition-all duration-200;
+  }
+  
+  .card-elevated {
+    @apply bg-card border border-border rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+  
+  /* Button styles */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2 font-medium transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-xl px-4 py-2 font-medium transition-colors;
+  }
+  
+  .btn-outline {
+    @apply border border-border bg-transparent hover:bg-accent hover:text-accent-foreground rounded-xl px-4 py-2 font-medium transition-colors;
+  }
+  
+  .btn-gradient {
+    @apply gradient-primary text-white hover:opacity-90 rounded-xl px-4 py-2 font-medium transition-all duration-200;
+  }
+  
+  /* Status indicators */
+  .status-success {
+    @apply bg-green-100 text-green-800 border border-green-200 rounded-xl dark:bg-green-900/20 dark:text-green-400 dark:border-green-800;
+  }
+  
+  .status-warning {
+    @apply bg-yellow-100 text-yellow-800 border border-yellow-200 rounded-xl dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800;
+  }
+  
+  .status-error {
+    @apply bg-red-100 text-red-800 border border-red-200 rounded-xl dark:bg-red-900/20 dark:text-red-400 dark:border-red-800;
+  }
+  
+  .status-info {
+    @apply bg-blue-100 text-blue-800 border border-blue-200 rounded-xl dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800;
+  }
+  
+  /* Progress bars */
+  .progress-modern {
+    @apply w-full bg-secondary rounded-full h-2 overflow-hidden;
+  }
+  
+  .progress-fill {
+    @apply h-full transition-all duration-500 ease-out;
+  }
+  
+  /* Navigation styles */
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground;
+  }
+  
+  .nav-item-active {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl;
+  }
+  
+  /* Form styles */
+  .input-modern {
+    @apply w-full px-3 py-2 border border-input rounded-xl bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors;
+  }
+  
+  .select-modern {
+    @apply w-full px-3 py-2 border border-input rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors;
+  }
+  
+  /* Table styles */
+  .table-modern {
+    @apply w-full border-collapse;
+  }
+  
+  .table-modern th {
+    @apply bg-muted text-muted-foreground font-medium px-4 py-3 text-left border-b border-border;
+  }
+  
+  .table-modern td {
+    @apply px-4 py-3 border-b border-border;
+  }
+  
+  .table-modern tr:hover {
+    @apply bg-muted/50;
+  }
+  
+  /* Badge styles */
+  .badge-modern {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .badge-success {
+    @apply !bg-green-100 !text-green-800 !border-green-200 dark:!bg-green-900/20 dark:!text-green-400 dark:!border-green-800;
+  }
+  
+  .badge-warning {
+    @apply !bg-yellow-100 !text-yellow-800 !border-yellow-200 dark:!bg-yellow-900/20 dark:!text-yellow-400 dark:!border-yellow-800;
+  }
+  
+  .badge-error {
+    @apply !bg-red-100 !text-red-800 !border-red-200 dark:!bg-red-900/20 dark:!text-red-400 dark:!border-red-800;
+  }
+  
+  .badge-info {
+    @apply !bg-blue-100 !text-blue-800 !border-blue-200 dark:!bg-blue-900/20 dark:!text-blue-400 dark:!border-blue-800;
+  }
+  
+  /* Priority badge styles */
+  .badge-priority-high {
+    background-color: rgb(254 226 226) !important;
+    color: rgb(153 27 27) !important;
+    border-color: rgb(252 165 165) !important;
+    border-radius: 9999px !important;
+    border-width: 1px !important;
+    padding: 0.125rem 0.625rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+  }
+  
+  .dark .badge-priority-high {
+    background-color: rgb(127 29 29 / 0.2) !important;
+    color: rgb(248 113 113) !important;
+    border-color: rgb(153 27 27) !important;
+  }
+  
+  .badge-priority-medium {
+    background-color: rgb(254 249 195) !important;
+    color: rgb(133 77 14) !important;
+    border-color: rgb(252 211 77) !important;
+    border-radius: 9999px !important;
+    border-width: 1px !important;
+    padding: 0.125rem 0.625rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+  }
+  
+  .dark .badge-priority-medium {
+    background-color: rgb(133 77 14 / 0.2) !important;
+    color: rgb(250 204 21) !important;
+    border-color: rgb(133 77 14) !important;
+  }
+  
+  .badge-priority-low {
+    background-color: rgb(219 234 254) !important;
+    color: rgb(30 64 175) !important;
+    border-color: rgb(147 197 253) !important;
+    border-radius: 9999px !important;
+    border-width: 1px !important;
+    padding: 0.125rem 0.625rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+  }
+  
+  .dark .badge-priority-low {
+    background-color: rgb(30 64 175 / 0.2) !important;
+    color: rgb(96 165 250) !important;
+    border-color: rgb(30 64 175) !important;
+  }
+  
+  /* Status badge styles */
+  .badge-status-approved {
+    background-color: rgb(220 252 231) !important;
+    color: rgb(22 101 52) !important;
+    border-color: rgb(187 247 208) !important;
+    border-radius: 9999px !important;
+    border-width: 1px !important;
+    padding: 0.125rem 0.625rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+  }
+  
+  .dark .badge-status-approved {
+    background-color: rgb(22 101 52 / 0.2) !important;
+    color: rgb(74 222 128) !important;
+    border-color: rgb(22 101 52) !important;
+  }
+  
+  .badge-status-rejected {
+    background-color: rgb(254 226 226) !important;
+    color: rgb(153 27 27) !important;
+    border-color: rgb(252 165 165) !important;
+    border-radius: 9999px !important;
+    border-width: 1px !important;
+    padding: 0.125rem 0.625rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+  }
+  
+  .dark .badge-status-rejected {
+    background-color: rgb(127 29 29 / 0.2) !important;
+    color: rgb(248 113 113) !important;
+    border-color: rgb(153 27 27) !important;
+  }
+  
+  .badge-status-pending {
+    background-color: rgb(219 234 254) !important;
+    color: rgb(30 64 175) !important;
+    border-color: rgb(147 197 253) !important;
+    border-radius: 9999px !important;
+    border-width: 1px !important;
+    padding: 0.125rem 0.625rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+  }
+  
+  .dark .badge-status-pending {
+    background-color: rgb(30 64 175 / 0.2) !important;
+    color: rgb(96 165 250) !important;
+    border-color: rgb(30 64 175) !important;
+  }
+  
+  .badge-status-revision {
+    background-color: rgb(254 249 195) !important;
+    color: rgb(133 77 14) !important;
+    border-color: rgb(252 211 77) !important;
+    border-radius: 9999px !important;
+    border-width: 1px !important;
+    padding: 0.125rem 0.625rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+  }
+  
+  .dark .badge-status-revision {
+    background-color: rgb(133 77 14 / 0.2) !important;
+    color: rgb(250 204 21) !important;
+    border-color: rgb(133 77 14) !important;
+  }
+  
+  /* Force badge styles with higher specificity */
+  .badge.badge-priority-high,
+  .badge.badge-priority-medium,
+  .badge.badge-priority-low,
+  .badge.badge-status-approved,
+  .badge.badge-status-rejected,
+  .badge.badge-status-pending,
+  .badge.badge-status-revision {
+    display: inline-flex !important;
+    align-items: center !important;
+    border-radius: 9999px !important;
+    border-width: 1px !important;
+    padding: 0.125rem 0.625rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+  }
+  
+  /* Alert styles */
+  .alert-modern {
+    @apply p-4 border rounded-xl shadow-sm;
+  }
+  
+  .alert-success {
+    @apply bg-green-50 text-green-800 border-green-200 rounded-xl dark:bg-green-900/20 dark:text-green-400 dark:border-green-800;
+  }
+  
+  .alert-warning {
+    @apply bg-yellow-50 text-yellow-800 border-yellow-200 rounded-xl dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800;
+  }
+  
+  .alert-error {
+    @apply bg-red-50 text-red-800 border-red-200 rounded-xl dark:bg-red-900/20 dark:text-red-400 dark:border-red-800;
+  }
+  
+  .alert-info {
+    @apply bg-blue-50 text-blue-800 border-blue-200 rounded-xl dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800;
+  }
+  
+  /* Modal and Dialog styles */
+  .modal-modern {
+    @apply bg-card border border-border rounded-2xl shadow-xl;
+  }
+  
+  .dialog-modern {
+    @apply bg-card border border-border rounded-2xl shadow-xl;
+  }
+  
+  /* Dropdown and Popover styles */
+  .dropdown-modern {
+    @apply bg-card border border-border rounded-xl shadow-lg;
+  }
+  
+  .popover-modern {
+    @apply bg-card border border-border rounded-xl shadow-lg;
   }
 }

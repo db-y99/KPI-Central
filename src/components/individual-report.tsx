@@ -187,7 +187,7 @@ export default function IndividualReport({
         </div>
 
         {selectedEmployeeId && (
-          <div className="space-y-8">
+          <div className="space-y-8 rounded-xl p-4 bg-muted/20">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>

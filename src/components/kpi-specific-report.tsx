@@ -203,7 +203,7 @@ export default function KpiSpecificReport({
         </div>
 
         {selectedKpiId && (
-          <div className="space-y-8">
+          <div className="space-y-8 rounded-xl p-4 bg-muted/20">
             {hasData ? (
               <>
                 <Card>

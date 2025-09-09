@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -22,8 +22,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Kpi } from '@/types';
-import { DataContext } from '@/context/data-context';
+import type { Kpi, Department } from '@/types';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 const kpiSchema = z.object({
   name: z.string().min(1, 'Tên KPI không được để trống.'),
@@ -34,6 +36,11 @@ const kpiSchema = z.object({
     errorMap: () => ({ message: 'Vui lòng chọn tần suất hợp lệ.' }),
   }),
   formula: z.string().optional(),
+  type: z.string().optional(),
+  target: z.number().optional(),
+  weight: z.number().min(0, 'Trọng số phải lớn hơn hoặc bằng 0').max(100, 'Trọng số không được vượt quá 100').optional(),
+  reward: z.number().optional(),
+  penalty: z.number().optional(),
 });
 
 type KpiFormValues = z.infer<typeof kpiSchema>;
@@ -44,7 +51,10 @@ interface AddKpiFormProps {
 }
 
 export default function AddKpiForm({ onSave, onClose }: AddKpiFormProps) {
-  const { departments } = useContext(DataContext);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [loadingDepartments, setLoadingDepartments] = useState(true);
+  const { toast } = useToast();
+  
   const form = useForm<KpiFormValues>({
     resolver: zodResolver(kpiSchema),
     defaultValues: {
@@ -54,8 +64,43 @@ export default function AddKpiForm({ onSave, onClose }: AddKpiFormProps) {
       unit: '',
       frequency: 'monthly',
       formula: '',
+      type: '',
+      target: 0,
+      weight: 1,
+      reward: 0,
+      penalty: 0,
     },
   });
+
+  // Load departments from Firestore
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        setLoadingDepartments(true);
+        const departmentsRef = collection(db, 'departments');
+        const q = query(departmentsRef, where('isActive', '==', true), orderBy('name'));
+        const querySnapshot = await getDocs(q);
+        
+        const departmentsData: Department[] = [];
+        querySnapshot.forEach((doc) => {
+          departmentsData.push({ id: doc.id, ...doc.data() } as Department);
+        });
+        
+        setDepartments(departmentsData);
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Lỗi',
+          description: 'Không thể tải danh sách phòng ban.',
+        });
+      } finally {
+        setLoadingDepartments(false);
+      }
+    };
+
+    fetchDepartments();
+  }, [toast]);
 
   const onSubmit = (data: KpiFormValues) => {
     // In a real app, this would be an API call.
@@ -117,11 +162,21 @@ export default function AddKpiForm({ onSave, onClose }: AddKpiFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {departments.map(dept => (
-                      <SelectItem key={dept.id} value={dept.name}>
-                        {dept.name}
+                    {loadingDepartments ? (
+                      <SelectItem value="loading" disabled>
+                        Đang tải phòng ban...
                       </SelectItem>
-                    ))}
+                    ) : departments.length === 0 ? (
+                      <SelectItem value="no-departments" disabled>
+                        Chưa có phòng ban nào
+                      </SelectItem>
+                    ) : (
+                      departments.map(dept => (
+                        <SelectItem key={dept.id} value={dept.name}>
+                          {dept.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -166,7 +221,7 @@ export default function AddKpiForm({ onSave, onClose }: AddKpiFormProps) {
             </FormItem>
           )}
         />
-         <FormField
+        <FormField
           control={form.control}
           name="formula"
           render={({ field }) => (
@@ -179,8 +234,108 @@ export default function AddKpiForm({ onSave, onClose }: AddKpiFormProps) {
             </FormItem>
           )}
         />
-        <div className="flex justify-end pt-4">
-          <Button type="submit">Lưu KPI</Button>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Loại KPI</FormLabel>
+                <FormControl>
+                  <Input placeholder="VD: Định lượng, Định tính" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="weight"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Trọng số (%)</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    min="0"
+                    max="100"
+                    placeholder="1" 
+                    {...field} 
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <FormField
+            control={form.control}
+            name="target"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mục tiêu</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="0" 
+                    {...field} 
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="reward"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Thưởng (VNĐ)</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="0" 
+                    {...field} 
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="penalty"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Phạt (VNĐ)</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number" 
+                    placeholder="0" 
+                    {...field} 
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Hủy
+          </Button>
+          <Button type="submit" className="btn-gradient">Lưu KPI</Button>
         </div>
       </form>
     </Form>

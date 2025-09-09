@@ -1,26 +1,28 @@
 'use client';
 import { useContext, useEffect } from 'react';
 import { AuthContext } from '@/context/auth-context';
+import { useLanguage } from '@/context/language-context';
 import { useRouter } from 'next/navigation';
 import Loading from './loading';
 
 export default function DashboardRedirectPage() {
   const { user, loading } = useContext(AuthContext);
+  const { t } = useLanguage();
   const router = useRouter();
 
   useEffect(() => {
     if (loading) {
-      // Chờ cho đến khi quá trình xác thực hoàn tất
+      // Wait for authentication to complete
       return;
     }
 
     if (!user) {
-      // Nếu không có người dùng, chuyển hướng đến trang đăng nhập
+      // If no user, redirect to login page
       router.push('/login');
       return;
     }
 
-    // Nếu có người dùng, chuyển hướng dựa trên vai trò
+    // If user exists, redirect based on role
     if (user.role === 'admin') {
       router.push('/admin');
     } else {
@@ -28,6 +30,6 @@ export default function DashboardRedirectPage() {
     }
   }, [loading, user, router]);
 
-  // Hiển thị màn hình tải trong khi kiểm tra và chuyển hướng
+  // Show loading screen while checking and redirecting
   return <Loading />;
 }
