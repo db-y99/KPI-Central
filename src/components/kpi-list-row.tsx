@@ -1,53 +1,38 @@
 'use client';
 
-import { useState, useContext, useRef } from 'react';
+import { useState, useRef, useContext } from 'react';
 import { TableRow, TableCell } from '@/components/ui/table';
-import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { AuthContext } from '@/context/auth-context';
+import { DataContext } from '@/context/data-context';
+import { useLanguage } from '@/context/language-context';
+import { useToast } from '@/hooks/use-toast';
 import { PenSquare, Upload, ThumbsUp, ThumbsDown, Info, AlertCircle } from 'lucide-react';
 import type { Kpi, KpiRecord } from '@/types';
-import { cn } from '@/lib/utils';
-import { DataContext } from '@/context/data-context';
-import { useToast } from '@/hooks/use-toast';
-import { AuthContext } from '@/context/auth-context';
-import { Badge } from './ui/badge';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from './ui/tooltip';
-import { Textarea } from './ui/textarea';
 
 interface KpiListRowProps {
   record: Kpi & KpiRecord & { employeeName?: string };
   isEmployeeView?: boolean;
 }
 
-const statusConfig = {
+const getStatusConfig = (t: any) => ({
     pending: { label: 'Đang làm', color: 'bg-gray-500', icon: Info },
-    awaiting_approval: { label: 'Chờ duyệt', color: 'bg-yellow-500', icon: AlertCircle },
-    approved: { label: 'Đã duyệt', color: 'bg-green-500', icon: ThumbsUp },
+    awaiting_approval: { label: t.reports.submitted, color: 'bg-yellow-500', icon: AlertCircle },
+    approved: { label: t.reports.approved, color: 'bg-green-500', icon: ThumbsUp },
     rejected: { label: 'Làm lại', color: 'bg-red-500', icon: ThumbsDown },
-};
-
+});
 
 export default function KpiListRow({ record, isEmployeeView = false }: KpiListRowProps) {
   const { user } = useContext(AuthContext);
   const { updateKpiRecord, submitReport, approveKpi, rejectKpi } = useContext(DataContext);
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const [inputValue, setInputValue] = useState(record.actual.toString());
   const [rejectionComment, setRejectionComment] = useState('');
@@ -60,6 +45,10 @@ export default function KpiListRow({ record, isEmployeeView = false }: KpiListRo
 
   const isAdmin = user?.role === 'admin';
   
+  const statusConfig = getStatusConfig(t);
+  const currentStatus = statusConfig[record.status];
+  const StatusIcon = currentStatus.icon;
+
   const canUpdate = isEmployeeView && (record.status === 'pending' || record.status === 'rejected');
   const canSubmit = isEmployeeView && record.status === 'pending' && record.actual > 0;
   const canApprove = isAdmin && record.status === 'awaiting_approval';
@@ -70,62 +59,49 @@ export default function KpiListRow({ record, isEmployeeView = false }: KpiListRo
   const handleUpdate = () => {
     const newActual = parseFloat(inputValue);
     if (!isNaN(newActual)) {
-      updateKpiRecord(record.id, { actual: newActual });
-       toast({
+      const updates: Partial<KpiRecord> = { actual: newActual };
+      if (newActual > 0 && record.status === 'pending') {
+        updates.status = 'awaiting_approval';
+      }
+      updateKpiRecord(record.id, updates);
+      toast({
         title: "Thành công!",
         description: `Đã cập nhật kết quả cho KPI "${record.name}".`
-      })
+      });
     }
     setUpdateDialogOpen(false);
   };
   
   const handleSubmitReport = () => {
-    const file = fileInputRef.current?.files?.[0];
-    if (file) {
-      submitReport(record.id, file.name);
+    if (record.actual > 0) {
+      submitReport(record.id, `Báo cáo ${record.name}`);
       toast({
-        title: "Thành công!",
-        description: `Đã nộp báo cáo "${file.name}" cho KPI "${record.name}".`
-      })
-      setReportDialogOpen(false);
-    } else {
-       toast({
-        title: "Lỗi",
-        description: "Vui lòng chọn một tệp để nộp.",
-        variant: 'destructive'
-      })
+        title: "Báo cáo đã gửi!",
+        description: `Báo cáo KPI "${record.name}" đã được gửi để duyệt.`
+      });
     }
+    setReportDialogOpen(false);
   };
 
   const handleApprove = () => {
     approveKpi(record.id);
     toast({
-        title: "Thành công!",
-        description: `Đã duyệt KPI "${record.name}".`
-    })
-  }
+      title: "Đã duyệt!",
+      description: `KPI "${record.name}" đã được duyệt thành công.`
+    });
+  };
 
   const handleReject = () => {
-    if (!rejectionComment) {
-         toast({
-            title: "Lỗi",
-            description: "Vui lòng nhập lý do từ chối.",
-            variant: 'destructive'
-        });
-        return;
-    }
-    rejectKpi(record.id, rejectionComment);
-     toast({
+    if (rejectionComment.trim()) {
+      rejectKpi(record.id, rejectionComment);
+      toast({
         title: "Đã từ chối!",
-        description: `Đã từ chối KPI "${record.name}" và gửi lại cho nhân viên.`,
-        variant: 'destructive'
-    });
+        description: `KPI "${record.name}" đã bị từ chối với lý do: ${rejectionComment}`
+      });
+    }
     setRejectDialogOpen(false);
     setRejectionComment('');
-  }
-
-  const currentStatus = statusConfig[record.status];
-  const StatusIcon = currentStatus.icon;
+  };
 
   return (
     <TableRow>
@@ -133,162 +109,154 @@ export default function KpiListRow({ record, isEmployeeView = false }: KpiListRo
       <TableCell className={isEmployeeView ? "font-medium" : ""}>
         <div className="flex flex-col">
             <span>{record.name}</span>
-            <span className="text-xs text-muted-foreground">
-              {record.submittedReport ? `Đã nộp: ${record.submittedReport}` : (isEmployeeView ? "Chưa nộp báo cáo" : "")}
-            </span>
-            {isEmployeeView && record.status === 'rejected' && record.approvalComment && (
-                <span className="text-xs text-red-500 italic mt-1">Lý do từ chối: {record.approvalComment}</span>
-            )}
+            <span className="text-sm text-muted-foreground">{record.description}</span>
         </div>
       </TableCell>
       <TableCell>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-                <Badge variant="secondary" className={cn("border-0 text-white", currentStatus.color)}>
-                  <StatusIcon className="mr-1.5 h-3 w-3" />
-                  <span className="text-xs">{currentStatus.label}</span>
-                </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{currentStatus.label}</p>
-              {isAdmin && record.status === 'rejected' && record.approvalComment && (
-                <p className="text-xs text-muted-foreground italic">Lý do: {record.approvalComment}</p>
-              )}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="flex items-center gap-2">
+          <StatusIcon className="w-4 h-4" />
+          <Badge variant="secondary" className={currentStatus.color}>
+            {currentStatus.label}
+          </Badge>
+        </div>
       </TableCell>
-      <TableCell>
-        <Progress value={completionPercentage} className="h-2" />
+      <TableCell className="text-right font-mono">
+        {record.target.toLocaleString()}
       </TableCell>
-      <TableCell className={cn('text-right font-bold', completionPercentage >= 100 && 'text-green-500')}>
-        {completionPercentage}%
+      <TableCell className="text-right font-mono">
+        {record.actual.toLocaleString()}
       </TableCell>
       <TableCell className="text-right">
-        <div className="flex justify-end gap-2">
+        <div className="flex items-center gap-2">
+          <Progress value={completionPercentage} className="w-16" />
+          <span className="text-sm font-medium">{completionPercentage}%</span>
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
           {canUpdate && (
-             <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
+            <Dialog open={updateDialogOpen} onOpenChange={setUpdateDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
-                  <PenSquare className="mr-2 h-4 w-4" /> Cập nhật
+                  <PenSquare className="w-4 h-4 mr-1" />
+                  Cập nhật
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Cập nhật kết quả KPI</DialogTitle>
-                  <DialogDescription>{record.name}</DialogDescription>
+                  <DialogTitle>Cập nhật KPI: {record.name}</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="actualValue">Kết quả thực tế</Label>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="actual">Kết quả thực tế</Label>
                     <Input
-                      id="actualValue"
+                      id="actual"
                       type="number"
                       value={inputValue}
-                      onChange={e => setInputValue(e.target.value)}
-                      placeholder="Nhập kết quả..."
+                      onChange={(e) => setInputValue(e.target.value)}
+                      placeholder="Nhập kết quả thực tế"
                     />
                   </div>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setUpdateDialogOpen(false)}>
+                      Hủy
+                    </Button>
+                    <Button onClick={handleUpdate}>
+                      Cập nhật
+                    </Button>
+                  </div>
                 </div>
-                 <DialogFooter>
-                    <DialogClose asChild>
-                      <Button type="button" variant="secondary">
-                        Hủy
-                      </Button>
-                    </DialogClose>
-                    <Button onClick={handleUpdate}>Lưu thay đổi</Button>
-                 </DialogFooter>
               </DialogContent>
             </Dialog>
           )}
-
-           {canSubmit && (
-             <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
-                <DialogTrigger asChild>
-                    <Button variant="outline" size="sm">
-                        <Upload className="mr-2 h-4 w-4" /> Nộp
+          
+          {canSubmit && (
+            <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Upload className="w-4 h-4 mr-1" />
+                  Báo cáo
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Gửi báo cáo KPI: {record.name}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Bạn có chắc chắn muốn gửi báo cáo này để duyệt không?
+                  </p>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setReportDialogOpen(false)}>
+                      Hủy
                     </Button>
+                    <Button onClick={handleSubmitReport}>
+                      Gửi báo cáo
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+          
+          {canApprove && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleApprove}
+                className="text-green-600 hover:text-green-700"
+              >
+                <ThumbsUp className="w-4 h-4 mr-1" />
+                Duyệt
+              </Button>
+              <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <ThumbsDown className="w-4 h-4 mr-1" />
+                    Từ chối
+                  </Button>
                 </DialogTrigger>
                 <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Nộp tệp báo cáo</DialogTitle>
-                        <DialogDescription>
-                            Tải lên tệp báo cáo liên quan cho KPI: {record.name}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid w-full max-w-sm items-center gap-1.5 py-4">
-                        <Label htmlFor="report-file">Chọn tệp</Label>
-                        <Input id="report-file" type="file" ref={fileInputRef} />
+                  <DialogHeader>
+                    <DialogTitle>Từ chối KPI: {record.name}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="rejectionComment">Lý do từ chối</Label>
+                      <Textarea
+                        id="rejectionComment"
+                        value={rejectionComment}
+                        onChange={(e) => setRejectionComment(e.target.value)}
+                        placeholder="Nhập lý do từ chối..."
+                        rows={3}
+                      />
                     </div>
-                    <DialogFooter>
-                       <DialogClose asChild>
-                          <Button type="button" variant="secondary">
-                            Hủy
-                          </Button>
-                        </DialogClose>
-                        <Button type="button" onClick={handleSubmitReport}>Lưu</Button>
-                    </DialogFooter>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
+                        Hủy
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        onClick={handleReject}
+                        disabled={!rejectionComment.trim()}
+                      >
+                        Từ chối
+                      </Button>
+                    </div>
+                  </div>
                 </DialogContent>
-            </Dialog>
-           )}
-
-           {canApprove && (
-             <>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-green-600 hover:text-green-700" onClick={handleApprove}>
-                      <ThumbsUp className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent><p>Duyệt</p></TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-               <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-                    <DialogTrigger asChild>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                             <Button variant="ghost" size="icon" className="text-red-600 hover:text-red-700">
-                                <ThumbsDown className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent><p>Từ chối</p></TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Từ chối duyệt KPI</DialogTitle>
-                            <DialogDescription>
-                                KPI: {record.name} <br/>
-                                Nhân viên: {record.employeeName}
-                            </DialogDescription>
-                        </DialogHeader>
-                         <div className="py-4">
-                           <Label htmlFor="comment">Lý do từ chối (bắt buộc)</Label>
-                           <Textarea 
-                             id="comment"
-                             value={rejectionComment}
-                             onChange={(e) => setRejectionComment(e.target.value)}
-                             placeholder="Nhập lý do và hướng dẫn cho nhân viên..."
-                             className="mt-2"
-                           />
-                         </div>
-                        <DialogFooter>
-                             <DialogClose asChild>
-                              <Button type="button" variant="secondary">
-                                Hủy
-                              </Button>
-                            </DialogClose>
-                            <Button type="button" variant="destructive" onClick={handleReject}>Xác nhận từ chối</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-             </>
-           )}
+              </Dialog>
+            </>
+          )}
+          
+          <Button variant="ghost" size="sm">
+            <Info className="w-4 h-4" />
+          </Button>
         </div>
       </TableCell>
     </TableRow>

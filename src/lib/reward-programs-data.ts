@@ -82,6 +82,7 @@ const createPenaltyCriteria = (
   description,
   type,
   value,
+  maxValue: null,
   frequency,
   conditions: conditions.map(c => ({
     id: generateId(),

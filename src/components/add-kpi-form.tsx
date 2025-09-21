@@ -25,6 +25,7 @@ import {
 import type { Kpi, Department } from '@/types';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useLanguage } from '@/context/language-context';
 import { useToast } from '@/hooks/use-toast';
 
 const kpiSchema = z.object({
@@ -51,6 +52,7 @@ interface AddKpiFormProps {
 }
 
 export default function AddKpiForm({ onSave, onClose }: AddKpiFormProps) {
+  const { t } = useLanguage();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loadingDepartments, setLoadingDepartments] = useState(true);
   const { toast } = useToast();
@@ -91,7 +93,7 @@ export default function AddKpiForm({ onSave, onClose }: AddKpiFormProps) {
         console.error('Error fetching departments:', error);
         toast({
           variant: 'destructive',
-          title: 'Lỗi',
+          title: t.common.error as string,
           description: 'Không thể tải danh sách phòng ban.',
         });
       } finally {
@@ -209,13 +211,13 @@ export default function AddKpiForm({ onSave, onClose }: AddKpiFormProps) {
                     <SelectValue placeholder="Chọn tần suất" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="daily">Hằng ngày</SelectItem>
-                  <SelectItem value="weekly">Hằng tuần</SelectItem>
-                  <SelectItem value="monthly">Hằng tháng</SelectItem>
-                  <SelectItem value="quarterly">Hằng quý</SelectItem>
-                  <SelectItem value="annually">Hằng năm</SelectItem>
-                </SelectContent>
+                  <SelectContent>
+                    <SelectItem value="daily">{t.kpis.daily as string}</SelectItem>
+                    <SelectItem value="weekly">{t.kpis.weekly as string}</SelectItem>
+                    <SelectItem value="monthly">{t.kpis.monthly as string}</SelectItem>
+                    <SelectItem value="quarterly">{t.kpis.quarterly as string}</SelectItem>
+                    <SelectItem value="annually">{t.kpis.annually as string}</SelectItem>
+                  </SelectContent>
               </Select>
               <FormMessage />
             </FormItem>

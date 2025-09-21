@@ -1,5 +1,7 @@
 {
   "projects": {
     "default": "kpi-central-1kjf8"
-  }
+  },
+  "targets": {},
+  "etags": {}
 }

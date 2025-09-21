@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
-import { createUser } from '@/app/actions';
+import { createUserAction } from '@/lib/server-actions';
 import { useToast } from '@/hooks/use-toast';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -38,14 +38,14 @@ const createEmployeeSchema = (t: any) => z.object({
   position: z.string().min(1, t.employees.positionRequired),
   departmentId: z.string().min(1, t.employees.departmentRequired),
   role: z.enum(['admin', 'employee'], {
-    errorMap: () => ({ message: t.employees.roleRequired }),
+    errorMap: () => ({ message: t.employees.roleRequired as string }),
   }),
   phone: z.string().optional(),
   address: z.string().optional(),
   startDate: z.string().min(1, t.employees.startDateRequired),
   employeeId: z.string().min(1, t.employees.employeeIdRequired),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: t.employees.passwordMismatch,
+  message: t.employees.passwordMismatch as string,
   path: ["confirmPassword"],
 });
 
@@ -57,7 +57,7 @@ interface AddEmployeeFormProps {
 }
 
 export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loadingDepartments, setLoadingDepartments] = useState(true);
   const { t } = useLanguage();
@@ -100,7 +100,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
         console.error('Error fetching departments:', error);
         toast({
           variant: 'destructive',
-          title: 'Lỗi',
+          title: t.common.error as string,
           description: 'Không thể tải danh sách phòng ban.',
         });
       } finally {
@@ -126,29 +126,28 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
   };
 
   const onSubmit = async (data: EmployeeFormValues) => {
-    setIsSubmitting(true);
-    try {
-      const result = await createUser(data);
-      if (result.success) {
+    startTransition(async () => {
+      try {
+        const result = await createUserAction(data);
+        if (result.success) {
+          toast({
+            title: t.common.success as string,
+            description: result.message || `${t.employees.saveSuccess as string} ${data.name}.`,
+          });
+          onSave();
+          onClose();
+        } else {
+          throw new Error(result.error || 'Không thể tạo người dùng.');
+        }
+      } catch (error: any) {
+        console.error('Failed to add employee:', error);
         toast({
-          title: t.common.success,
-          description: result.message || `${t.employees.saveSuccess} ${data.name}.`,
+          variant: 'destructive',
+          title: t.common.error as string,
+          description: error.message || t.employees.saveError,
         });
-        onSave();
-        onClose();
-      } else {
-        throw new Error(result.error || 'Không thể tạo người dùng.');
       }
-    } catch (error: any) {
-      console.error('Failed to add employee:', error);
-      toast({
-        variant: 'destructive',
-        title: t.common.error,
-        description: error.message || t.employees.saveError,
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    });
   };
 
   return (
@@ -163,12 +162,12 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t.employees.name} <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel>{t.employees.name as string} <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="Nhập họ và tên đầy đủ" 
                       {...field} 
-                      disabled={isSubmitting}
+                      disabled={isPending}
                       onChange={(e) => {
                         field.onChange(e);
                         handleNameChange(e.target.value);
@@ -189,7 +188,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
                     <Input 
                       placeholder="VD: NGUYENV123" 
                       {...field} 
-                      disabled={isSubmitting}
+                      disabled={isPending}
                       className="uppercase"
                     />
                   </FormControl>
@@ -214,7 +213,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
                 <FormItem>
                   <FormLabel>Email <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="example@company.com" {...field} disabled={isSubmitting} />
+                    <Input type="email" placeholder="example@company.com" {...field} disabled={isPending} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -227,7 +226,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
                 <FormItem>
                   <FormLabel>Tên đăng nhập <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
-                    <Input placeholder="Tên đăng nhập (3-20 ký tự)" {...field} disabled={isSubmitting} />
+                    <Input placeholder="Tên đăng nhập (3-20 ký tự)" {...field} disabled={isPending} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -242,7 +241,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
                 <FormItem>
                   <FormLabel>Mật khẩu <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Tối thiểu 6 ký tự" {...field} disabled={isSubmitting} />
+                    <Input type="password" placeholder="Tối thiểu 6 ký tự" {...field} disabled={isPending} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -255,7 +254,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
                 <FormItem>
                   <FormLabel>Xác nhận mật khẩu <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Nhập lại mật khẩu" {...field} disabled={isSubmitting} />
+                    <Input type="password" placeholder="Nhập lại mật khẩu" {...field} disabled={isPending} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -275,7 +274,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
                 <FormItem>
                   <FormLabel>Chức vụ <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
-                    <Input placeholder="VD: Nhân viên IT, Trưởng phòng Marketing" {...field} disabled={isSubmitting} />
+                    <Input placeholder="VD: Nhân viên IT, Trưởng phòng Marketing" {...field} disabled={isPending} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -288,7 +287,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
                 <FormItem>
                   <FormLabel>Ngày bắt đầu làm việc <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} disabled={isSubmitting} />
+                    <Input type="date" {...field} disabled={isPending} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -305,7 +304,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
-                    disabled={isSubmitting}
+                    disabled={isPending}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -343,7 +342,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
-                    disabled={isSubmitting}
+                    disabled={isPending}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -373,7 +372,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
                 <FormItem>
                   <FormLabel>Số điện thoại</FormLabel>
                   <FormControl>
-                    <Input placeholder="VD: 0123456789" {...field} disabled={isSubmitting} />
+                    <Input placeholder="VD: 0123456789" {...field} disabled={isPending} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -386,7 +385,7 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
                 <FormItem>
                   <FormLabel>Địa chỉ</FormLabel>
                   <FormControl>
-                    <Input placeholder="Địa chỉ nơi ở" {...field} disabled={isSubmitting} />
+                    <Input placeholder="Địa chỉ nơi ở" {...field} disabled={isPending} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -397,9 +396,9 @@ export default function AddEmployeeForm({ onSave, onClose }: AddEmployeeFormProp
 
         {/* Nút submit */}
         <div className="flex justify-end pt-6 border-t">
-          <Button type="submit" disabled={isSubmitting} className="btn-gradient min-w-[120px]">
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? 'Đang tạo...' : 'Tạo nhân viên'}
+          <Button type="submit" disabled={isPending} className="btn-gradient min-w-[120px]">
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isPending ? 'Đang tạo...' : 'Tạo nhân viên'}
           </Button>
         </div>
       </form>

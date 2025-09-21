@@ -36,7 +36,7 @@ const editKpiSchema = (t: any) => z.object({
   department: z.string().min(1, t.kpis.departmentRequired || 'Vui lòng chọn phòng ban.'),
   unit: z.string().min(1, t.kpis.unitRequired || 'Đơn vị không được để trống.'),
   frequency: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'annually'], {
-    errorMap: () => ({ message: t.kpis.frequencyRequired || 'Vui lòng chọn tần suất hợp lệ.' }),
+    errorMap: () => ({ message: t.kpis.frequencyRequired as string || 'Vui lòng chọn tần suất hợp lệ.' }),
   }),
   formula: z.string().optional(),
   type: z.string().optional(),
@@ -98,7 +98,7 @@ export default function EditKpiForm({ kpi, onSave, onClose }: EditKpiFormProps) 
         console.error('Error fetching departments:', error);
         toast({
           variant: 'destructive',
-          title: 'Lỗi',
+          title: t.common.error as string,
           description: 'Không thể tải danh sách phòng ban.',
         });
       } finally {
@@ -119,7 +119,7 @@ export default function EditKpiForm({ kpi, onSave, onClose }: EditKpiFormProps) 
       });
 
       toast({
-        title: t.common.success,
+        title: t.common.success as string,
         description: `Đã cập nhật KPI "${data.name}" thành công.`,
       });
       
@@ -129,7 +129,7 @@ export default function EditKpiForm({ kpi, onSave, onClose }: EditKpiFormProps) 
       console.error('Failed to update KPI:', error);
       toast({
         variant: 'destructive',
-        title: t.common.error,
+        title: t.common.error as string,
         description: error.message || 'Không thể cập nhật KPI.',
       });
     } finally {
@@ -241,11 +241,11 @@ export default function EditKpiForm({ kpi, onSave, onClose }: EditKpiFormProps) 
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="daily">Hằng ngày</SelectItem>
-                    <SelectItem value="weekly">Hằng tuần</SelectItem>
-                    <SelectItem value="monthly">Hằng tháng</SelectItem>
-                    <SelectItem value="quarterly">Hằng quý</SelectItem>
-                    <SelectItem value="annually">Hằng năm</SelectItem>
+                    <SelectItem value="daily">{t.kpis.daily as string}</SelectItem>
+                    <SelectItem value="weekly">{t.kpis.weekly as string}</SelectItem>
+                    <SelectItem value="monthly">{t.kpis.monthly as string}</SelectItem>
+                    <SelectItem value="quarterly">{t.kpis.quarterly as string}</SelectItem>
+                    <SelectItem value="annually">{t.kpis.annually as string}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

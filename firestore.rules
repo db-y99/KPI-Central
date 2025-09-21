@@ -1,0 +1,83 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can only access their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Employees can read their own data
+    match /employees/{employeeId} {
+      allow read: if request.auth != null && request.auth.uid == employeeId;
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Departments - admin only
+    match /departments/{departmentId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // KPIs - admin can manage, employees can read assigned ones
+    match /kpis/{kpiId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // KPI Records - employees can read/write their own
+    match /kpiRecords/{recordId} {
+      allow read, write: if request.auth != null && 
+        resource.data.employeeId == request.auth.uid;
+      allow read: if request.auth != null && 
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Reports - employees can read/write their own, admin can read all
+    match /reports/{reportId} {
+      allow read, write: if request.auth != null && 
+        resource.data.employeeId == request.auth.uid;
+      allow read: if request.auth != null && 
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Notifications - users can read their own
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Admin-only collections
+    match /rewardPrograms/{programId} {
+      allow read, write: if request.auth != null && 
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    match /alertRules/{ruleId} {
+      allow read, write: if request.auth != null && 
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    match /apiIntegrations/{integrationId} {
+      allow read, write: if request.auth != null && 
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Performance metrics - read only for authenticated users
+    match /performanceMetrics/{metricId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Error logs - admin only
+    match /errorLogs/{logId} {
+      allow read, write: if request.auth != null && 
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.role == 'admin';
+    }
+  }
+}

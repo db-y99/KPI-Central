@@ -4,28 +4,46 @@ import { usePathname } from 'next/navigation';
 
 import { AuthContext } from '@/context/auth-context';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useLanguage } from '@/context/language-context';
 
 
 export default function DashboardHeader() {
   const { user } = useContext(AuthContext);
   const isMobile = useIsMobile();
   const pathname = usePathname();
+  const { t } = useLanguage();
 
-  let title = 'Bảng điều khiển';
+  let title = t.dashboard.title;
   if (pathname.startsWith('/admin/reports')) {
-    title = 'Báo cáo';
+    title = t.nav.reports;
   } else if (pathname.startsWith('/admin/kpi-definitions')) {
-    title = 'Quản lý KPI';
+    title = t.kpis.title;
   } else if (pathname.startsWith('/admin/employees')) {
-    title = 'Quản lý nhân viên';
+    title = t.employees.title;
+  } else if (pathname.startsWith('/admin/departments')) {
+    title = t.departments.title;
   } else if (pathname.startsWith('/admin/kpi-assignment')) {
-    title = 'Giao KPI';
-  } else if (pathname.startsWith('/admin/reviews')) {
-    title = 'Đánh giá & Xếp loại';
+    title = t.kpiAssignment.title;
+  } else if (pathname.startsWith('/admin/kpi-tracking')) {
+    title = t.kpiTracking.title;
+  } else if (pathname.startsWith('/admin/approval')) {
+    title = t.nav.approveReports;
+  } else if (pathname.startsWith('/admin/evaluation')) {
+    title = t.nav.evaluateReward;
+  } else if (pathname.startsWith('/admin/notifications')) {
+    title = t.nav.notifications;
+  } else if (pathname.startsWith('/admin/settings')) {
+    title = t.nav.settings;
   } else if (pathname.startsWith('/admin')) {
-    title = 'Tổng quan của quản lý';
+    title = t.dashboard.adminTitle;
   } else if (pathname.startsWith('/employee/profile')) {
-    title = 'Hồ sơ cá nhân';
+    title = t.nav.profile;
+  } else if (pathname.startsWith('/employee/calendar')) {
+    title = t.nav.calendar;
+  } else if (pathname.startsWith('/employee/reports')) {
+    title = t.nav.personalReports;
+  } else if (pathname.startsWith('/employee')) {
+    title = t.dashboard.employeeTitle;
   }
 
   const headerContent = (

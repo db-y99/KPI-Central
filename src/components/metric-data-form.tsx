@@ -21,6 +21,7 @@ import { vi } from 'date-fns/locale';
 import type { MetricData, PositionConfig, Employee, PositionMetric } from '@/types';
 import { DataContext } from '@/context/data-context';
 import { AuthContext } from '@/context/auth-context';
+import { useLanguage } from '@/context/language-context';
 import { useToast } from '@/hooks/use-toast';
 
 interface MetricDataFormProps {
@@ -42,6 +43,7 @@ export default function MetricDataForm({
     metricData 
   } = useContext(DataContext);
   const { user } = useContext(AuthContext);
+  const { t } = useLanguage();
   const { toast } = useToast();
 
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
@@ -141,7 +143,7 @@ export default function MetricDataForm({
       onClose();
     } catch (error) {
       toast({
-        title: 'Lỗi',
+        title: t.common.error as string,
         description: 'Không thể lưu dữ liệu metric.',
         variant: 'destructive'
       });
@@ -200,9 +202,9 @@ export default function MetricDataForm({
                 <Badge variant="secondary" className="text-xs">Bắt buộc</Badge>
               )}
               <Badge variant="outline" className="text-xs">
-                {metric.frequency === 'monthly' ? 'Hàng tháng' :
-                 metric.frequency === 'quarterly' ? 'Hàng quý' :
-                 metric.frequency === 'annually' ? 'Hàng năm' : 
+                {metric.frequency === 'monthly' ? t.kpis.monthly :
+                 metric.frequency === 'quarterly' ? t.kpis.quarterly :
+                 metric.frequency === 'annually' ? t.kpis.annually : 
                  metric.frequency}
               </Badge>
             </div>

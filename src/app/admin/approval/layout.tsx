@@ -1,5 +1,13 @@
 import { ReactNode } from 'react';
 
-export default function ApprovalLayout({ children }: { children: ReactNode }) {
-  return children;
+export default function AdminApprovalLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  return (
+    <div className="min-h-screen bg-background">
+      {children}
+    </div>
+  );
 }

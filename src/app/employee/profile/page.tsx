@@ -3,6 +3,7 @@
 import { useContext, useMemo } from 'react';
 import { AuthContext } from '@/context/auth-context';
 import { DataContext } from '@/context/data-context';
+import { useLanguage } from '@/context/language-context';
 import {
   Card,
   CardContent,
@@ -20,6 +21,7 @@ import {
   Clock,
   TrendingUp,
   Award,
+  Edit,
 } from 'lucide-react';
 import {
   Table,
@@ -30,6 +32,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import {
   Bar,
   BarChart,
@@ -129,7 +133,7 @@ export default function ProfilePage() {
               {user.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <div className="text-center md:text-left">
+          <div className="text-center md:text-left flex-1">
             <CardTitle className="text-3xl">{user.name}</CardTitle>
             <CardDescription className="text-lg text-muted-foreground">
               {user.position}
@@ -137,6 +141,14 @@ export default function ProfilePage() {
             <Badge variant="secondary" className="mt-2">
               {departmentName}
             </Badge>
+          </div>
+          <div className="flex gap-2">
+            <Link href="/employee/profile/edit">
+              <Button variant="outline">
+                <Edit className="w-4 h-4 mr-2" />
+                Chỉnh sửa
+              </Button>
+            </Link>
           </div>
         </CardHeader>
         <CardContent>
@@ -149,14 +161,14 @@ export default function ProfilePage() {
               <p>
                 <strong>Vai trò:</strong>{' '}
                 <span className="capitalize">
-                  {user.role === 'admin' ? 'Quản trị viên' : 'Nhân viên'}
+                  {user.role === 'admin' ? 'Quan tri vien' : 'Nhan vien'}
                 </span>
               </p>
               <p>
                 <strong>Phòng ban:</strong> {departmentName}
               </p>
-               <p>
-                <strong>Mã nhân viên (cũ):</strong> {user.id}
+              <p>
+                <strong>Mã nhân viên:</strong> {user.employeeId || user.id}
               </p>
             </div>
           </div>

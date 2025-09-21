@@ -17,330 +17,222 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CalendarIcon, Loader2, User, Users } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
+import { Plus, Target, User, Calendar, CheckCircle2 } from 'lucide-react';
 import type { Employee, Kpi } from '@/types';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/context/language-context';
 import { DataContext } from '@/context/data-context';
-import BulkKpiAssignmentForm from '@/components/bulk-kpi-assignment-form';
 
 export default function KpiAssignmentPage() {
   const { employees, kpis, departments, assignKpi } = useContext(DataContext);
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | undefined>();
   const [selectedEmployeeUid, setSelectedEmployeeUid] = useState<string | undefined>();
   const [selectedKpiId, setSelectedKpiId] = useState<string | undefined>();
   const [target, setTarget] = useState('');
-  const [startDate, setStartDate] = useState<Date | undefined>();
-  const [endDate, setEndDate] = useState<Date | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
 
   const { toast } = useToast();
+  const { t } = useLanguage();
 
-  // Filter employees by selected department
-  const departmentEmployees = selectedDepartmentId 
-    ? employees.filter(emp => emp.departmentId === selectedDepartmentId)
-    : [];
-
-  // Filter KPIs by selected department
-  const departmentKpis = selectedDepartmentId 
-    ? kpis.filter(kpi => kpi.department === departments.find(d => d.id === selectedDepartmentId)?.name)
-    : [];
+  // Filter non-admin employees
+  const nonAdminEmployees = employees.filter(emp => emp.role !== 'admin');
 
   const selectedEmployee = employees.find(e => e.uid === selectedEmployeeUid);
   const selectedKpi = kpis.find(k => k.id === selectedKpiId);
-  const selectedDepartment = departments.find(d => d.id === selectedDepartmentId);
-
-  // Reset dependent fields when department changes
-  const handleDepartmentChange = (departmentId: string) => {
-    setSelectedDepartmentId(departmentId);
-    setSelectedEmployeeUid(undefined);
-    setSelectedKpiId(undefined);
-    setTarget('');
-  };
 
   const handleSubmit = async () => {
-    if (!selectedDepartmentId || !selectedEmployeeUid || !selectedKpiId || !target || !startDate || !endDate) {
+    if (!selectedEmployeeUid || !selectedKpiId || !target) {
       toast({
         variant: 'destructive',
-        title: 'Lỗi',
-        description: 'Vui lòng điền đầy đủ tất cả các trường.',
+        title: t.common.error as string,
+        description: t.kpiAssignment.pleaseSelectEmployeeKpiTarget as string,
       });
       return;
     }
-    
+
     setIsSubmitting(true);
 
     try {
-        await assignKpi({
-          employeeId: selectedEmployeeUid, // Use UID for assignment
-          kpiId: selectedKpiId,
-          target: parseFloat(target),
-          startDate: format(startDate, 'yyyy-MM-dd'),
-          endDate: format(endDate, 'yyyy-MM-dd'),
-        });
-        
-        toast({
-          title: 'Thành công!',
-          description: `Đã giao KPI "${selectedKpi?.name}" cho nhân viên "${selectedEmployee?.name}".`,
-        });
+      // Set default dates (current quarter)
+      const today = new Date();
+      const startDate = new Date(today.getFullYear(), Math.floor(today.getMonth() / 3) * 3, 1);
+      const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 3, 0);
 
-        // Reset form
-        setSelectedDepartmentId(undefined);
-        setSelectedEmployeeUid(undefined);
-        setSelectedKpiId(undefined);
-        setTarget('');
-        setStartDate(undefined);
-        setEndDate(undefined);
+      await assignKpi({
+        employeeId: selectedEmployeeUid,
+        kpiId: selectedKpiId,
+        target: parseFloat(target),
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+      });
+
+      toast({
+        title: t.kpiAssignment.success as string,
+        description: t.kpiAssignment.kpiAssignedSuccess
+          .replace('{kpiName}', selectedKpi?.name || '')
+          .replace('{employeeName}', selectedEmployee?.name || '') as string,
+      });
+
+      // Reset form
+      setSelectedEmployeeUid(undefined);
+      setSelectedKpiId(undefined);
+      setTarget('');
     } catch (error) {
-         toast({
-            variant: 'destructive',
-            title: 'Lỗi',
-            description: 'Đã có lỗi xảy ra khi giao KPI. Vui lòng thử lại.',
-        });
-        console.error("Failed to assign KPI: ", error);
+      toast({
+        variant: 'destructive',
+        title: t.common.error as string,
+        description: t.kpiAssignment.errorOccurred as string,
+      });
+      console.error("Failed to assign KPI: ", error);
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="p-6 md:p-8">
-      <div className="mx-auto max-w-4xl">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Giao KPI cho nhân viên</h1>
-          <p className="text-muted-foreground">
-            Chọn cách giao KPI: cá nhân hoặc hàng loạt cho phòng ban
-          </p>
+    <div className="p-4 md:p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{t.kpiAssignment.title}</h1>
+          <p className="text-muted-foreground">{t.kpiAssignment.subtitle}</p>
         </div>
+      </div>
 
-        <Tabs defaultValue="individual" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="individual" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Giao KPI cá nhân
-            </TabsTrigger>
-            <TabsTrigger value="bulk" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Giao KPI hàng loạt
-            </TabsTrigger>
-          </TabsList>
+      {/* Quick Stats */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold">{nonAdminEmployees.length}</div>
+            <p className="text-xs text-muted-foreground">{t.kpiAssignment.employeesCanReceiveKpi}</p>
+          </CardContent>
+        </Card>
 
-          <TabsContent value="individual">
-            <Card>
-              <CardHeader>
-                <CardTitle>Giao KPI cho nhân viên</CardTitle>
-                <CardDescription>
-                  Chọn phòng ban, nhân viên, KPI và thiết lập các thông số để giao việc.
-                </CardDescription>
-              </CardHeader>
-        <CardContent className="space-y-6">
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold">{kpis.length}</div>
+            <p className="text-xs text-muted-foreground">{t.kpiAssignment.availableKpis}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold text-green-600">
+              {employees.filter(emp => emp.role !== 'admin').length - nonAdminEmployees.length}
+            </div>
+            <p className="text-xs text-muted-foreground">{t.kpiAssignment.alreadyHaveKpi}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Assignment Form */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Plus className="w-5 h-5" />
+            {t.kpiAssignment.assignNewKpi}
+          </CardTitle>
+          <CardDescription>
+            {t.kpiAssignment.assignNewKpiDescription}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Chọn nhân viên */}
           <div className="space-y-2">
-            <Label>1. Chọn phòng ban</Label>
-            <Select onValueChange={handleDepartmentChange} value={selectedDepartmentId}>
+            <Label className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              {t.kpiAssignment.selectEmployee}
+            </Label>
+            <Select onValueChange={setSelectedEmployeeUid} value={selectedEmployeeUid}>
               <SelectTrigger>
-                <SelectValue placeholder="Chọn phòng ban..." />
+                <SelectValue placeholder={t.kpiAssignment.selectEmployeePlaceholder} />
               </SelectTrigger>
               <SelectContent>
-                {departments.filter(dept => dept.isActive).map(department => (
-                  <SelectItem key={department.id} value={department.id}>
-                    {department.name}
+                {nonAdminEmployees.map(employee => (
+                  <SelectItem key={employee.uid} value={employee.uid!}>
+                    {employee.name} - {employee.position}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {selectedDepartment && (
-              <p className="text-sm text-muted-foreground">
-                Phòng ban: <strong>{selectedDepartment.name}</strong> - {departmentEmployees.length} nhân viên
-              </p>
-            )}
           </div>
 
-          {selectedDepartmentId && (
-            <div className="space-y-2">
-              <Label>2. Chọn nhân viên trong phòng ban</Label>
-              <Select onValueChange={setSelectedEmployeeUid} value={selectedEmployeeUid}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn một nhân viên..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {departmentEmployees.length === 0 ? (
-                    <SelectItem value="no-employees" disabled>
-                      Không có nhân viên nào trong phòng ban này
-                    </SelectItem>
-                  ) : (
-                    departmentEmployees.map(employee => (
-                      <SelectItem key={employee.uid} value={employee.uid!}>
-                        {employee.name} - {employee.position}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          {/* Chọn KPI */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Target className="w-4 h-4" />
+              {t.kpiAssignment.selectKpi}
+            </Label>
+            <Select onValueChange={setSelectedKpiId} value={selectedKpiId}>
+              <SelectTrigger>
+                <SelectValue placeholder={t.kpiAssignment.selectKpiPlaceholder} />
+              </SelectTrigger>
+              <SelectContent>
+                {kpis.map(kpi => (
+                  <SelectItem key={kpi.id} value={kpi.id}>
+                    {kpi.name} - {kpi.unit}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-          {selectedDepartmentId && (
-            <div className="space-y-2">
-              <Label>3. Chọn KPI để giao</Label>
-              <Select onValueChange={setSelectedKpiId} value={selectedKpiId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn một KPI..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {departmentKpis.length === 0 ? (
-                    <SelectItem value="no-kpis" disabled>
-                      Không có KPI nào cho phòng ban này
-                    </SelectItem>
-                  ) : (
-                    departmentKpis.map(kpi => (
-                      <SelectItem key={kpi.id} value={kpi.id}>
-                        {kpi.name} - {kpi.unit}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
+          {/* KPI Info */}
           {selectedKpi && (
-             <Card className="bg-muted/50">
-                <CardContent className="pt-6 text-sm">
-                    <p><strong>Mô tả:</strong> {selectedKpi.description}</p>
-                    <p><strong>Đơn vị:</strong> {selectedKpi.unit}</p>
-                    <p><strong>Tần suất:</strong> {selectedKpi.frequency}</p>
-                </CardContent>
-             </Card>
+            <Card className="bg-blue-50">
+              <CardContent className="pt-4 text-sm">
+                <p><strong>{t.kpiAssignment.description}:</strong> {selectedKpi.description}</p>
+                <p><strong>{t.kpiAssignment.unit}:</strong> {selectedKpi.unit}</p>
+                <p><strong>{t.kpiAssignment.frequency}:</strong> {selectedKpi.frequency}</p>
+              </CardContent>
+            </Card>
           )}
 
+          {/* Chỉ tiêu */}
           {selectedKpi && (
             <div className="space-y-2">
-              <Label htmlFor="target">4. Đặt chỉ tiêu (Target)</Label>
+              <Label className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                {t.kpiAssignment.target}
+              </Label>
               <Input
-                id="target"
                 type="number"
                 value={target}
                 onChange={e => setTarget(e.target.value)}
-                placeholder={`Nhập chỉ tiêu theo đơn vị "${selectedKpi?.unit || '...'}"`}
+                placeholder={t.kpiAssignment.targetPlaceholder.replace('"{unit}"', selectedKpi.unit)}
                 disabled={isSubmitting}
               />
             </div>
           )}
 
+          {/* Submit Button */}
           {selectedKpi && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label>5. Ngày bắt đầu</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={'outline'}
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !startDate && 'text-muted-foreground'
-                    )}
-                    disabled={isSubmitting}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, 'dd/MM/yyyy') : <span>Chọn ngày</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={setStartDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-              <div className="space-y-2">
-                <Label>6. Ngày kết thúc</Label>
-               <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={'outline'}
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !endDate && 'text-muted-foreground'
-                    )}
-                    disabled={isSubmitting}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, 'dd/MM/yyyy') : <span>Chọn ngày</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            </div>
-          )}
-          
-          {selectedKpi && (
-            <Button onClick={handleSubmit} className="w-full" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Giao KPI
+            <Button
+              onClick={handleSubmit}
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? t.kpiAssignment.processing : t.kpiAssignment.assignKpi}
             </Button>
           )}
+        </CardContent>
+      </Card>
 
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="bulk">
-            <Card>
-              <CardHeader>
-                <CardTitle>Giao KPI hàng loạt cho phòng ban</CardTitle>
-                <CardDescription>
-                  Chọn phòng ban, KPI và gán cho tất cả nhân viên trong phòng ban đó.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-center">
-                  <Dialog open={isBulkDialogOpen} onOpenChange={setIsBulkDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-black hover:bg-gray-800 text-white border-0">
-                        <Users className="mr-2 h-4 w-4" />
-                        Bắt đầu giao KPI hàng loạt
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle>Giao KPI hàng loạt</DialogTitle>
-                      </DialogHeader>
-                      <BulkKpiAssignmentForm onClose={() => setIsBulkDialogOpen(false)} />
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+      {/* Recent Assignments */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t.kpiAssignment.recentAssignments}</CardTitle>
+          <CardDescription>
+            {t.kpiAssignment.recentAssignmentsDescription}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p>{t.kpiAssignment.noKpisAssigned}</p>
+            <p className="text-sm">{t.kpiAssignment.noKpisAssignedDescription}</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from './ui/badge';
 import { DataContext } from '@/context/data-context';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/context/language-context';
 import { Textarea } from './ui/textarea';
 import { AuthContext } from '@/context/auth-context';
 import {
@@ -43,12 +44,12 @@ interface KpiCardProps {
   showEmployee?: boolean;
 }
 
-const statusConfig = {
+const getStatusConfig = (t: any) => ({
     pending: { label: 'Đang làm', color: 'bg-gray-500', icon: Info },
-    awaiting_approval: { label: 'Chờ duyệt', color: 'bg-yellow-500', icon: AlertCircle },
-    approved: { label: 'Đã duyệt', color: 'bg-green-500', icon: ThumbsUp },
+    awaiting_approval: { label: t.reports.submitted as string, color: 'bg-yellow-500', icon: AlertCircle },
+    approved: { label: t.reports.approved as string, color: 'bg-green-500', icon: ThumbsUp },
     rejected: { label: 'Làm lại', color: 'bg-red-500', icon: ThumbsDown },
-};
+});
 
 
 export default function KpiCard({
@@ -58,6 +59,7 @@ export default function KpiCard({
   const { user } = useContext(AuthContext);
   const { updateKpiRecord, submitReport, approveKpi, rejectKpi } = useContext(DataContext);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const [inputValue, setInputValue] = useState(record.actual.toString());
   const [rejectionComment, setRejectionComment] = useState('');
@@ -82,8 +84,13 @@ export default function KpiCard({
   const handleUpdate = () => {
     const newActual = parseFloat(inputValue);
     if (!isNaN(newActual)) {
-      updateKpiRecord(record.id, { actual: newActual });
-       toast({
+      // Update actual value and change status to awaiting_approval if actual > 0
+      const updates: Partial<KpiRecord> = { actual: newActual };
+      if (newActual > 0 && record.status === 'pending') {
+        updates.status = 'awaiting_approval';
+      }
+      updateKpiRecord(record.id, updates);
+      toast({
         title: "Thành công!",
         description: `Đã cập nhật kết quả cho KPI "${record.name}".`
       })
@@ -97,12 +104,12 @@ export default function KpiCard({
       submitReport(record.id, file.name);
       toast({
         title: "Thành công!",
-        description: `Đã nộp báo cáo "${file.name}" cho KPI "${record.name}". Trạng thái chuyển thành "Chờ duyệt".`
+        description: `Đã nộp báo cáo "${file.name}" cho KPI "${record.name}". Trạng thái chuyển thành {t.reports.submitted as string}.`
       })
       setReportDialogOpen(false);
     } else {
        toast({
-        title: "Lỗi",
+        title: t.common.error as string,
         description: "Vui lòng chọn một tệp để nộp.",
         variant: 'destructive'
       })
@@ -120,7 +127,7 @@ export default function KpiCard({
   const handleReject = () => {
     if (!rejectionComment) {
          toast({
-            title: "Lỗi",
+            title: t.common.error as string,
             description: "Vui lòng nhập lý do từ chối.",
             variant: 'destructive'
         });
@@ -136,6 +143,7 @@ export default function KpiCard({
     setRejectionComment('');
   }
 
+  const statusConfig = getStatusConfig(t);
   const currentStatus = statusConfig[record.status];
   const StatusIcon = currentStatus.icon;
 

@@ -1,15 +1,16 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from '@/context/auth-context';
-import { DataProvider } from '@/context/data-context';
-import { LanguageProvider } from '@/context/language-context';
-import { ThemeProvider } from '@/context/theme-context';
-import { ClientLayout } from '@/components/client-layout';
+import { Providers } from '@/components/providers';
 
 export const metadata: Metadata = {
-  title: 'KPI Central',
-  description: 'Quản lý và theo dõi các chỉ số hiệu suất chính của bạn một cách hiệu quả.',
+  title: 'KPI Central - Hệ thống quản lý KPI',
+  description: 'Hệ thống quản lý và theo dõi KPI toàn diện cho doanh nghiệp',
+  icons: {
+    icon: 'https://y99.vn/logo.png',
+    shortcut: 'https://y99.vn/logo.png',
+    apple: 'https://y99.vn/logo.png',
+  },
 };
 
 export default function RootLayout({
@@ -26,19 +27,17 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
           rel="stylesheet"
         />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#3b82f6" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Y99 KPI Central" />
+        <link rel="apple-touch-icon" href="https://y99.vn/logo.png" />
       </head>
       <body className="font-body antialiased">
-        <ThemeProvider>
-          <LanguageProvider>
-            <ClientLayout>
-              <AuthProvider>
-                <DataProvider>
-                  {children}
-                </DataProvider>
-              </AuthProvider>
-            </ClientLayout>
-          </LanguageProvider>
-        </ThemeProvider>
+        <Providers>
+          {children}
+        </Providers>
         <Toaster />
       </body>
     </html>

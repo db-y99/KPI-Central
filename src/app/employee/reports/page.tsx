@@ -33,6 +33,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AuthContext } from '@/context/auth-context';
 import { DataContext } from '@/context/data-context';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/context/language-context';
 import { format } from 'date-fns';
 
 interface EmployeeReport {
@@ -56,8 +57,9 @@ interface EmployeeReport {
 
 export default function EmployeeReportsPage() {
   const { user } = useContext(AuthContext);
-  const { kpis, kpiRecords } = useContext(DataContext);
+  const { kpis, kpiRecords, reports, createReport, updateReport, deleteReport, submitReportForApproval } = useContext(DataContext);
   const { toast } = useToast();
+  const { t } = useLanguage();
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<EmployeeReport | null>(null);
@@ -72,13 +74,39 @@ export default function EmployeeReportsPage() {
   });
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
 
-  // Employee reports - will be populated from database when report system is implemented
-  const [reports, setReports] = useState<EmployeeReport[]>([]);
+  // Get user's reports from database
+  const userReports = reports.filter(report => report.employeeId === user?.uid);
+  
+  // Convert database reports to EmployeeReport format for UI compatibility
+  const employeeReports: EmployeeReport[] = userReports.map(report => ({
+    id: report.id,
+    kpiId: report.kpiId,
+    kpiName: kpis.find(k => k.id === report.kpiId)?.name || 'Unknown KPI',
+    title: report.title,
+    description: report.description,
+    type: report.type,
+    period: report.period,
+    actualValue: report.actualValue,
+    targetValue: report.targetValue,
+    unit: report.unit,
+    files: report.files.map(file => ({
+      id: file.id,
+      name: file.name,
+      url: file.url,
+      size: file.size,
+      type: file.type
+    })),
+    status: report.status,
+    submittedAt: report.submittedAt ? new Date(report.submittedAt) : undefined,
+    reviewedAt: report.reviewedAt ? new Date(report.reviewedAt) : undefined,
+    feedback: report.feedback,
+    score: report.score
+  }));
 
   // Get user's KPIs
   const userKpis = kpiRecords.filter(record => record.employeeId === user?.uid);
 
-  const handleCreateReport = () => {
+  const handleCreateReport = async () => {
     if (!newReport.kpiId || !newReport.title.trim() || !newReport.description.trim()) {
       toast({
         title: "Thiếu thông tin",
@@ -91,59 +119,90 @@ export default function EmployeeReportsPage() {
     const selectedKpi = kpiRecords.find(r => r.id === newReport.kpiId);
     const kpiDetail = kpis.find(k => k.id === selectedKpi?.kpiId);
     
-    const report: EmployeeReport = {
-      id: Date.now().toString(),
-      kpiId: selectedKpi?.kpiId || '',
-      kpiName: kpiDetail?.name || '',
-      title: newReport.title,
-      description: newReport.description,
-      type: newReport.type,
-      period: newReport.period,
-      actualValue: parseFloat(newReport.actualValue) || 0,
-      targetValue: selectedKpi?.target || 0,
-      unit: kpiDetail?.unit || '',
-      files: newReport.files, // Use uploaded files
-      status: 'draft'
-    };
+    try {
+      const reportData = {
+        employeeId: user?.uid || '',
+        kpiId: selectedKpi?.kpiId || '',
+        kpiRecordId: selectedKpi?.id || '',
+        title: newReport.title,
+        description: newReport.description,
+        type: newReport.type,
+        period: newReport.period,
+        actualValue: parseFloat(newReport.actualValue) || 0,
+        targetValue: selectedKpi?.target || 0,
+        unit: kpiDetail?.unit || '',
+        files: newReport.files.map(file => ({
+          id: file.id,
+          name: file.name,
+          url: file.url,
+          size: file.size,
+          type: file.type,
+          uploadedAt: new Date().toISOString(),
+          uploadedBy: user?.uid || ''
+        })),
+        status: 'draft' as const
+      };
 
-    setReports(prev => [report, ...prev]);
-    setNewReport({
-      kpiId: '',
-      title: '',
-      description: '',
-      type: 'monthly',
-      period: format(new Date(), 'yyyy-MM'),
-      actualValue: '',
-      files: []
-    });
-    setUploadedFiles([]); // Reset uploaded files
-    setIsCreateDialogOpen(false);
-    
-    toast({
-      title: "Tạo báo cáo thành công",
-      description: "Báo cáo đã được lưu dưới dạng bản nháp",
-    });
+      await createReport(reportData);
+      
+      setNewReport({
+        kpiId: '',
+        title: '',
+        description: '',
+        type: 'monthly',
+        period: format(new Date(), 'yyyy-MM'),
+        actualValue: '',
+        files: []
+      });
+      setUploadedFiles([]);
+      setIsCreateDialogOpen(false);
+      
+      toast({
+        title: "Tạo báo cáo thành công",
+        description: "Báo cáo đã được lưu dưới dạng bản nháp",
+      });
+    } catch (error) {
+      console.error('Error creating report:', error);
+      toast({
+        title: t.common.error as string,
+        description: "Không thể tạo báo cáo. Vui lòng thử lại.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleSubmitReport = (reportId: string) => {
-    setReports(prev => prev.map(report => 
-      report.id === reportId 
-        ? { ...report, status: 'submitted' as const, submittedAt: new Date() }
-        : report
-    ));
-    
-    toast({
-      title: "Nộp báo cáo thành công",
-      description: "Báo cáo đã được gửi để chờ duyệt",
-    });
+  const handleSubmitReport = async (reportId: string) => {
+    try {
+      await submitReportForApproval(reportId);
+      toast({
+        title: "Nộp báo cáo thành công",
+        description: "Báo cáo đã được gửi để chờ duyệt",
+      });
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      toast({
+        title: t.common.error as string,
+        description: "Không thể nộp báo cáo. Vui lòng thử lại.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleDeleteReport = (reportId: string) => {
-    setReports(prev => prev.filter(report => report.id !== reportId));
-    toast({
-      title: "Xóa báo cáo thành công",
-      description: "Báo cáo đã được xóa khỏi danh sách",
-    });
+  const handleDeleteReport = async (reportId: string) => {
+    try {
+      await deleteReport(reportId);
+      toast({
+        title: "Xóa báo cáo thành công",
+        description: "Báo cáo đã được xóa",
+      });
+    } catch (error) {
+      console.error('Error deleting report:', error);
+      toast({
+        title: t.common.error as string,
+        description: "Không thể xóa báo cáo. Vui lòng thử lại.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getStatusBadge = (status: EmployeeReport['status']) => {
@@ -187,9 +246,9 @@ export default function EmployeeReportsPage() {
     return value.toLocaleString('vi-VN') + ' ' + unit;
   };
 
-  const pendingReports = reports.filter(r => r.status === 'submitted').length;
-  const approvedReports = reports.filter(r => r.status === 'approved').length;
-  const needsRevisionReports = reports.filter(r => r.status === 'needs_revision').length;
+  const pendingReports = employeeReports.filter(r => r.status === 'submitted').length;
+  const approvedReports = employeeReports.filter(r => r.status === 'approved').length;
+  const needsRevisionReports = employeeReports.filter(r => r.status === 'needs_revision').length;
 
   return (
     <div className="h-full p-6 md:p-8 space-y-8">
@@ -341,7 +400,7 @@ export default function EmployeeReportsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Tổng báo cáo</p>
-                <p className="text-2xl font-bold">{reports.length}</p>
+                <p className="text-2xl font-bold">{employeeReports.length}</p>
               </div>
               <FileText className="w-8 h-8 text-blue-500" />
             </div>
@@ -393,15 +452,15 @@ export default function EmployeeReportsPage() {
       {/* Reports List */}
       <Tabs defaultValue="all" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="all">Tất cả ({reports.length})</TabsTrigger>
-          <TabsTrigger value="draft">Bản nháp ({reports.filter(r => r.status === 'draft').length})</TabsTrigger>
-          <TabsTrigger value="submitted">Chờ duyệt ({pendingReports})</TabsTrigger>
-          <TabsTrigger value="approved">Đã duyệt ({approvedReports})</TabsTrigger>
-          <TabsTrigger value="needs_revision">Cần sửa ({needsRevisionReports})</TabsTrigger>
+          <TabsTrigger value="all">Tất cả ({employeeReports.length})</TabsTrigger>
+          <TabsTrigger value="draft">Bản nháp ({employeeReports.filter(r => r.status === 'draft').length})</TabsTrigger>
+          <TabsTrigger value="submitted">Chờ duyệt ({employeeReports.filter(r => r.status === 'submitted').length})</TabsTrigger>
+          <TabsTrigger value="approved">Đã duyệt ({employeeReports.filter(r => r.status === 'approved').length})</TabsTrigger>
+          <TabsTrigger value="needs_revision">Cần sửa ({employeeReports.filter(r => r.status === 'needs_revision').length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-6">
-          {reports.map((report) => (
+          {employeeReports.map((report) => (
             <Card key={report.id} className="hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
@@ -561,7 +620,7 @@ export default function EmployeeReportsPage() {
         {/* Other tabs with filtered content */}
         {['draft', 'submitted', 'approved', 'needs_revision'].map(status => (
           <TabsContent key={status} value={status} className="space-y-6">
-            {reports
+            {employeeReports
               .filter(report => report.status === status)
               .map((report) => (
                 <Card key={report.id} className="hover:shadow-md transition-shadow">
@@ -594,7 +653,7 @@ export default function EmployeeReportsPage() {
         ))}
       </Tabs>
 
-      {reports.length === 0 && (
+      {employeeReports.length === 0 && (
         <Card>
           <CardContent className="text-center py-12">
             <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />

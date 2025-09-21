@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Award, Loader2, Eye, EyeOff, Mail, Lock, Shield } from 'lucide-react';
+import Logo from '@/components/logo';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -108,8 +109,8 @@ export default function LoginPage() {
         console.log('👤 User role:', result.user.role);
         
         toast({
-          title: t.common.success,
-          description: t.auth.loginSuccess + ' ' + t.auth.redirecting,
+          title: t.common.success as string,
+          description: t.auth.loginSuccess as string + ' ' + t.auth.redirecting,
         });
         
         // Immediate redirect based on user role
@@ -128,7 +129,7 @@ export default function LoginPage() {
         console.log('❌ Login failed:', result.error);
         toast({
           variant: 'destructive',
-          title: t.auth.loginError,
+          title: t.auth.loginError as string,
           description: result.error || t.auth.invalidCredentials,
         });
       }
@@ -136,8 +137,8 @@ export default function LoginPage() {
       console.error('❌ Login submission error:', error);
       toast({
         variant: 'destructive',
-        title: t.common.error,
-        description: t.auth.systemError,
+        title: t.common.error as string,
+        description: t.auth.systemError as string,
       });
     }
   }
@@ -157,24 +158,24 @@ export default function LoginPage() {
   }
   
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="light min-h-screen bg-white text-gray-900 flex items-center justify-center p-4">
       <div className="absolute top-4 right-4">
         <LanguageSwitcher />
       </div>
       <div className="w-full max-w-md">
-        <Card className="card-elevated">
-          <CardHeader className="text-center space-y-4 pb-8">
-            <div className="mx-auto mb-4 flex items-center justify-center w-16 h-16 gradient-primary rounded-full shadow-lg">
-              <Award className="size-8 text-white" />
+        <Card className="card-elevated bg-white border-gray-200">
+          <CardHeader className="text-center space-y-2 pb-4">
+            <div className="mx-auto mb-1 mt-5 flex items-center justify-center">
+              <Logo size="lg" showText={false} />
             </div>
-            <CardTitle className="text-3xl font-bold text-foreground">
-              {t.auth.loginTitle}
+            <CardTitle className="text-3xl font-bold text-gray-900 -mt-4">
+              Y99 KPI Dashboard
             </CardTitle>
-            <CardDescription className="text-muted-foreground text-base">
-              {t.auth.loginSubtitle}
+            <CardDescription className="text-gray-600 text-base mt-0.5">
+              Đăng nhập để truy cập hệ thống quản lý KPI của Y99
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                 <FormField
@@ -182,18 +183,18 @@ export default function LoginPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-foreground">
-                        {t.auth.email}
+                      <FormLabel className="text-sm font-medium text-gray-700">
+                        Email
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground size-4" />
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 size-4" />
                           <Input
-                            placeholder={t.auth.email}
+                            placeholder="Email"
                             {...field}
                             disabled={isLoggingIn}
                             type="email"
-                            className="input-modern pl-10 h-12"
+                            className="pl-10 h-12 bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl"
                           />
                         </div>
                       </FormControl>
@@ -207,17 +208,17 @@ export default function LoginPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-gray-700">
-                        {t.auth.password}
+                        Mật khẩu
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 size-4" />
                           <Input
-                            placeholder={t.auth.password}
+                            placeholder="Mật khẩu"
                             {...field}
                             disabled={isLoggingIn}
                             type={showPassword ? "text" : "password"}
-                            className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-lg"
+                            className="pl-10 pr-10 h-12 bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl"
                           />
                           <button
                             type="button"
@@ -250,8 +251,8 @@ export default function LoginPage() {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel className="text-sm text-gray-600 cursor-pointer">
-                          {t.auth.rememberMe}
+                        <FormLabel className="text-sm text-gray-700 cursor-pointer">
+                          Ghi nhớ đăng nhập
                         </FormLabel>
                       </div>
                     </FormItem>
@@ -265,32 +266,17 @@ export default function LoginPage() {
                   {isLoggingIn ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {t.auth.loggingIn}
+                      Đang đăng nhập...
                     </>
                   ) : (
                     <>
                       <Shield className="mr-2 h-4 w-4" />
-                      {t.auth.loginButton}
+                      Đăng nhập
                     </>
                   )}
                 </Button>
               </form>
             </Form>
-            <div className="mt-8 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
-              <div className="text-center">
-                <p className="text-sm font-medium text-gray-700 mb-2">
-                  {t.auth.adminAccount}
-                </p>
-                <div className="space-y-1 text-xs text-gray-600">
-                  <p>
-                    <span className="font-mono bg-white px-2 py-1 rounded border">db@y99.vn</span>
-                  </p>
-                  <p>
-                    <span className="font-mono bg-white px-2 py-1 rounded border">Dby996868@</span>
-                  </p>
-                </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>

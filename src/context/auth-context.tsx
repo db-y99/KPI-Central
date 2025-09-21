@@ -25,6 +25,7 @@ interface AuthContextType {
   isLoggingIn: boolean;
   login: (email: string, pass: string) => Promise<LoginResult>;
   logout: () => void;
+  updateUser: (updates: Partial<Employee>) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -34,6 +35,7 @@ export const AuthContext = createContext<AuthContextType>({
   isLoggingIn: false,
   login: async () => ({ success: false, error: 'Context not ready' }),
   logout: () => {},
+  updateUser: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -132,11 +134,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               id: 'admin-1',
               uid: fbUser.uid,
               email: email,
+              username: 'admin',
               name: 'Administrator',
               position: 'System Admin',
               departmentId: 'admin',
               avatar: '/avatars/admin.jpg',
-              role: 'admin' as const
+              role: 'admin' as const,
+              startDate: new Date().toISOString(),
+              employeeId: 'EMP001',
+              isActive: true,
+              phone: '',
+              address: '',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
             };
             console.log('👑 Created admin user:', userData);
             
@@ -157,11 +167,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               id: `emp-${fbUser.uid.slice(0, 8)}`,
               uid: fbUser.uid,
               email: email,
+              username: email.split('@')[0],
               name: 'Employee',
               position: 'Staff',
               departmentId: 'general',
               avatar: '/avatars/default.jpg',
-              role: 'employee' as const
+              role: 'employee' as const,
+              startDate: new Date().toISOString(),
+              employeeId: `EMP${fbUser.uid.slice(0, 6).toUpperCase()}`,
+              isActive: true,
+              phone: '',
+              address: '',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
             };
             console.log('👤 Created employee user:', userData);
             
@@ -185,11 +203,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           id: email === 'db@y99.vn' ? 'admin-1' : `emp-${fbUser.uid.slice(0, 8)}`,
           uid: fbUser.uid,
           email: email,
+          username: email.split('@')[0],
           name: email === 'db@y99.vn' ? 'Administrator' : 'Employee',
           position: email === 'db@y99.vn' ? 'System Admin' : 'Staff',
           departmentId: email === 'db@y99.vn' ? 'admin' : 'general',
           avatar: '/avatars/default.jpg',
-          role: email === 'db@y99.vn' ? 'admin' as const : 'employee' as const
+          role: email === 'db@y99.vn' ? 'admin' as const : 'employee' as const,
+          startDate: new Date().toISOString(),
+          employeeId: email === 'db@y99.vn' ? 'EMP001' : `EMP${fbUser.uid.slice(0, 6).toUpperCase()}`,
+          isActive: true,
+          phone: '',
+          address: '',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         };
         console.log('🔄 Using fallback user:', userData);
       }
@@ -249,11 +275,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Logout error:', error);
     }
   };
+
+  const updateUser = async (updates: Partial<Employee>) => {
+    if (!user || !firebaseUser) {
+      throw new Error('No user logged in');
+    }
+
+    try {
+      // Update user document in Firestore
+      const userDocRef = doc(db, 'employees', firebaseUser.uid);
+      await setDoc(userDocRef, updates, { merge: true });
+      
+      // Update local user state
+      setUser({ ...user, ...updates });
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+  };
   
   // The provider now simply provides the context value without rendering a loading screen itself.
   // The consuming components will decide what to render based on the loading state.
   return (
-    <AuthContext.Provider value={{ user, firebaseUser, loading, isLoggingIn, login, logout }}>
+    <AuthContext.Provider value={{ user, firebaseUser, loading, isLoggingIn, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

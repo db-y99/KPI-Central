@@ -34,7 +34,7 @@ const editEmployeeSchema = (t: any) => z.object({
   position: z.string().min(1, t.employees.positionRequired),
   departmentId: z.string().min(1, t.employees.departmentRequired),
   role: z.enum(['admin', 'employee'], {
-    errorMap: () => ({ message: t.employees.roleRequired }),
+    errorMap: () => ({ message: t.employees.roleRequired as string }),
   }),
 });
 
@@ -83,7 +83,7 @@ export default function EditEmployeeForm({ employee, onSave, onClose }: EditEmpl
         console.error('Error fetching departments:', error);
         toast({
           variant: 'destructive',
-          title: 'Lỗi',
+          title: t.common.error as string,
           description: 'Không thể tải danh sách phòng ban.',
         });
       } finally {
@@ -109,7 +109,7 @@ export default function EditEmployeeForm({ employee, onSave, onClose }: EditEmpl
       });
 
       toast({
-        title: t.common.success,
+        title: t.common.success as string,
         description: `Đã cập nhật thông tin nhân viên ${data.name}.`,
       });
       
@@ -119,7 +119,7 @@ export default function EditEmployeeForm({ employee, onSave, onClose }: EditEmpl
       console.error('Failed to update employee:', error);
       toast({
         variant: 'destructive',
-        title: t.common.error,
+        title: t.common.error as string,
         description: error.message || 'Không thể cập nhật thông tin nhân viên.',
       });
     } finally {
@@ -135,9 +135,9 @@ export default function EditEmployeeForm({ employee, onSave, onClose }: EditEmpl
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t.employees.name}</FormLabel>
+              <FormLabel>{t.employees.name as string}</FormLabel>
               <FormControl>
-                <Input placeholder={t.employees.name} {...field} disabled={isSubmitting} />
+                <Input placeholder={t.employees.name as string} {...field} disabled={isSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -149,11 +149,11 @@ export default function EditEmployeeForm({ employee, onSave, onClose }: EditEmpl
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t.employees.email}</FormLabel>
+              <FormLabel>{t.employees.email as string}</FormLabel>
               <FormControl>
                 <Input 
                   type="email" 
-                  placeholder={t.employees.email} 
+                  placeholder={t.employees.email as string} 
                   {...field} 
                   disabled={isSubmitting} 
                 />
@@ -168,9 +168,9 @@ export default function EditEmployeeForm({ employee, onSave, onClose }: EditEmpl
           name="position"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t.employees.position}</FormLabel>
+              <FormLabel>{t.employees.position as string}</FormLabel>
               <FormControl>
-                <Input placeholder={t.employees.position} {...field} disabled={isSubmitting} />
+                <Input placeholder={t.employees.position as string} {...field} disabled={isSubmitting} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -183,7 +183,7 @@ export default function EditEmployeeForm({ employee, onSave, onClose }: EditEmpl
             name="departmentId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t.employees.department}</FormLabel>
+                <FormLabel>{t.employees.department as string}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
@@ -191,17 +191,17 @@ export default function EditEmployeeForm({ employee, onSave, onClose }: EditEmpl
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t.employees.selectDepartment} />
+                      <SelectValue placeholder={t.employees.selectDepartment as string} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {loadingDepartments ? (
                       <SelectItem value="loading" disabled>
-                        {t.employees.loadingDepartments}
+                        {t.employees.loadingDepartments as string}
                       </SelectItem>
                     ) : departments.length === 0 ? (
                       <SelectItem value="no-departments" disabled>
-                        {t.employees.noDepartments}
+                        {t.employees.noDepartments as string}
                       </SelectItem>
                     ) : (
                       departments.map(dept => (
@@ -221,7 +221,7 @@ export default function EditEmployeeForm({ employee, onSave, onClose }: EditEmpl
             name="role"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t.employees.role}</FormLabel>
+                <FormLabel>{t.employees.role as string}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
@@ -229,12 +229,12 @@ export default function EditEmployeeForm({ employee, onSave, onClose }: EditEmpl
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t.employees.role} />
+                      <SelectValue placeholder={t.employees.role as string} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="employee">{t.employees.employee}</SelectItem>
-                    <SelectItem value="admin">{t.employees.admin}</SelectItem>
+                    <SelectItem value="employee">{t.employees.employee as string}</SelectItem>
+                    <SelectItem value="admin">{t.employees.admin as string}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useContext, useMemo } from 'react';
+import { useState, useContext } from 'react';
 import {
   Card,
   CardContent,
@@ -16,14 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { PlusCircle, MoreHorizontal, Pen, Trash2, Shield, Target, BarChart3, Loader2 } from 'lucide-react';
-import type { Kpi } from '@/types';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { PlusCircle, Target, Edit2, Trash2, Search, Trash } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -31,12 +24,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import AddKpiForm from '@/components/add-kpi-form';
-import EditKpiForm from '@/components/edit-kpi-form';
-import { KpiPermissionsModal } from '@/components/kpi-permissions-modal';
-import { useToast } from '@/hooks/use-toast';
-import { DataContext } from '@/context/data-context';
-import { useLanguage } from '@/context/language-context';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -44,332 +33,711 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { DataContext } from '@/context/data-context';
+import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/context/language-context';
+import type { Kpi } from '@/types';
+import { sampleKpis, sampleDepartments } from '@/lib/sample-data';
 
 export default function KpiDefinitionsPage() {
-  const { kpis, addKpi, updateKpi, deleteKpi, departments } = useContext(DataContext);
+  const { kpis, departments, addKpi, updateKpi, deleteKpi } = useContext(DataContext);
+  const { toast } = useToast();
   const { t } = useLanguage();
+  
+  const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
   const [editingKpi, setEditingKpi] = useState<Kpi | null>(null);
-  const [selectedDepartment, setSelectedDepartment] = useState('all');
-  const { toast } = useToast();
 
-  // Debug logging
-  console.log('KpiDefinitionsPage render - isEditDialogOpen:', isEditDialogOpen, 'editingKpi:', editingKpi);
-  console.log('KpiDefinitionsPage render - isPermissionsDialogOpen:', isPermissionsDialogOpen);
-  console.log('KpiDefinitionsPage render - kpis:', kpis);
-  console.log('KpiDefinitionsPage render - filteredKpis:', filteredKpis);
+  // Add KPI Form State
+  const [newKpi, setNewKpi] = useState({
+    name: '',
+    description: '',
+    departmentId: '',
+    unit: '',
+    frequency: 'monthly' as 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annually',
+    reward: 0,
+    penalty: 0,
+    category: '',
+    weight: 1
+  });
 
-  const filteredKpis = useMemo(() => {
-    if (selectedDepartment === 'all') {
-      return kpis;
-    }
-    return kpis.filter(kpi => kpi.department === selectedDepartment);
-  }, [kpis, selectedDepartment]);
+  // Edit KPI Form State
+  const [editKpi, setEditKpi] = useState({
+    name: '',
+    description: '',
+    departmentId: '',
+    unit: '',
+    frequency: 'monthly' as 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annually',
+    reward: 0,
+    penalty: 0,
+    category: '',
+    weight: 1
+  });
 
 
-  const handleSaveKpi = (newKpi: Kpi) => {
-    addKpi(newKpi);
-    toast({
-      title: 'Thành công!',
-      description: `Đã thêm KPI "${newKpi.name}" thành công.`,
-    });
-  };
+  // Filter KPIs based on search
+  const filteredKpis = kpis.filter(kpi => {
+    const matchesSearch = kpi.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         kpi.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         kpi.category?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
 
-  const handleEditKpi = (kpiId: string) => {
-    console.log('Edit KPI clicked for ID:', kpiId);
-    const kpi = kpis.find(k => k.id === kpiId);
-    console.log('Found KPI:', kpi);
-    if (kpi) {
-      setEditingKpi(kpi);
-      setIsEditDialogOpen(true);
-      console.log('Edit dialog should be open now');
-    }
-  };
-
-  const handleSaveEditKpi = () => {
-    // Toast is handled inside the form
-    setIsEditDialogOpen(false);
-    setEditingKpi(null);
-  };
-
-  const handleCloseEditDialog = () => {
-    setIsEditDialogOpen(false);
-    setEditingKpi(null);
-  };
-
-  const handleDeleteKpi = (kpiId: string) => {
-    // Show a confirmation and then delete
-    if (window.confirm(t.kpis.confirmDelete || 'Are you sure you want to delete this KPI?')) {
-      const kpiToDelete = kpis.find(k => k.id === kpiId);
-      deleteKpi(kpiId);
+  const handleAddKpi = async () => {
+    if (!newKpi.name || !newKpi.description || !newKpi.departmentId || !newKpi.unit) {
       toast({
-        title: t.common.success,
-        description: `KPI "${kpiToDelete?.name}" ${t.common.delete.toLowerCase()}.`,
-        variant: 'destructive'
+        variant: 'destructive',
+        title: t.common.error as string,
+        description: t.kpis.fillRequiredFields as string,
       });
+      return;
+    }
+
+    try {
+      await addKpi({
+        ...newKpi,
+        department: departments.find(d => d.id === newKpi.departmentId)?.name || '',
+        createdAt: new Date().toISOString()
+      });
+
+      toast({
+        title: t.common.success as string,
+        description: t.kpis.saveSuccess as string,
+      });
+
+      // Reset form
+      setNewKpi({
+        name: '',
+        description: '',
+        departmentId: '',
+        unit: '',
+        frequency: 'monthly',
+        reward: 0,
+        penalty: 0,
+        category: '',
+        weight: 1
+      });
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: t.common.error as string,
+        description: t.kpis.saveError as string,
+      });
+      console.error('Failed to add KPI:', error);
     }
   };
 
-  const handlePermissionsKpi = (kpiId: string) => {
-    console.log('Permissions KPI clicked for ID:', kpiId);
-    const kpi = kpis.find(k => k.id === kpiId);
-    console.log('Found KPI for permissions:', kpi);
-    if (kpi) {
-      setEditingKpi(kpi);
-      setIsPermissionsDialogOpen(true);
-      console.log('Permissions dialog should be open now');
+  const handleEditKpi = (kpi: Kpi) => {
+    setEditingKpi(kpi);
+    setEditKpi({
+      name: kpi.name,
+      description: kpi.description,
+      departmentId: kpi.departmentId || '',
+      unit: kpi.unit,
+      frequency: kpi.frequency,
+      reward: kpi.reward || 0,
+      penalty: kpi.penalty || 0,
+      category: kpi.category || '',
+      weight: kpi.weight || 1
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateKpi = async () => {
+    if (!editingKpi || !editKpi.name || !editKpi.description || !editKpi.departmentId) {
+      toast({
+        variant: 'destructive',
+        title: t.common.error as string,
+        description: t.kpis.fillRequiredFields as string,
+      });
+      return;
+    }
+
+    try {
+      await updateKpi(editingKpi.id, {
+        ...editKpi,
+        department: departments.find(d => d.id === editKpi.departmentId)?.name || ''
+      });
+
+      toast({
+        title: t.common.success as string,
+        description: t.kpis.updateSuccess as string,
+      });
+
+      setIsEditDialogOpen(false);
+      setEditingKpi(null);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: t.common.error as string,
+        description: t.kpis.updateError as string,
+      });
+      console.error('Failed to update KPI:', error);
     }
   };
 
-  const handleClosePermissionsDialog = () => {
-    setIsPermissionsDialogOpen(false);
-    setEditingKpi(null);
+  const handleDeleteKpi = async (kpi: Kpi) => {
+    if (confirm(t.kpis.confirmDelete)) {
+      try {
+        await deleteKpi(kpi.id);
+        
+        toast({
+          title: t.common.success as string,
+          description: t.kpis.deleteSuccess as string,
+        });
+      } catch (error) {
+        toast({
+          variant: 'destructive',
+          title: t.common.error as string,
+          description: t.kpis.deleteError as string,
+        });
+        console.error('Failed to delete KPI:', error);
+      }
+    }
   };
 
-  const handleSavePermissions = () => {
-    // Close the modal after saving permissions
-    setIsPermissionsDialogOpen(false);
-    setEditingKpi(null);
+  const getDepartmentName = (departmentId: string) => {
+    const department = departments.find(d => d.id === departmentId);
+    return department ? department.name : t.kpis.notAssigned;
   };
 
-  const frequencyMap = {
-      daily: t.kpis.daily,
-      weekly: t.kpis.weekly,
-      monthly: t.kpis.monthly,
-      quarterly: t.kpis.quarterly,
-      annually: t.kpis.annually
-  }
+  const getFrequencyLabel = (frequency: string) => {
+    const labels = {
+      daily: t.kpis.daily as string,
+      weekly: t.kpis.weekly as string,
+      monthly: t.kpis.monthly as string,
+      quarterly: t.kpis.quarterly as string,
+      annually: t.kpis.annually as string
+    };
+    return labels[frequency as keyof typeof labels] || frequency;
+  };
+
+  const createSampleData = async () => {
+    try {
+      // First create departments if they don't exist
+      const departmentMap: { [key: string]: string } = {};
+      
+      for (const dept of sampleDepartments) {
+        const existingDept = departments.find(d => d.name === dept.name);
+        if (!existingDept) {
+          await addDepartment(dept);
+          // We'll need to get the ID after creation, but for now we'll use a simple mapping
+          departmentMap[dept.name.toLowerCase().replace(/\s+/g, '-')] = dept.name;
+        } else {
+          departmentMap[dept.name.toLowerCase().replace(/\s+/g, '-')] = existingDept.id;
+        }
+      }
+
+      // Then create KPIs
+      for (const kpi of sampleKpis) {
+        const existingKpi = kpis.find(k => k.name === kpi.name);
+        if (!existingKpi) {
+          const deptId = departmentMap[kpi.departmentId] || departments[0]?.id || '';
+          await addKpi({
+            ...kpi,
+            departmentId: deptId,
+            department: departments.find(d => d.id === deptId)?.name || '',
+            createdAt: new Date().toISOString()
+          });
+        }
+      }
+
+      toast({
+        title: t.common.success as string,
+        description: t.kpis.sampleDataSuccess as string,
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: t.common.error as string,
+        description: t.kpis.sampleDataError as string,
+      });
+      console.error('Failed to create sample data:', error);
+    }
+  };
+
+  const deleteSampleData = async () => {
+    try {
+      // Confirm deletion
+      if (!confirm(t.kpis.confirmDeleteSampleData)) {
+        return;
+      }
+
+      // Delete sample KPIs
+      const sampleKpiNames = sampleKpis.map(kpi => kpi.name);
+      const kpisToDelete = kpis.filter(kpi => sampleKpiNames.includes(kpi.name));
+      
+      for (const kpi of kpisToDelete) {
+        await deleteKpi(kpi.id);
+      }
+
+      // Delete sample departments (only if they don't have other KPIs)
+      const sampleDeptNames = sampleDepartments.map(dept => dept.name);
+      const deptsToDelete = departments.filter(dept => {
+        const hasOtherKpis = kpis.some(kpi => 
+          kpi.departmentId === dept.id && !sampleKpiNames.includes(kpi.name)
+        );
+        return sampleDeptNames.includes(dept.name) && !hasOtherKpis;
+      });
+
+      for (const dept of deptsToDelete) {
+        await deleteDepartment(dept.id);
+      }
+
+      toast({
+        title: t.common.success as string,
+        description: t.kpis.deleteSampleDataSuccess as string,
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: t.common.error as string,
+        description: t.kpis.deleteSampleDataError as string,
+      });
+      console.error('Failed to delete sample data:', error);
+    }
+  };
+
 
   return (
-    <div className="p-6 md:p-8">
+    <div className="p-4 md:p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{t.kpis.title}</h1>
+          <p className="text-muted-foreground">{t.kpis.subtitle}</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={createSampleData}>
+            <Target className="w-4 h-4 mr-2" />
+            {t.kpis.createSampleData}
+          </Button>
+          <Button variant="outline" onClick={deleteSampleData} className="text-red-600 hover:text-red-700 hover:bg-red-50">
+            <Trash className="w-4 h-4 mr-2" />
+            {t.kpis.deleteSampleData}
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Management */}
+      <div className="space-y-6">
+          <div className="flex justify-end">
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <PlusCircle className="w-4 h-4 mr-2" />
+                  {t.kpis.addKpi as string}
+                </Button>
+              </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t.kpis.addKpiTitle as string}</DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                Định nghĩa chỉ số KPI để có thể giao cho nhân viên
+              </p>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">{t.kpis.name as string} *</Label>
+                <Input
+                  id="name"
+                  value={newKpi.name}
+                  onChange={(e) => setNewKpi({...newKpi, name: e.target.value})}
+                  placeholder={t.kpis.enterKpiName as string}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="description">{t.kpis.description as string} *</Label>
+                <Textarea
+                  id="description"
+                  value={newKpi.description}
+                  onChange={(e) => setNewKpi({...newKpi, description: e.target.value})}
+                  placeholder={t.kpis.enterDescription as string}
+                  rows={3}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="department">{t.kpis.department as string} *</Label>
+                <Select value={newKpi.departmentId} onValueChange={(value) => setNewKpi({...newKpi, departmentId: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t.kpis.selectDepartment as string} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departments.map(dept => (
+                      <SelectItem key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="unit">{t.kpis.unit as string} *</Label>
+                <Input
+                  id="unit"
+                  value={newKpi.unit}
+                  onChange={(e) => setNewKpi({...newKpi, unit: e.target.value})}
+                  placeholder={t.kpis.enterUnit as string}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="frequency">{t.kpis.frequency as string}</Label>
+                <Select value={newKpi.frequency} onValueChange={(value) => setNewKpi({...newKpi, frequency: value as any})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t.kpis.selectFrequency as string} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">{t.kpis.daily as string}</SelectItem>
+                    <SelectItem value="weekly">{t.kpis.weekly as string}</SelectItem>
+                    <SelectItem value="monthly">{t.kpis.monthly as string}</SelectItem>
+                    <SelectItem value="quarterly">{t.kpis.quarterly as string}</SelectItem>
+                    <SelectItem value="annually">{t.kpis.annually as string}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reward">{t.kpis.reward as string} (VND)</Label>
+                  <Input
+                    id="reward"
+                    type="number"
+                    value={newKpi.reward}
+                    onChange={(e) => setNewKpi({...newKpi, reward: parseFloat(e.target.value) || 0})}
+                    placeholder={t.kpis.enterReward as string}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="penalty">{t.kpis.penalty as string} (VND)</Label>
+                  <Input
+                    id="penalty"
+                    type="number"
+                    value={newKpi.penalty}
+                    onChange={(e) => setNewKpi({...newKpi, penalty: parseFloat(e.target.value) || 0})}
+                    placeholder={t.kpis.enterPenalty as string}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="category">{t.kpis.category as string}</Label>
+                <Input
+                  id="category"
+                  value={newKpi.category}
+                  onChange={(e) => setNewKpi({...newKpi, category: e.target.value})}
+                  placeholder={t.kpis.enterCategory as string}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="weight">{t.kpis.weight as string}</Label>
+                <Input
+                  id="weight"
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={newKpi.weight}
+                  onChange={(e) => setNewKpi({...newKpi, weight: parseFloat(e.target.value) || 1})}
+                  placeholder={t.kpis.enterWeight as string}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t.kpis.weightDescription as string}
+                </p>
+              </div>
+              
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  {t.common.cancel as string}
+                </Button>
+                <Button onClick={handleAddKpi}>
+                  {t.kpis.saveKpi as string}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Stats */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold">{kpis.length}</div>
+            <p className="text-xs text-muted-foreground">{t.kpis.totalKpis as string}</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold">{departments.length}</div>
+            <p className="text-xs text-muted-foreground">{t.kpis.departments as string}</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold text-blue-600">
+              {kpis.filter(kpi => kpi.frequency === 'monthly').length}
+            </div>
+            <p className="text-xs text-muted-foreground">{t.kpis.monthlyKpis as string}</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold text-green-600">
+              {new Set(kpis.map(kpi => kpi.category)).size}
+            </div>
+            <p className="text-xs text-muted-foreground">{t.kpis.categories as string}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search */}
+      <Card>
+        <CardContent className="pt-4">
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <Input
+                placeholder={t.common.search as string}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* KPI Table */}
       <Card>
         <CardHeader>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <CardTitle>{t.kpis.title}</CardTitle>
-              <CardDescription>
-                {t.kpis.subtitle}
-              </CardDescription>
-            </div>
-             <div className="flex space-x-2">
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="btn-gradient">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    {t.kpis.addKpi}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>{t.kpis.addKpiTitle}</DialogTitle>
-                  </DialogHeader>
-                  <AddKpiForm onSave={handleSaveKpi} onClose={() => setIsAddDialogOpen(false)} />
-                </DialogContent>
-              </Dialog>
-
-              <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
-                if (!open) {
-                  setIsEditDialogOpen(false);
-                  setEditingKpi(null);
-                }
-              }}>
-                <DialogContent className="sm:max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Sửa KPI</DialogTitle>
-                  </DialogHeader>
-                  {editingKpi ? (
-                    <EditKpiForm 
-                      kpi={editingKpi} 
-                      onSave={handleSaveEditKpi} 
-                      onClose={handleCloseEditDialog} 
-                    />
-                  ) : (
-                    <div className="p-4 text-center">
-                      <p>Đang tải...</p>
-                    </div>
-                  )}
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="w-5 h-5" />
+            {t.kpis.kpiName as string} ({filteredKpis.length})
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="mb-6 w-full md:w-1/3">
-            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <SelectTrigger>
-                    <SelectValue placeholder="Lọc theo phòng ban..." />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">Tất cả phòng ban</SelectItem>
-                    {departments.map(dept => (
-                        <SelectItem key={dept.id} value={dept.name}>{dept.name}</SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-          </div>
-
-          {/* Test Button */}
-          <div className="mb-4">
-            <Button 
-              onClick={() => {
-                alert('Test button clicked!');
-                console.log('Test button clicked!');
-              }}
-              className="bg-red-500 hover:bg-red-600"
-            >
-              TEST BUTTON - Click me!
-            </Button>
-          </div>
-
           {filteredKpis.length === 0 ? (
-            <div className="text-center py-12">
-              <Target className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Chưa có KPI nào</h3>
-              <p className="text-muted-foreground mb-4">
-                Hãy tạo KPI đầu tiên để bắt đầu quản lý hiệu suất
-              </p>
-              <Button onClick={() => setIsAddDialogOpen(true)} className="btn-gradient">
-                <PlusCircle className="w-4 h-4 mr-2" />
-                Tạo KPI đầu tiên
-              </Button>
+            <div className="text-center py-8">
+              <Target className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">{t.kpis.noKpisFound as string}</p>
             </div>
           ) : (
-            <div>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Có {filteredKpis.length} KPI được tìm thấy
-              </p>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredKpis.map(kpi => (
-                <Card key={kpi.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                          <BarChart3 className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-base line-clamp-2">{kpi.name}</CardTitle>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {kpi.department}
-                          </p>
-                        </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t.kpis.kpiName as string}</TableHead>
+                  <TableHead>{t.kpis.kpiDepartment as string}</TableHead>
+                  <TableHead>{t.kpis.kpiUnit as string}</TableHead>
+                  <TableHead>{t.kpis.kpiFrequency as string}</TableHead>
+                  <TableHead>{t.kpis.kpiCategory as string}</TableHead>
+                  <TableHead>{t.kpis.kpiRewardPenalty as string}</TableHead>
+                  <TableHead>{t.kpis.actions as string}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredKpis.map((kpi) => (
+                  <TableRow key={kpi.id}>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{kpi.name}</p>
+                        <p className="text-sm text-muted-foreground">{kpi.description}</p>
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => {
-                            alert('Dropdown edit clicked for KPI: ' + kpi.id);
-                            console.log('Dropdown edit clicked for KPI:', kpi.id);
-                            handleEditKpi(kpi.id);
-                          }}>
-                            <Pen className="mr-2 h-4 w-4" />
-                            Sửa
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => {
-                            alert('Dropdown permissions clicked for KPI: ' + kpi.id);
-                            console.log('Dropdown permissions clicked for KPI:', kpi.id);
-                            handlePermissionsKpi(kpi.id);
-                          }}>
-                            <Shield className="mr-2 h-4 w-4" />
-                            Phân quyền
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-red-500 hover:text-red-500 focus:text-red-500"
-                            onClick={() => handleDeleteKpi(kpi.id)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Xóa
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-3">
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {kpi.description}
-                      </p>
-                      
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Chỉ tiêu:</span>
-                          <p className="font-medium">{kpi.target || 0} {kpi.unit}</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Tần suất:</span>
-                          <p className="font-medium">{frequencyMap[kpi.frequency]}</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Trọng số:</span>
-                          <p className="font-medium">{kpi.weight || 1}</p>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Loại:</span>
-                          <p className="font-medium">{kpi.type || 'Chưa xác định'}</p>
-                        </div>
-                      </div>
-
-                      {kpi.formula && (
-                        <div className="pt-2 border-t">
-                          <span className="text-xs text-muted-foreground">Công thức:</span>
-                          <p className="text-xs font-mono bg-muted p-2 rounded mt-1">
-                            {kpi.formula}
-                          </p>
-                        </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {getDepartmentName(kpi.departmentId || '')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{kpi.unit}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">
+                        {getFrequencyLabel(kpi.frequency)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {kpi.category && (
+                        <Badge variant="outline">{kpi.category}</Badge>
                       )}
-
-                      <div className="flex gap-2 pt-2">
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {kpi.reward && kpi.reward > 0 && (
+                          <p className="text-green-600">+{kpi.reward.toLocaleString()} VND</p>
+                        )}
+                        {kpi.penalty && kpi.penalty > 0 && (
+                          <p className="text-red-600">-{kpi.penalty.toLocaleString()} VND</p>
+                        )}
+                        {(!kpi.reward || kpi.reward === 0) && (!kpi.penalty || kpi.penalty === 0) && (
+                          <p className="text-muted-foreground">{t.kpis.noRewardPenalty as string}</p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
                         <Button
+                          variant="ghost"
                           size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            alert('Edit button clicked for KPI: ' + kpi.id);
-                            console.log('Card edit button clicked for KPI:', kpi.id);
-                            handleEditKpi(kpi.id);
-                          }}
-                          className="flex-1"
+                          onClick={() => handleEditKpi(kpi)}
                         >
-                          <Pen className="w-3 h-3 mr-1" />
-                          Sửa
+                          <Edit2 className="w-4 h-4" />
                         </Button>
                         <Button
+                          variant="ghost"
                           size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            alert('Permissions button clicked for KPI: ' + kpi.id);
-                            console.log('Card permissions button clicked for KPI:', kpi.id);
-                            handlePermissionsKpi(kpi.id);
-                          }}
-                          className="flex-1"
+                          onClick={() => handleDeleteKpi(kpi)}
                         >
-                          <Shield className="w-3 h-3 mr-1" />
-                          Phân quyền
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
 
-      {/* Permissions Modal */}
-      <KpiPermissionsModal
-        kpi={editingKpi}
-        isOpen={isPermissionsDialogOpen}
-        onClose={handleClosePermissionsDialog}
-        onSave={handleSavePermissions}
-      />
+      {/* Edit KPI Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t.kpis.editKpiTitle as string}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">{t.kpis.name as string} *</Label>
+              <Input
+                id="edit-name"
+                value={editKpi.name}
+                onChange={(e) => setEditKpi({...editKpi, name: e.target.value})}
+                placeholder={t.kpis.enterKpiName as string}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">{t.kpis.description as string} *</Label>
+              <Textarea
+                id="edit-description"
+                value={editKpi.description}
+                onChange={(e) => setEditKpi({...editKpi, description: e.target.value})}
+                placeholder={t.kpis.enterDescription as string}
+                rows={3}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-department">{t.kpis.department as string} *</Label>
+              <Select value={editKpi.departmentId} onValueChange={(value) => setEditKpi({...editKpi, departmentId: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t.kpis.selectDepartment as string} />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.map(dept => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-unit">{t.kpis.unit as string} *</Label>
+              <Input
+                id="edit-unit"
+                value={editKpi.unit}
+                onChange={(e) => setEditKpi({...editKpi, unit: e.target.value})}
+                placeholder={t.kpis.enterUnit as string}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-frequency">{t.kpis.frequency as string}</Label>
+              <Select value={editKpi.frequency} onValueChange={(value) => setEditKpi({...editKpi, frequency: value as any})}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t.kpis.selectFrequency as string} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">{t.kpis.daily as string}</SelectItem>
+                  <SelectItem value="weekly">{t.kpis.weekly as string}</SelectItem>
+                  <SelectItem value="monthly">{t.kpis.monthly as string}</SelectItem>
+                  <SelectItem value="quarterly">{t.kpis.quarterly as string}</SelectItem>
+                  <SelectItem value="annually">{t.kpis.annually as string}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-reward">{t.kpis.reward as string} (VND)</Label>
+                <Input
+                  id="edit-reward"
+                  type="number"
+                  value={editKpi.reward}
+                  onChange={(e) => setEditKpi({...editKpi, reward: parseFloat(e.target.value) || 0})}
+                  placeholder={t.kpis.enterReward as string}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-penalty">{t.kpis.penalty as string} (VND)</Label>
+                <Input
+                  id="edit-penalty"
+                  type="number"
+                  value={editKpi.penalty}
+                  onChange={(e) => setEditKpi({...editKpi, penalty: parseFloat(e.target.value) || 0})}
+                  placeholder={t.kpis.enterPenalty as string}
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-category">{t.kpis.category as string}</Label>
+              <Input
+                id="edit-category"
+                value={editKpi.category}
+                onChange={(e) => setEditKpi({...editKpi, category: e.target.value})}
+                placeholder={t.kpis.enterCategory as string}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-weight">{t.kpis.weight as string}</Label>
+              <Input
+                id="edit-weight"
+                type="number"
+                min="1"
+                max="10"
+                value={editKpi.weight}
+                onChange={(e) => setEditKpi({...editKpi, weight: parseFloat(e.target.value) || 1})}
+                placeholder={t.kpis.enterWeight as string}
+              />
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                {t.common.cancel as string}
+              </Button>
+              <Button onClick={handleUpdateKpi}>
+                {t.kpis.updateKpi as string}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      </div>
     </div>
   );
 }
