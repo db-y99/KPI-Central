@@ -205,150 +205,185 @@ export default function DepartmentsPage() {
     return manager ? manager.name : t.departments.notAssigned as string;
   };
 
+  // Calculate stats
+  const totalEmployees = employees.filter(emp => emp.role !== 'admin').length;
+  const departmentsWithManagers = departments.filter(dept => dept.manager).length;
+  const totalBudget = departments.reduce((sum, dept) => sum + (dept.budget || 0), 0);
+  const avgEmployeesPerDept = departments.length > 0 ? Math.round(totalEmployees / departments.length) : 0;
+
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t.departments.title}</h1>
-          <p className="text-muted-foreground">
-            {t.departments.subtitle}
-          </p>
-        </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="w-4 h-4 mr-2" />
-              {t.departments.addDepartment}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>{t.departments.addDepartmentTitle}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">{t.departments.name} *</Label>
-                  <Input
-                    id="name"
-                    value={newDepartment.name}
-                    onChange={(e) => setNewDepartment({ ...newDepartment, name: e.target.value })}
-                    placeholder={t.departments.enterDepartmentName as string}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="manager">{t.departments.manager}</Label>
-                  <Input
-                    id="manager"
-                    value={newDepartment.manager}
-                    onChange={(e) => setNewDepartment({ ...newDepartment, manager: e.target.value })}
-                    placeholder={t.departments.enterManagerName as string}
-                  />
-                </div>
-              </div>
-              
+    <div className="p-4 md:p-6 space-y-6">
+      {/* Stats */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold">{departments.length}</div>
+            <p className="text-xs text-muted-foreground">Tổng phòng ban</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold">{totalEmployees}</div>
+            <p className="text-xs text-muted-foreground">Tổng nhân viên</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold text-green-600">{departmentsWithManagers}</div>
+            <p className="text-xs text-muted-foreground">Có trưởng phòng</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold text-blue-600">{avgEmployeesPerDept}</div>
+            <p className="text-xs text-muted-foreground">NV/Phòng ban TB</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Add Department Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t.departments.addDepartmentTitle}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="description">{t.departments.description}</Label>
-                <Textarea
-                  id="description"
-                  value={newDepartment.description}
-                  onChange={(e) => setNewDepartment({ ...newDepartment, description: e.target.value })}
-                  placeholder={t.departments.enterDescription as string}
-                  rows={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="location">{t.departments.location}</Label>
-                  <Input
-                    id="location"
-                    value={newDepartment.location}
-                    onChange={(e) => setNewDepartment({ ...newDepartment, location: e.target.value })}
-                    placeholder={t.departments.enterLocation as string}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="budget">{t.departments.budget}</Label>
-                  <Input
-                    id="budget"
-                    type="number"
-                    value={newDepartment.budget}
-                    onChange={(e) => setNewDepartment({ ...newDepartment, budget: Number(e.target.value) })}
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="phone">{t.departments.phone}</Label>
-                  <Input
-                    id="phone"
-                    value={newDepartment.phone}
-                    onChange={(e) => setNewDepartment({ ...newDepartment, phone: e.target.value })}
-                    placeholder={t.departments.enterPhone as string}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">{t.departments.email}</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={newDepartment.email}
-                    onChange={(e) => setNewDepartment({ ...newDepartment, email: e.target.value })}
-                    placeholder={t.departments.enterEmail as string}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="establishedDate">{t.departments.establishedDate}</Label>
+                <Label htmlFor="name">{t.departments.name} *</Label>
                 <Input
-                  id="establishedDate"
-                  type="date"
-                  value={newDepartment.establishedDate}
-                  onChange={(e) => setNewDepartment({ ...newDepartment, establishedDate: e.target.value })}
+                  id="name"
+                  value={newDepartment.name}
+                  onChange={(e) => setNewDepartment({ ...newDepartment, name: e.target.value })}
+                  placeholder={t.departments.enterDepartmentName as string}
                 />
               </div>
-
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  {t.common.cancel}
-                </Button>
-                <Button onClick={handleAddDepartment}>
-                  {t.departments.addDepartment}
-                </Button>
+              <div>
+                <Label htmlFor="manager">{t.departments.manager}</Label>
+                <Input
+                  id="manager"
+                  value={newDepartment.manager}
+                  onChange={(e) => setNewDepartment({ ...newDepartment, manager: e.target.value })}
+                  placeholder={t.departments.enterManagerName as string}
+                />
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+            
+            <div>
+              <Label htmlFor="description">{t.departments.description}</Label>
+              <Textarea
+                id="description"
+                value={newDepartment.description}
+                onChange={(e) => setNewDepartment({ ...newDepartment, description: e.target.value })}
+                placeholder={t.departments.enterDescription as string}
+                rows={3}
+              />
+            </div>
 
-      {/* Search */}
-      <div className="flex items-center space-x-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={t.departments.searchPlaceholder as string}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
-        </div>
-      </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="location">{t.departments.location}</Label>
+                <Input
+                  id="location"
+                  value={newDepartment.location}
+                  onChange={(e) => setNewDepartment({ ...newDepartment, location: e.target.value })}
+                  placeholder={t.departments.enterLocation as string}
+                />
+              </div>
+              <div>
+                <Label htmlFor="budget">{t.departments.budget}</Label>
+                <Input
+                  id="budget"
+                  type="number"
+                  value={newDepartment.budget}
+                  onChange={(e) => setNewDepartment({ ...newDepartment, budget: Number(e.target.value) })}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="phone">{t.departments.phone}</Label>
+                <Input
+                  id="phone"
+                  value={newDepartment.phone}
+                  onChange={(e) => setNewDepartment({ ...newDepartment, phone: e.target.value })}
+                  placeholder={t.departments.enterPhone as string}
+                />
+              </div>
+              <div>
+                <Label htmlFor="email">{t.departments.email}</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={newDepartment.email}
+                  onChange={(e) => setNewDepartment({ ...newDepartment, email: e.target.value })}
+                  placeholder={t.departments.enterEmail as string}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="establishedDate">{t.departments.establishedDate}</Label>
+              <Input
+                id="establishedDate"
+                type="date"
+                value={newDepartment.establishedDate}
+                onChange={(e) => setNewDepartment({ ...newDepartment, establishedDate: e.target.value })}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                {t.common.cancel}
+              </Button>
+              <Button onClick={handleAddDepartment}>
+                {t.departments.addDepartment}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Departments Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="w-5 h-5" />
-            {t.departments.departmentList} ({filteredDepartments.length})
-          </CardTitle>
-          <CardDescription>
-            {t.departments.manageDepartmentInfo}
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="w-5 h-5" />
+                {t.departments.departmentList} ({filteredDepartments.length})
+              </CardTitle>
+              <CardDescription>
+                {t.departments.manageDepartmentInfo}
+              </CardDescription>
+            </div>
+            
+            {/* Search and Add Department - Top Right */}
+            <div className="flex items-center gap-4">
+              <div className="relative max-w-sm">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder={t.departments.searchPlaceholder as string}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8 w-64"
+                />
+              </div>
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <PlusCircle className="w-4 h-4 mr-2" />
+                    {t.departments.addDepartment}
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>

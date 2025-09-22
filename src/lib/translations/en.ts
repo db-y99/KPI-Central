@@ -354,13 +354,6 @@ export const en = {
     deleteSuccess: 'KPI deleted successfully.',
     deleteError: 'Unable to delete KPI.',
     confirmDelete: 'Are you sure you want to delete this KPI?',
-    createSampleData: 'Create Sample Data',
-    deleteSampleData: 'Delete Sample Data',
-    sampleDataSuccess: 'Sample data created successfully.',
-    sampleDataError: 'An error occurred while creating sample data.',
-    deleteSampleDataSuccess: 'Sample data deleted successfully.',
-    deleteSampleDataError: 'An error occurred while deleting sample data.',
-    confirmDeleteSampleData: 'Are you sure you want to delete all sample data? This action cannot be undone.',
     // Stats
     totalKpis: 'Total KPIs',
     departments: 'Departments',
@@ -423,6 +416,7 @@ export const en = {
     
     // Report types
     individualType: 'Individual',
+    departmentType: 'Department',
     kpiSpecificType: 'KPI Specific',
     companyWideType: 'Company Wide',
     other: 'Other',

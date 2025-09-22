@@ -23,6 +23,7 @@ import {
   Building2,
   Bell,
   Calendar,
+  UserPlus,
 } from 'lucide-react';
 import { AuthContext } from '@/context/auth-context';
 import { useLanguage } from '@/context/language-context';
@@ -96,7 +97,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
     ...(isAdmin ? [{
       href: '/admin/kpi-assignment',
       label: t.nav.assignKpi as string,
-      icon: Target,
+      icon: UserPlus,
       isActive: pathname.startsWith('/admin/kpi-assignment'),
       key: 'kpi-assignment',
     }] : []),

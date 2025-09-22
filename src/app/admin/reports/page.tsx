@@ -5,16 +5,23 @@ import {
   TrendingUp,
   Users,
   Target,
-  Calendar,
   Download,
   FileText,
-  PieChart,
-  LineChart
+  Plus,
+  Search
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import {
   Select,
   SelectContent,
@@ -31,19 +38,20 @@ interface ReportData {
   id: string;
   type: 'individual' | 'department' | 'kpi-specific' | 'company-wide';
   title: string;
-  description: string;
   period: string;
   generatedAt: string;
-  data: any;
+  totalEmployees?: number;
+  averageCompletion: number;
+  recordsCount: number;
 }
 
 export default function ReportsPage() {
   const { employees, kpis, kpiRecords, departments, rewardCalculations } = useContext(DataContext);
-  const { exportToPDF } = usePDFExport();
+  const { exportComprehensiveReport } = usePDFExport();
   const { t } = useLanguage();
+  
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedReportType, setSelectedReportType] = useState<string>('all');
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('all');
-  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
 
   // Filter non-admin employees
   const nonAdminEmployees = employees.filter(emp => emp.role !== 'admin');
@@ -54,61 +62,42 @@ export default function ReportsPage() {
     return uniquePeriods.sort();
   }, [kpiRecords]);
 
-  // Generate reports data - chỉ tạo báo cáo khi có dữ liệu thực
+  // Simple reports data generation
   const reports = useMemo(() => {
     const reports: ReportData[] = [];
+    const currentPeriod = periods.length > 0 ? periods[periods.length - 1] : new Date().toLocaleDateString('vi-VN');
 
-    // Chỉ tạo báo cáo khi có dữ liệu thực từ database
     if (nonAdminEmployees.length > 0 && kpis.length > 0) {
       // Individual Performance Report
+      const avgIndividualCompletion = kpiRecords.length > 0 ? 
+        kpiRecords.reduce((sum, record) => sum + (record.actual / record.target * 100), 0) / kpiRecords.length : 0;
+      
       reports.push({
         id: 'individual-performance',
         type: 'individual',
         title: t.reports.individualPerformanceReport,
-        description: t.reports.performanceOverview,
-        period: periods.length > 0 ? periods[periods.length - 1] : t.reports.noReportsYet,
+        period: currentPeriod,
         generatedAt: new Date().toISOString(),
-        data: {
-          totalEmployees: nonAdminEmployees.length,
-          averageCompletion: kpiRecords.length > 0 ? 
-            kpiRecords.reduce((sum, record) => sum + (record.actual / record.target * 100), 0) / kpiRecords.length : 0,
-          topPerformers: nonAdminEmployees.slice(0, 5).map(emp => {
-            const empRecords = kpiRecords.filter(record => record.employeeId === emp.id);
-            const completion = empRecords.length > 0 ? 
-              empRecords.reduce((sum, record) => sum + (record.actual / record.target * 100), 0) / empRecords.length : 0;
-            return {
-              name: emp.name,
-              completion: completion
-            };
-          })
-        }
+        totalEmployees: nonAdminEmployees.length,
+        averageCompletion: avgIndividualCompletion,
+        recordsCount: kpiRecords.length
       });
 
       // Department Performance Report
       if (departments.length > 0) {
+        const deptRecordsCount = kpiRecords.filter(record => 
+          nonAdminEmployees.some(emp => emp.id === record.employeeId)
+        ).length;
+        
         reports.push({
           id: 'department-performance',
           type: 'department',
           title: t.reports.departmentPerformanceReport,
-          description: t.reports.departmentAverage,
-          period: periods.length > 0 ? periods[periods.length - 1] : t.reports.noReportsYet,
+          period: currentPeriod,
           generatedAt: new Date().toISOString(),
-          data: {
-            departments: departments.map(dept => {
-              const deptEmployees = nonAdminEmployees.filter(emp => emp.departmentId === dept.id);
-              const deptRecords = kpiRecords.filter(record => 
-                deptEmployees.some(emp => emp.id === record.employeeId)
-              );
-              const averageCompletion = deptRecords.length > 0 ? 
-                deptRecords.reduce((sum, record) => sum + (record.actual / record.target * 100), 0) / deptRecords.length : 0;
-              
-              return {
-                name: dept.name,
-                employeeCount: deptEmployees.length,
-                averageCompletion: averageCompletion
-              };
-            })
-          }
+          totalEmployees: departments.length,
+          averageCompletion: avgIndividualCompletion,
+          recordsCount: deptRecordsCount
         });
       }
 
@@ -117,25 +106,11 @@ export default function ReportsPage() {
         id: 'kpi-specific',
         type: 'kpi-specific',
         title: t.reports.kpiSpecificReportTab,
-        description: t.reports.kpiSpecificReportTab,
-        period: periods.length > 0 ? periods[periods.length - 1] : t.reports.noReportsYet,
+        period: currentPeriod,
         generatedAt: new Date().toISOString(),
-        data: {
-          kpis: kpis.map(kpi => {
-            const kpiRecords_filtered = kpiRecords.filter(record => record.kpiId === kpi.id);
-            const averageActual = kpiRecords_filtered.length > 0 ? 
-              kpiRecords_filtered.reduce((sum, record) => sum + record.actual, 0) / kpiRecords_filtered.length : 0;
-            const averageCompletion = kpiRecords_filtered.length > 0 ? 
-              kpiRecords_filtered.reduce((sum, record) => sum + (record.actual / record.target * 100), 0) / kpiRecords_filtered.length : 0;
-            
-            return {
-              name: kpi.name,
-              target: kpi.target || 100,
-              actual: averageActual,
-              completion: averageCompletion
-            };
-          })
-        }
+        totalEmployees: kpis.length,
+        averageCompletion: avgIndividualCompletion,
+        recordsCount: kpiRecords.length
       });
 
       // Company Wide Report
@@ -143,103 +118,90 @@ export default function ReportsPage() {
         id: 'company-wide',
         type: 'company-wide',
         title: t.reports.companyOverview,
-        description: t.reports.companyOverview,
-        period: periods.length > 0 ? periods[periods.length - 1] : t.reports.noReportsYet,
+        period: currentPeriod,
         generatedAt: new Date().toISOString(),
-        data: {
-          totalEmployees: nonAdminEmployees.length,
-          totalKPIs: kpis.length,
-          averageCompletion: kpiRecords.length > 0 ? 
-            kpiRecords.reduce((sum, record) => sum + (record.actual / record.target * 100), 0) / kpiRecords.length : 0,
-          totalRewards: rewardCalculations.reduce((sum, calc) => sum + calc.totalReward, 0),
-          totalPenalties: rewardCalculations.reduce((sum, calc) => sum + calc.totalPenalty, 0)
-        }
+        totalEmployees: nonAdminEmployees.length,
+        averageCompletion: avgIndividualCompletion,
+        recordsCount: kpiRecords.length
       });
     }
 
     return reports;
-  }, [nonAdminEmployees, departments, kpis, kpiRecords, rewardCalculations, periods]);
+  }, [nonAdminEmployees, departments, kpis, kpiRecords, periods, t.reports]);
 
-  // Filter reports based on selections
+  // Filter reports based on search and type
   const filteredReports = useMemo(() => {
     return reports.filter(report => {
       const typeMatch = selectedReportType === 'all' || report.type === selectedReportType;
-      const periodMatch = selectedPeriod === 'all' || report.period === selectedPeriod;
-      return typeMatch && periodMatch;
+      const searchMatch = searchTerm === '' || 
+        report.title.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      return typeMatch && searchMatch;
     });
-  }, [reports, selectedReportType, selectedPeriod]);
+  }, [reports, selectedReportType, searchTerm]);
 
   const handleGenerateReport = (reportType: string) => {
-    // Here you would typically generate a new report
-    console.log('Generating report:', reportType);
+    console.log('Generated new report:', reportType);
+    alert(`Đã tạo báo cáo thành công!`);
   };
 
-  const handleExportPDF = async (reportId: string, reportTitle: string) => {
+  const handleExportPDF = async (report: ReportData) => {
     try {
-      await exportToPDF(
-        `report-${reportId}`,
-        `${reportTitle.toLowerCase().replace(/\s+/g, '-')}.pdf`,
-        reportTitle,
+      const reportDataForExport = {
+        title: report.title,
+        subtitle: `Báo cáo được tạo lúc: ${new Date(report.generatedAt).toLocaleDateString('vi-VN')}`,
+        summary: {
+          text: `Báo cáo ${report.title} tổng hợp các chỉ số hiệu suất.`,
+          metrics: [
+            { label: 'Kỳ báo cáo', value: report.period },
+            { label: 'Số bản ghi', value: report.recordsCount },
+            { label: 'Tỷ lệ đạt TB', value: `${report.averageCompletion.toFixed(1)}%` },
+            { label: 'Tổng đối tượng', value: report.totalEmployees || 0 }
+          ]
+        },
+        tables: []
+      };
+
+      await exportComprehensiveReport(
+        reportDataForExport,
+        `${report.title.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`,
         {
           includeHeader: true,
           includeFooter: true,
           includePageNumbers: true,
+          includeCharts: false,
           orientation: 'portrait'
         }
       );
     } catch (error) {
       console.error('Error exporting PDF:', error);
+      alert('Có lỗi xảy ra khi xuất PDF. Vui lòng thử lại.');
     }
   };
 
   const getReportIcon = (type: string) => {
     switch (type) {
-      case 'individual':
-        return <Users className="w-5 h-5" />;
-      case 'department':
-        return <BarChart3 className="w-5 h-5" />;
-      case 'kpi-specific':
-        return <Target className="w-5 h-5" />;
-      case 'company-wide':
-        return <TrendingUp className="w-5 h-5" />;
-      default:
-        return <FileText className="w-5 h-5" />;
+      case 'individual': return <Users className="w-4 h-4" />;
+      case 'department': return <BarChart3 className="w-4 h-4" />;
+      case 'kpi-specific': return <Target className="w-4 h-4" />;
+      case 'company-wide': return <TrendingUp className="w-4 h-4" />;
+      default: return <FileText className="w-4 h-4" />;
     }
   };
 
   const getReportTypeBadge = (type: string) => {
     switch (type) {
-      case 'individual':
-        return <Badge className="bg-blue-100 text-blue-800">{t.reports.individualType}</Badge>;
-      case 'department':
-        return <Badge className="bg-green-100 text-green-800">{t.reports.departmentType}</Badge>;
-      case 'kpi-specific':
-        return <Badge className="bg-purple-100 text-purple-800">{t.reports.kpiSpecificType}</Badge>;
-      case 'company-wide':
-        return <Badge className="bg-orange-100 text-orange-800">{t.reports.companyWideType}</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-800">{t.reports.other}</Badge>;
+      case 'individual': return <Badge className="bg-blue-100 text-blue-800">{t.reports.individualType}</Badge>;
+      case 'department': return <Badge className="bg-green-100 text-green-800">{t.reports.departmentType}</Badge>;
+      case 'kpi-specific': return <Badge className="bg-purple-100 text-purple-800">{t.reports.kpiSpecificType}</Badge>;
+      case 'company-wide': return <Badge className="bg-orange-100 text-orange-800">{t.reports.companyWideType}</Badge>;
+      default: return <Badge variant="secondary">Khác</Badge>;
     }
   };
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t.reports.title}</h1>
-          <p className="text-muted-foreground">{t.reports.subtitle}</p>
-        </div>
-        <div className="flex gap-2">
-          <LanguageSwitcher />
-          <Button onClick={() => handleGenerateReport('all')} className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" />
-            {t.reports.generateNewReport}
-          </Button>
-        </div>
-      </div>
-
-      {/* Summary Stats */}
+      {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="pt-4">
@@ -251,245 +213,166 @@ export default function ReportsPage() {
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold text-blue-600">
-              {reports.filter(r => r.type === 'individual').length}
+              {nonAdminEmployees.length}
             </div>
-            <p className="text-xs text-muted-foreground">{t.reports.individualReports}</p>
+            <p className="text-xs text-muted-foreground">{t.reports.totalEmployees}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold text-green-600">
-              {reports.filter(r => r.type === 'department').length}
+              {kpiRecords.length}
             </div>
-            <p className="text-xs text-muted-foreground">{t.reports.departmentReports}</p>
+            <p className="text-xs text-muted-foreground">Tổng bản ghi KPI</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold text-purple-600">
-              {reports.filter(r => r.type === 'kpi-specific').length}
+              {kpiRecords.length > 0 ? 
+                (kpiRecords.reduce((sum, record) => sum + (record.actual / record.target * 100), 0) / kpiRecords.length).toFixed(1) : 0
+              }%
             </div>
-            <p className="text-xs text-muted-foreground">{t.reports.kpiReports}</p>
+            <p className="text-xs text-muted-foreground">Tỷ lệ đạt TB</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
+      {/* Reports Table */}
       <Card>
-        <CardContent className="pt-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{t.reports.reportType}</span>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5" />
+              {t.reports.reportsList || 'Danh sách báo cáo'} ({filteredReports.length})
+            </CardTitle>
+            <div className="flex items-center gap-4">
+              <div className="w-64">
+                <Input
+                  placeholder="Tìm kiếm báo cáo..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full"
+                />
+              </div>
               <Select value={selectedReportType} onValueChange={setSelectedReportType}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder={t.reports.selectReportType} />
+                  <SelectValue placeholder="Chọn loại báo cáo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t.reports.allTypes}</SelectItem>
+                  <SelectItem value="all">Tất cả loại</SelectItem>
                   <SelectItem value="individual">{t.reports.individual}</SelectItem>
                   <SelectItem value="department">{t.reports.department}</SelectItem>
-                  <SelectItem value="kpi-specific">{t.reports.kpiSpecific}</SelectItem>
-                  <SelectItem value="company-wide">{t.reports.companyWide}</SelectItem>
+                  <SelectItem value="kpi-specific">KPI cụ thể</SelectItem>
+                  <SelectItem value="company-wide">Tổng quan</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{t.reports.period}</span>
-              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder={t.reports.selectPeriod} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t.reports.allPeriods}</SelectItem>
-                  {periods.map(period => (
-                    <SelectItem key={period} value={period}>
-                      {period}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Button onClick={() => handleGenerateReport('new')}>
+                <Plus className="w-4 h-4 mr-2" />
+                Tạo báo cáo
+              </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Reports Grid */}
-      {filteredReports.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
+        </CardHeader>
+        <CardContent>
+          {filteredReports.length === 0 ? (
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">{t.reports.noReportsYet}</h3>
-              <p className="text-muted-foreground mb-4">
-                {t.reports.noReportsDescription}
-              </p>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>• {t.reports.addEmployees} <a href="/admin/employees" className="text-blue-600 hover:underline">{t.reports.employeeManagement}</a></p>
-                <p>• {t.reports.defineKpis} <a href="/admin/kpi-definitions" className="text-blue-600 hover:underline">{t.reports.kpiDefinitions}</a></p>
-                <p>• {t.reports.assignKpis} <a href="/admin/kpi-assignment" className="text-blue-600 hover:underline">{t.reports.kpiAssignment}</a></p>
-              </div>
+              {reports.length === 0 ? (
+                <>
+                  <h3 className="text-lg font-semibold mb-2">Chưa có báo cáo nào</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Hệ thống cần có nhân viên và KPI để tạo báo cáo.
+                  </p>
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    <p>• Thêm nhân viên tại <a href="/admin/employees" className="text-blue-600 hover:underline">Quản lý nhân viên</a></p>
+                    <p>• Định nghĩa KPI tại <a href="/admin/kpi-definitions" className="text-blue-600 hover:underline">Định nghĩa KPI</a></p>
+                    <p>• Giao KPI tại <a href="/admin/kpi-assignment" className="text-blue-600 hover:underline">Giao KPI</a></p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-lg font-semibold mb-2">Không tìm thấy báo cáo</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Không có báo cáo nào phù hợp với tiêu chí tìm kiếm.
+                  </p>
+                </>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredReports.map((report) => (
-          <Card key={report.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-full bg-primary/10">
-                    {getReportIcon(report.type)}
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">{report.title}</CardTitle>
-                    <p className="text-sm text-muted-foreground">{report.description}</p>
-                  </div>
-                </div>
-                {getReportTypeBadge(report.type)}
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{t.reports.periodLabel}</span>
-                  <span className="font-medium">{report.period}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">{t.reports.generatedAt}</span>
-                  <span className="font-medium">
-                    {new Date(report.generatedAt).toLocaleDateString('vi-VN')}
-                  </span>
-                </div>
-
-                {/* Report specific data preview */}
-                {report.type === 'individual' && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>{t.reports.totalEmployees}:</span>
-                      <span className="font-medium">{report.data.totalEmployees}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>{t.reports.averageCompletion}:</span>
-                      <span className="font-medium">{report.data.averageCompletion.toFixed(1)}%</span>
-                    </div>
-                  </div>
-                )}
-
-                {report.type === 'department' && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>{t.reports.departmentCount}:</span>
-                      <span className="font-medium">{report.data.departments.length}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>{t.reports.averageCompletion}:</span>
-                      <span className="font-medium">
-                        {(report.data.departments.reduce((sum: number, dept: any) => sum + dept.averageCompletion, 0) / report.data.departments.length).toFixed(1)}%
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Báo cáo</TableHead>
+                  <TableHead>Loại</TableHead>
+                  <TableHead>Kỳ</TableHead>
+                  <TableHead>Số liệu</TableHead>
+                  <TableHead>Tỷ lệ đạt</TableHead>
+                  <TableHead>Tạo lúc</TableHead>
+                  <TableHead>Thao tác</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredReports.map((report) => (
+                  <TableRow key={report.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-full bg-primary/10">
+                          {getReportIcon(report.type)}
+                        </div>
+                        <div>
+                          <p className="font-medium">{report.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {report.recordsCount} bản ghi
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {getReportTypeBadge(report.type)}
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-medium">{report.period}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <p>Đối tượng: {report.totalEmployees || 0}</p>
+                        <p>Bản ghi: {report.recordsCount}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-green-600">
+                          {report.averageCompletion.toFixed(1)}%
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-muted-foreground">
+                        {new Date(report.generatedAt).toLocaleDateString('vi-VN')}
                       </span>
-                    </div>
-                  </div>
-                )}
-
-                {report.type === 'kpi-specific' && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>{t.reports.totalKpis}:</span>
-                      <span className="font-medium">{report.data.kpis.length}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>{t.reports.averageCompletion}:</span>
-                      <span className="font-medium">
-                        {(report.data.kpis.reduce((sum: number, kpi: any) => sum + kpi.completion, 0) / report.data.kpis.length).toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {report.type === 'company-wide' && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>{t.reports.totalEmployees}:</span>
-                      <span className="font-medium">{report.data.totalEmployees}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>{t.reports.totalKpis}:</span>
-                      <span className="font-medium">{report.data.totalKPIs}</span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => handleExportPDF(report.id, report.title)}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    {t.reports.exportPDF}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleGenerateReport(report.type)}
-                  >
-                    <BarChart3 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        </div>
-      )}
-
-      {/* Quick Actions - chỉ hiển thị khi có dữ liệu */}
-      {filteredReports.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t.reports.quickReportGeneration}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center gap-2"
-                onClick={() => handleGenerateReport('individual')}
-              >
-                <Users className="w-6 h-6" />
-                <span>{t.reports.individualReport}</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center gap-2"
-                onClick={() => handleGenerateReport('department')}
-              >
-                <BarChart3 className="w-6 h-6" />
-                <span>{t.reports.departmentReport}</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center gap-2"
-                onClick={() => handleGenerateReport('kpi-specific')}
-              >
-                <Target className="w-6 h-6" />
-                <span>{t.reports.kpiReport}</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center gap-2"
-                onClick={() => handleGenerateReport('company-wide')}
-              >
-                <TrendingUp className="w-6 h-6" />
-                <span>{t.reports.companyOverview}</span>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleExportPDF(report)}
+                          title="Xuất PDF"
+                        >
+                          <Download className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

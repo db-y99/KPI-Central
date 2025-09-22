@@ -65,17 +65,6 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="h-full p-4 md:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t.dashboard.adminTitle}</h1>
-          <p className="text-muted-foreground">{t.dashboard.adminSubtitle}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-green-500" />
-          <Badge className="bg-green-100 text-green-800">{t.dashboard.active}</Badge>
-        </div>
-      </div>
 
       {/* Quick Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -146,7 +135,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         <Link href="/admin/employees">
           <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">

@@ -488,8 +488,8 @@ export default function EmployeeReportsPage() {
                     {/* Files */}
                     {report.files.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-3">
-                        {report.files.map((file, index) => (
-                          <div key={index} className="flex items-center gap-2 text-xs bg-gray-100 px-2 py-1 rounded">
+                        {report.files.map((file) => (
+                          <div key={file.id} className="flex items-center gap-2 text-xs bg-gray-100 px-2 py-1 rounded">
                             <FileCheck className="w-3 h-3" />
                             {file.name} ({formatFileSize(file.size)})
                             <Button variant="ghost" size="sm" className="h-4 w-4 p-0">
@@ -564,8 +564,8 @@ export default function EmployeeReportsPage() {
                               <div>
                                 <Label className="text-sm font-medium">File đính kèm</Label>
                                 <div className="mt-2 space-y-2">
-                                  {selectedReport.files.map((file, index) => (
-                                    <div key={index} className="flex items-center justify-between p-3 border rounded">
+                                  {selectedReport.files.map((file) => (
+                                    <div key={file.id} className="flex items-center justify-between p-3 border rounded">
                                       <div className="flex items-center gap-2">
                                         <FileCheck className="w-4 h-4" />
                                         <span className="text-sm">{file.name}</span>

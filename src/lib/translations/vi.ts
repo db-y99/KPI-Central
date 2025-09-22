@@ -366,13 +366,6 @@ export const vi = {
     deleteSuccess: 'Đã xóa KPI thành công.',
     deleteError: 'Không thể xóa KPI.',
     confirmDelete: 'Bạn có chắc chắn muốn xóa KPI này?',
-    createSampleData: 'Tạo dữ liệu mẫu',
-    deleteSampleData: 'Xóa dữ liệu mẫu',
-    sampleDataSuccess: 'Đã tạo dữ liệu mẫu thành công.',
-    sampleDataError: 'Đã có lỗi xảy ra khi tạo dữ liệu mẫu.',
-    deleteSampleDataSuccess: 'Đã xóa dữ liệu mẫu thành công.',
-    deleteSampleDataError: 'Đã có lỗi xảy ra khi xóa dữ liệu mẫu.',
-    confirmDeleteSampleData: 'Bạn có chắc chắn muốn xóa tất cả dữ liệu mẫu? Hành động này không thể hoàn tác.',
     // Stats
     totalKpis: 'Tổng KPI',
     departments: 'Phòng ban',
@@ -436,6 +429,7 @@ export const vi = {
     
     // Report types
     individualType: 'Cá nhân',
+    departmentType: 'Phòng ban',
     kpiSpecificType: 'KPI cụ thể',
     department: 'Phòng ban',
     companyWideType: 'Toàn công ty',

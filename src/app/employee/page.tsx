@@ -103,92 +103,36 @@ export default function EmployeeDashboardPage() {
 
   return (
     <div className="h-full p-4 md:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Chào mừng, {user.name}!</h1>
-          <p className="text-muted-foreground">Dashboard KPI cá nhân</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-green-500" />
-          <Badge className="bg-green-100 text-green-800">Đang hoạt động</Badge>
-        </div>
-      </div>
 
-      {/* KPI Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      {/* Stats */}
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Target className="w-4 h-4 text-blue-600" />
-              Tổng KPI
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4">
             <div className="text-2xl font-bold">{employeeStats.kpis.total}</div>
-            <p className="text-xs text-muted-foreground">
-              KPI được giao
-            </p>
+            <p className="text-xs text-muted-foreground">Tổng KPI</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-green-600" />
-              Hoàn thành
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4">
             <div className="text-2xl font-bold text-green-600">{employeeStats.kpis.completed}</div>
-            <p className="text-xs text-muted-foreground">
-              Đã hoàn thành
-            </p>
+            <p className="text-xs text-muted-foreground">Hoàn thành</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Clock className="w-4 h-4 text-orange-600" />
-              Chờ duyệt
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4">
             <div className="text-2xl font-bold text-orange-600">{employeeStats.kpis.inProgress}</div>
-            <p className="text-xs text-muted-foreground">
-              Đang chờ admin duyệt
-            </p>
+            <p className="text-xs text-muted-foreground">Chờ duyệt</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Clock className="w-4 h-4 text-blue-600" />
-              Chờ bắt đầu
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{employeeStats.kpis.pending}</div>
-            <p className="text-xs text-muted-foreground">
-              KPI mới được giao
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-primary" />
-              Tỷ lệ hoàn thành
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">
+          <CardContent className="pt-4">
+            <div className="text-2xl font-bold text-blue-600">
               {employeeStats.kpis.completionRate.toFixed(1)}%
             </div>
-            <Progress value={employeeStats.kpis.completionRate} className="mt-2" />
+            <p className="text-xs text-muted-foreground">Tỷ lệ hoàn thành</p>
           </CardContent>
         </Card>
       </div>

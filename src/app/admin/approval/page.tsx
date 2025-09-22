@@ -271,14 +271,6 @@ export default function AdminApprovalPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t.admin.approvalTitle}</h1>
-          <p className="text-muted-foreground">{t.admin.approvalSubtitle}</p>
-        </div>
-      </div>
-
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -318,55 +310,51 @@ export default function AdminApprovalPage() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-4">
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={t.admin.searchPlaceholder}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder={t.departments.status as string} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t.admin.allStatuses}</SelectItem>
-                <SelectItem value="submitted">{t.admin.awaitingApproval}</SelectItem>
-                <SelectItem value="approved">{t.admin.approved}</SelectItem>
-                <SelectItem value="rejected">{t.admin.rejected}</SelectItem>
-                <SelectItem value="needs_revision">{t.admin.needsRevision}</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder={t.admin.priority} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t.admin.allPriorities}</SelectItem>
-                <SelectItem value="high">{t.admin.high}</SelectItem>
-                <SelectItem value="medium">{t.admin.medium}</SelectItem>
-                <SelectItem value="low">{t.admin.low}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Reports Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-{t.admin.reportsList} ({filteredReports.length})
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              {t.admin.reportsList} ({filteredReports.length})
+            </CardTitle>
+            <div className="flex items-center gap-4">
+              <div className="w-64">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={t.admin.searchPlaceholder}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder={t.departments.status as string} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t.admin.allStatuses}</SelectItem>
+                  <SelectItem value="submitted">{t.admin.awaitingApproval}</SelectItem>
+                  <SelectItem value="approved">{t.admin.approved}</SelectItem>
+                  <SelectItem value="rejected">{t.admin.rejected}</SelectItem>
+                  <SelectItem value="needs_revision">{t.admin.needsRevision}</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder={t.admin.priority} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t.admin.allPriorities}</SelectItem>
+                  <SelectItem value="high">{t.admin.high}</SelectItem>
+                  <SelectItem value="medium">{t.admin.medium}</SelectItem>
+                  <SelectItem value="low">{t.admin.low}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {filteredReports.length === 0 ? (

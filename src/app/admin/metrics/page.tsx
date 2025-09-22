@@ -163,23 +163,6 @@ export default function MetricsPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Quản lý dữ liệu KPI</h1>
-          <p className="text-muted-foreground">Nhập và quản lý dữ liệu KPI của nhân viên</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={handleExportPDF} variant="outline" className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
-            Xuất PDF
-          </Button>
-          <Button onClick={handleAddMetric} className="flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            Thêm dữ liệu
-          </Button>
-        </div>
-      </div>
 
       {/* Summary Stats */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -279,7 +262,19 @@ export default function MetricsPage() {
       {/* Metrics Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Dữ liệu KPI</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Dữ liệu KPI</CardTitle>
+            <div className="flex gap-2">
+              <Button onClick={handleExportPDF} variant="outline" className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                Xuất PDF
+              </Button>
+              <Button onClick={handleAddMetric} className="flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                Thêm dữ liệu
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div id="metrics-report" className="space-y-4">

@@ -12,6 +12,7 @@ import {
   query,
   where,
   getDoc,
+  onSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { 
@@ -338,8 +339,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
           employeePointsSnap,
           rewardCalculationsSnap,
           metricDataSnap,
-          reportsSnap,
-          notificationsSnap,
           notificationSettingsSnap,
           kpiFormulasSnap,
           measurementCyclesSnap,
@@ -361,8 +360,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             getDocs(collection(db, 'employeePoints')),
             getDocs(collection(db, 'rewardCalculations')),
             getDocs(collection(db, 'metricData')),
-            getDocs(collection(db, 'reports')),
-            getDocs(collection(db, 'notifications')),
             getDocs(collection(db, 'notificationSettings')),
             getDocs(collection(db, 'kpiFormulas')),
             getDocs(collection(db, 'measurementCycles')),
@@ -387,8 +384,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const employeePointsData = employeePointsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as EmployeePoint));
         const rewardCalculationsData = rewardCalculationsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as RewardCalculation));
         const metricDataData = metricDataSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as MetricData));
-        const reportsData = reportsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Report));
-        const notificationsData = notificationsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Notification));
         const notificationSettingsData = notificationSettingsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as NotificationSettings));
         const kpiFormulasData = kpiFormulasSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as KpiFormula));
         const measurementCyclesData = measurementCyclesSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as MeasurementCycle));
@@ -410,8 +405,6 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setEmployeePoints(employeePointsData);
         setRewardCalculations(rewardCalculationsData);
         setMetricData(metricDataData);
-        setReports(reportsData);
-        setNotifications(notificationsData);
         setNotificationSettings(notificationSettingsData);
         setKpiFormulas(kpiFormulasData);
         setMeasurementCycles(measurementCyclesData);
@@ -461,6 +454,42 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       setSelfServiceSettings([]);
       setPerformanceInsights([]);
     }
+  }, [user]);
+
+  // Real-time listener for reports
+  useEffect(() => {
+    if (!user) return;
+
+    const reportsQuery = query(collection(db, 'reports'));
+    const unsubscribe = onSnapshot(reportsQuery, (snapshot) => {
+      const reportsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Report[];
+      setReports(reportsData);
+    }, (error) => {
+      console.error('Error listening to reports:', error);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  // Real-time listener for notifications
+  useEffect(() => {
+    if (!user) return;
+
+    const notificationsQuery = query(collection(db, 'notifications'));
+    const unsubscribe = onSnapshot(notificationsQuery, (snapshot) => {
+      const notificationsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Notification[];
+      setNotifications(notificationsData);
+    }, (error) => {
+      console.error('Error listening to notifications:', error);
+    });
+
+    return () => unsubscribe();
   }, [user]);
 
   // The form now calls a server action, so we just need a way to refresh the list

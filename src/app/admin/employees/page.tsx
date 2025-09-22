@@ -48,107 +48,117 @@ export default function EmployeesPage() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-
-  // Add Employee Form State
+  
   const [newEmployee, setNewEmployee] = useState({
     name: '',
     email: '',
     position: '',
-    departmentId: '',
     phone: '',
-    password: '123456' // Mật khẩu mặc định để nhân viên đăng nhập
+    departmentId: '',
+    password: '',
+    role: 'employee' as const,
+    avatar: '',
   });
 
-  // Edit Employee Form State
   const [editEmployee, setEditEmployee] = useState({
     name: '',
     email: '',
     position: '',
+    phone: '',
     departmentId: '',
-    phone: ''
+    role: 'employee' as const,
+    avatar: '',
   });
 
-  // Filter non-admin employees
+  // Filter employees
+  const filteredEmployees = employees.filter(emp => {
+    const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         emp.position.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesDepartment = departmentFilter === 'all' || emp.departmentId === departmentFilter;
+    
+    return matchesSearch && matchesDepartment && emp.role !== 'admin';
+  });
+
   const nonAdminEmployees = employees.filter(emp => emp.role !== 'admin');
 
-  // Filter employees based on search and department
-  const filteredEmployees = nonAdminEmployees.filter(employee => {
-    const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         employee.position.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDepartment = selectedDepartment === 'all' ||
-                             employee.departmentId === selectedDepartment;
-    return matchesSearch && matchesDepartment;
-  });
+  const getDepartmentName = (departmentId: string) => {
+    const department = departments.find(dept => dept.id === departmentId);
+    return department ? department.name : 'Chưa phân công';
+  };
 
   const handleAddEmployee = async () => {
     if (!newEmployee.name || !newEmployee.email || !newEmployee.position || !newEmployee.departmentId || !newEmployee.password) {
       toast({
-        variant: 'destructive',
-        title: t.common.error as string,
-        description: t.employees.fillRequiredFields as string,
+        title: "Lỗi",
+        description: "Vui lòng điền đầy đủ thông tin bắt buộc",
+        variant: "destructive",
       });
       return;
     }
 
     try {
-      // Generate unique username from email
-      const username = newEmployee.email.split('@')[0];
-      
-      // Generate unique employee ID
-      const employeeId = `EMP${Date.now().toString().slice(-6)}`;
-      
-      // Call server action to create user
-      const result = await createUserAction({
+      // Create user in Firebase Auth
+      const userResult = await createUserAction({
         email: newEmployee.email,
-        username: username,
         password: newEmployee.password,
-        confirmPassword: newEmployee.password,
-        name: newEmployee.name,
-        position: newEmployee.position,
-        departmentId: newEmployee.departmentId,
-        role: 'employee',
-        phone: newEmployee.phone || '',
-        startDate: new Date().toISOString(),
-        employeeId: employeeId
+        displayName: newEmployee.name,
       });
 
-      if (result.success) {
+      if (userResult.error) {
         toast({
-          title: t.employees.success as string,
-          description: result.message || t.employees.accountCreatedForEmployee.replace('{name}', newEmployee.name).replace('{email}', newEmployee.email),
+          title: "Lỗi tạo tài khoản",
+          description: userResult.error,
+          variant: "destructive",
         });
-
-        // Reset form
-        setNewEmployee({
-          name: '',
-          email: '',
-          position: '',
-          departmentId: '',
-          phone: '',
-          password: '123456'
-        });
-        setIsAddDialogOpen(false);
-        
-        // Refresh data to show new employee
-        await addEmployee();
-      } else {
-        toast({
-          variant: 'destructive',
-          title: t.common.error as string,
-          description: result.error || t.employees.errorOccurredAddingEmployee as string,
-        });
+        return;
       }
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t.common.error as string,
-        description: t.employees.errorOccurredAddingEmployee as string,
+
+      // Add employee to context
+      const employeeData = {
+        uid: userResult.uid!,
+        name: newEmployee.name,
+        email: newEmployee.email,
+        position: newEmployee.position,
+        phone: newEmployee.phone,
+        departmentId: newEmployee.departmentId,
+        role: 'employee' as const,
+        avatar: newEmployee.avatar,
+        createdAt: new Date().toISOString(),
+      };
+
+      addEmployee(employeeData);
+
+      // Reset form
+      setNewEmployee({
+        name: '',
+        email: '',
+        position: '',
+        phone: '',
+        departmentId: '',
+        password: '',
+        role: 'employee',
+        avatar: '',
       });
-      console.error('Failed to add employee:', error);
+
+      setIsAddDialogOpen(false);
+
+      toast({
+        title: "Thành công",
+        description: "Tài khoản nhân viên đã được tạo",
+      });
+    } catch (error) {
+      console.error('Error creating employee:', error);
+      toast({
+        title: "Lỗi",
+        description: "Có lỗi xảy ra khi tạo tài khoản",
+        variant: "destructive",
+      });
     }
   };
 
@@ -158,71 +168,48 @@ export default function EmployeesPage() {
       name: employee.name,
       email: employee.email,
       position: employee.position,
+      phone: employee.phone || '',
       departmentId: employee.departmentId || '',
-      phone: employee.phone || ''
+      role: employee.role,
+      avatar: employee.avatar || '',
     });
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdateEmployee = async () => {
-    if (!editingEmployee || !editEmployee.name || !editEmployee.email || !editEmployee.position) {
+  const handleUpdateEmployee = () => {
+    if (!editingEmployee || !editEmployee.name || !editEmployee.email || !editEmployee.position || !editEmployee.departmentId) {
       toast({
-        variant: 'destructive',
-        title: t.common.error as string,
-        description: t.employees.fillRequiredFields as string,
+        title: "Lỗi",
+        description: "Vui lòng điền đầy đủ thông tin bắt buộc",
+        variant: "destructive",
       });
       return;
     }
 
-    try {
-      await updateEmployee(editingEmployee.uid!, editEmployee);
+    updateEmployee(editingEmployee.uid, editEmployee);
+    setIsEditDialogOpen(false);
+    setEditingEmployee(null);
 
-      toast({
-        title: t.employees.updateSuccess as string,
-        description: t.employees.updatedEmployeeInfo.replace('{name}', editEmployee.name),
-      });
-
-      setIsEditDialogOpen(false);
-      setEditingEmployee(null);
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t.common.error as string,
-        description: t.employees.errorOccurredUpdatingEmployee as string,
-      });
-      console.error('Failed to update employee:', error);
-    }
+    toast({
+      title: "Thành công",
+      description: "Thông tin nhân viên đã được cập nhật",
+    });
   };
 
-  const handleDeleteEmployee = async (employee: Employee) => {
-    if (confirm(t.employees.confirmDeleteEmployee.replace('{name}', employee.name))) {
-      try {
-        await deleteEmployee(employee.uid!);
-        
-        toast({
-          title: t.employees.employeeDeleteSuccess as string,
-          description: t.employees.deletedEmployee.replace('{name}', employee.name),
-        });
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: t.common.error as string,
-          description: t.employees.errorOccurredDeletingEmployee as string,
-        });
-        console.error('Failed to delete employee:', error);
-      }
+  const handleDeleteEmployee = (employee: Employee) => {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa nhân viên ${employee.name}?`)) {
+      deleteEmployee(employee.uid);
+      toast({
+        title: "Thành công",
+        description: "Nhân viên đã được xóa",
+      });
     }
-  };
-
-  const getDepartmentName = (departmentId: string) => {
-    const department = departments.find(d => d.id === departmentId);
-    return department ? department.name : t.departments.notAssigned as string;
   };
 
   const generateRandomPassword = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
     let password = '';
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 12; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     setNewEmployee({...newEmployee, password});
@@ -230,124 +217,6 @@ export default function EmployeesPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t.employees.title}</h1>
-          <p className="text-muted-foreground">{t.employees.subtitle}</p>
-        </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="w-4 h-4 mr-2" />
-              {t.employees.createNewAccount}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>{t.employees.createNewAccount}</DialogTitle>
-              <p className="text-sm text-muted-foreground">
-                {t.employees.addNewEmployeeToSystem}
-              </p>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">{t.employees.fullName} *</Label>
-                <Input
-                  id="name"
-                  value={newEmployee.name}
-                  onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
-                  placeholder={t.employees.enterFullName as string}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newEmployee.email}
-                  onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
-                  placeholder="Nhập email"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="position">{t.employees.position} *</Label>
-                <Input
-                  id="position"
-                  value={newEmployee.position}
-                  onChange={(e) => setNewEmployee({...newEmployee, position: e.target.value})}
-                  placeholder={t.employees.enterPosition as string}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="department">{t.employees.department} *</Label>
-                <Select value={newEmployee.departmentId} onValueChange={(value) => setNewEmployee({...newEmployee, departmentId: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t.employees.selectDepartment as string} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map(dept => (
-                      <SelectItem key={dept.id} value={dept.id}>
-                        {dept.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="phone">{t.employees.phoneNumber}</Label>
-                <Input
-                  id="phone"
-                  value={newEmployee.phone}
-                  onChange={(e) => setNewEmployee({...newEmployee, phone: e.target.value})}
-                  placeholder={t.employees.enterPhoneNumber as string}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">{t.employees.loginPassword} *</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="password"
-                    type="text"
-                    value={newEmployee.password}
-                    onChange={(e) => setNewEmployee({...newEmployee, password: e.target.value})}
-                    placeholder={t.employees.passwordForEmployeeLogin as string}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={generateRandomPassword}
-                    className="flex-shrink-0"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t.employees.employeeWillUseEmailPassword}
-                  <RefreshCw className="w-3 h-3 inline mx-1" /> {t.employees.clickToGenerateRandom}.
-                </p>
-              </div>
-              
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  {t.common.cancel}
-                </Button>
-                <Button onClick={handleAddEmployee}>
-                  {t.employees.createAccount}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -366,50 +235,153 @@ export default function EmployeesPage() {
         
         <Card>
           <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-green-600">
-              {nonAdminEmployees.filter(emp => emp.departmentId).length}
-            </div>
-            <p className="text-xs text-muted-foreground">{t.employees.assigned}</p>
+            <div className="text-2xl font-bold">{filteredEmployees.length}</div>
+            <p className="text-xs text-muted-foreground">{t.employees.filteredResults}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-4">
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder={t.employees.searchByNameEmailPosition as string}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder={t.employees.selectDepartment as string} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t.employees.allDepartments}</SelectItem>
-                {departments.map(dept => (
-                  <SelectItem key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Employee Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            {t.employees.employeeList} ({filteredEmployees.length})
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              {t.employees.employeeList} ({filteredEmployees.length})
+            </CardTitle>
+            <div className="flex items-center gap-4">
+              <div className="w-64">
+                <Input
+                  placeholder={t.common.search as string}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder={t.employees.filterByDepartment as string} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t.employees.allDepartments as string}</SelectItem>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <PlusCircle className="w-4 h-4 mr-2" />
+                    {t.employees.createNewAccount}
+                  </Button>
+                </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>{t.employees.createNewAccount}</DialogTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {t.employees.addNewEmployeeToSystem}
+                  </p>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">{t.employees.fullName} *</Label>
+                    <Input
+                      id="name"
+                      value={newEmployee.name}
+                      onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
+                      placeholder={t.employees.enterFullName as string}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={newEmployee.email}
+                      onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
+                      placeholder="Nhập email"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="position">{t.employees.position} *</Label>
+                    <Input
+                      id="position"
+                      value={newEmployee.position}
+                      onChange={(e) => setNewEmployee({...newEmployee, position: e.target.value})}
+                      placeholder={t.employees.enterPosition as string}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">{t.employees.phone}</Label>
+                    <Input
+                      id="phone"
+                      value={newEmployee.phone}
+                      onChange={(e) => setNewEmployee({...newEmployee, phone: e.target.value})}
+                      placeholder={t.employees.enterPhoneNumber as string}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="department">{t.employees.department} *</Label>
+                    <Select value={newEmployee.departmentId} onValueChange={(value) => setNewEmployee({...newEmployee, departmentId: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t.employees.selectDepartment as string} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departments.map(dept => (
+                          <SelectItem key={dept.id} value={dept.id}>
+                            {dept.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="password">{t.employees.loginPassword} *</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="password"
+                        type="text"
+                        value={newEmployee.password}
+                        onChange={(e) => setNewEmployee({...newEmployee, password: e.target.value})}
+                        placeholder={t.employees.passwordForEmployeeLogin as string}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={generateRandomPassword}
+                        className="flex-shrink-0"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {t.employees.employeeWillUseEmailPassword}
+                      <RefreshCw className="w-3 h-3 inline mx-1" /> {t.employees.clickToGenerateRandom}.
+                    </p>
+                  </div>
+                  
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                      {t.common.cancel}
+                    </Button>
+                    <Button onClick={handleAddEmployee}>
+                      {t.employees.createAccount}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {filteredEmployees.length === 0 ? (
@@ -519,7 +491,17 @@ export default function EmployeesPage() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="edit-department">{t.employees.department}</Label>
+              <Label htmlFor="edit-phone">{t.employees.phone}</Label>
+              <Input
+                id="edit-phone"
+                value={editEmployee.phone}
+                onChange={(e) => setEditEmployee({...editEmployee, phone: e.target.value})}
+                placeholder={t.employees.enterPhoneNumber as string}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-department">{t.employees.department} *</Label>
               <Select value={editEmployee.departmentId} onValueChange={(value) => setEditEmployee({...editEmployee, departmentId: value})}>
                 <SelectTrigger>
                   <SelectValue placeholder={t.employees.selectDepartment as string} />
@@ -534,22 +516,12 @@ export default function EmployeesPage() {
               </Select>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="edit-phone">{t.employees.phoneNumber}</Label>
-              <Input
-                id="edit-phone"
-                value={editEmployee.phone}
-                onChange={(e) => setEditEmployee({...editEmployee, phone: e.target.value})}
-                placeholder={t.employees.enterPhoneNumber as string}
-              />
-            </div>
-            
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                 {t.common.cancel}
               </Button>
               <Button onClick={handleUpdateEmployee}>
-                {t.employees.update}
+                {t.common.save}
               </Button>
             </div>
           </div>

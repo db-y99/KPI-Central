@@ -39,7 +39,6 @@ import { DataContext } from '@/context/data-context';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import type { Kpi } from '@/types';
-import { sampleKpis, sampleDepartments } from '@/lib/sample-data';
 
 export default function KpiDefinitionsPage() {
   const { kpis, departments, addKpi, updateKpi, deleteKpi } = useContext(DataContext);
@@ -216,256 +215,142 @@ export default function KpiDefinitionsPage() {
     return labels[frequency as keyof typeof labels] || frequency;
   };
 
-  const createSampleData = async () => {
-    try {
-      // First create departments if they don't exist
-      const departmentMap: { [key: string]: string } = {};
-      
-      for (const dept of sampleDepartments) {
-        const existingDept = departments.find(d => d.name === dept.name);
-        if (!existingDept) {
-          await addDepartment(dept);
-          // We'll need to get the ID after creation, but for now we'll use a simple mapping
-          departmentMap[dept.name.toLowerCase().replace(/\s+/g, '-')] = dept.name;
-        } else {
-          departmentMap[dept.name.toLowerCase().replace(/\s+/g, '-')] = existingDept.id;
-        }
-      }
-
-      // Then create KPIs
-      for (const kpi of sampleKpis) {
-        const existingKpi = kpis.find(k => k.name === kpi.name);
-        if (!existingKpi) {
-          const deptId = departmentMap[kpi.departmentId] || departments[0]?.id || '';
-          await addKpi({
-            ...kpi,
-            departmentId: deptId,
-            department: departments.find(d => d.id === deptId)?.name || '',
-            createdAt: new Date().toISOString()
-          });
-        }
-      }
-
-      toast({
-        title: t.common.success as string,
-        description: t.kpis.sampleDataSuccess as string,
-      });
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t.common.error as string,
-        description: t.kpis.sampleDataError as string,
-      });
-      console.error('Failed to create sample data:', error);
-    }
-  };
-
-  const deleteSampleData = async () => {
-    try {
-      // Confirm deletion
-      if (!confirm(t.kpis.confirmDeleteSampleData)) {
-        return;
-      }
-
-      // Delete sample KPIs
-      const sampleKpiNames = sampleKpis.map(kpi => kpi.name);
-      const kpisToDelete = kpis.filter(kpi => sampleKpiNames.includes(kpi.name));
-      
-      for (const kpi of kpisToDelete) {
-        await deleteKpi(kpi.id);
-      }
-
-      // Delete sample departments (only if they don't have other KPIs)
-      const sampleDeptNames = sampleDepartments.map(dept => dept.name);
-      const deptsToDelete = departments.filter(dept => {
-        const hasOtherKpis = kpis.some(kpi => 
-          kpi.departmentId === dept.id && !sampleKpiNames.includes(kpi.name)
-        );
-        return sampleDeptNames.includes(dept.name) && !hasOtherKpis;
-      });
-
-      for (const dept of deptsToDelete) {
-        await deleteDepartment(dept.id);
-      }
-
-      toast({
-        title: t.common.success as string,
-        description: t.kpis.deleteSampleDataSuccess as string,
-      });
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: t.common.error as string,
-        description: t.kpis.deleteSampleDataError as string,
-      });
-      console.error('Failed to delete sample data:', error);
-    }
-  };
-
-
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t.kpis.title}</h1>
-          <p className="text-muted-foreground">{t.kpis.subtitle}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={createSampleData}>
-            <Target className="w-4 h-4 mr-2" />
-            {t.kpis.createSampleData}
-          </Button>
-          <Button variant="outline" onClick={deleteSampleData} className="text-red-600 hover:text-red-700 hover:bg-red-50">
-            <Trash className="w-4 h-4 mr-2" />
-            {t.kpis.deleteSampleData}
-          </Button>
-        </div>
-      </div>
-
-      {/* KPI Management */}
-      <div className="space-y-6">
-          <div className="flex justify-end">
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <PlusCircle className="w-4 h-4 mr-2" />
-                  {t.kpis.addKpi as string}
-                </Button>
-              </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>{t.kpis.addKpiTitle as string}</DialogTitle>
-              <p className="text-sm text-muted-foreground">
-                Định nghĩa chỉ số KPI để có thể giao cho nhân viên
-              </p>
-            </DialogHeader>
-            <div className="space-y-4">
+      {/* Add KPI Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t.kpis.addKpiTitle as string}</DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Định nghĩa chỉ số KPI để có thể giao cho nhân viên
+            </p>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">{t.kpis.name as string} *</Label>
+              <Input
+                id="name"
+                value={newKpi.name}
+                onChange={(e) => setNewKpi({...newKpi, name: e.target.value})}
+                placeholder={t.kpis.enterKpiName as string}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="description">{t.kpis.description as string} *</Label>
+              <Textarea
+                id="description"
+                value={newKpi.description}
+                onChange={(e) => setNewKpi({...newKpi, description: e.target.value})}
+                placeholder={t.kpis.enterDescription as string}
+                rows={3}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="department">{t.kpis.department as string} *</Label>
+              <Select value={newKpi.departmentId} onValueChange={(value) => setNewKpi({...newKpi, departmentId: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t.kpis.selectDepartment as string} />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.map(dept => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="unit">{t.kpis.unit as string} *</Label>
+              <Input
+                id="unit"
+                value={newKpi.unit}
+                onChange={(e) => setNewKpi({...newKpi, unit: e.target.value})}
+                placeholder={t.kpis.enterUnit as string}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="frequency">{t.kpis.frequency as string}</Label>
+              <Select value={newKpi.frequency} onValueChange={(value) => setNewKpi({...newKpi, frequency: value as any})}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t.kpis.selectFrequency as string} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">{t.kpis.daily as string}</SelectItem>
+                  <SelectItem value="weekly">{t.kpis.weekly as string}</SelectItem>
+                  <SelectItem value="monthly">{t.kpis.monthly as string}</SelectItem>
+                  <SelectItem value="quarterly">{t.kpis.quarterly as string}</SelectItem>
+                  <SelectItem value="annually">{t.kpis.annually as string}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">{t.kpis.name as string} *</Label>
+                <Label htmlFor="reward">{t.kpis.reward as string} (VND)</Label>
                 <Input
-                  id="name"
-                  value={newKpi.name}
-                  onChange={(e) => setNewKpi({...newKpi, name: e.target.value})}
-                  placeholder={t.kpis.enterKpiName as string}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="description">{t.kpis.description as string} *</Label>
-                <Textarea
-                  id="description"
-                  value={newKpi.description}
-                  onChange={(e) => setNewKpi({...newKpi, description: e.target.value})}
-                  placeholder={t.kpis.enterDescription as string}
-                  rows={3}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="department">{t.kpis.department as string} *</Label>
-                <Select value={newKpi.departmentId} onValueChange={(value) => setNewKpi({...newKpi, departmentId: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t.kpis.selectDepartment as string} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map(dept => (
-                      <SelectItem key={dept.id} value={dept.id}>
-                        {dept.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="unit">{t.kpis.unit as string} *</Label>
-                <Input
-                  id="unit"
-                  value={newKpi.unit}
-                  onChange={(e) => setNewKpi({...newKpi, unit: e.target.value})}
-                  placeholder={t.kpis.enterUnit as string}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="frequency">{t.kpis.frequency as string}</Label>
-                <Select value={newKpi.frequency} onValueChange={(value) => setNewKpi({...newKpi, frequency: value as any})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t.kpis.selectFrequency as string} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">{t.kpis.daily as string}</SelectItem>
-                    <SelectItem value="weekly">{t.kpis.weekly as string}</SelectItem>
-                    <SelectItem value="monthly">{t.kpis.monthly as string}</SelectItem>
-                    <SelectItem value="quarterly">{t.kpis.quarterly as string}</SelectItem>
-                    <SelectItem value="annually">{t.kpis.annually as string}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="reward">{t.kpis.reward as string} (VND)</Label>
-                  <Input
-                    id="reward"
-                    type="number"
-                    value={newKpi.reward}
-                    onChange={(e) => setNewKpi({...newKpi, reward: parseFloat(e.target.value) || 0})}
-                    placeholder={t.kpis.enterReward as string}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="penalty">{t.kpis.penalty as string} (VND)</Label>
-                  <Input
-                    id="penalty"
-                    type="number"
-                    value={newKpi.penalty}
-                    onChange={(e) => setNewKpi({...newKpi, penalty: parseFloat(e.target.value) || 0})}
-                    placeholder={t.kpis.enterPenalty as string}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="category">{t.kpis.category as string}</Label>
-                <Input
-                  id="category"
-                  value={newKpi.category}
-                  onChange={(e) => setNewKpi({...newKpi, category: e.target.value})}
-                  placeholder={t.kpis.enterCategory as string}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="weight">{t.kpis.weight as string}</Label>
-                <Input
-                  id="weight"
+                  id="reward"
                   type="number"
-                  min="1"
-                  max="10"
-                  value={newKpi.weight}
-                  onChange={(e) => setNewKpi({...newKpi, weight: parseFloat(e.target.value) || 1})}
-                  placeholder={t.kpis.enterWeight as string}
+                  value={newKpi.reward}
+                  onChange={(e) => setNewKpi({...newKpi, reward: parseFloat(e.target.value) || 0})}
+                  placeholder={t.kpis.enterReward as string}
                 />
-                <p className="text-xs text-muted-foreground">
-                  {t.kpis.weightDescription as string}
-                </p>
               </div>
               
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  {t.common.cancel as string}
-                </Button>
-                <Button onClick={handleAddKpi}>
-                  {t.kpis.saveKpi as string}
-                </Button>
+              <div className="space-y-2">
+                <Label htmlFor="penalty">{t.kpis.penalty as string} (VND)</Label>
+                <Input
+                  id="penalty"
+                  type="number"
+                  value={newKpi.penalty}
+                  onChange={(e) => setNewKpi({...newKpi, penalty: parseFloat(e.target.value) || 0})}
+                  placeholder={t.kpis.enterPenalty as string}
+                />
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="category">{t.kpis.category as string}</Label>
+              <Input
+                id="category"
+                value={newKpi.category}
+                onChange={(e) => setNewKpi({...newKpi, category: e.target.value})}
+                placeholder={t.kpis.enterCategory as string}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="weight">{t.kpis.weight as string}</Label>
+              <Input
+                id="weight"
+                type="number"
+                min="1"
+                max="10"
+                value={newKpi.weight}
+                onChange={(e) => setNewKpi({...newKpi, weight: parseFloat(e.target.value) || 1})}
+                placeholder={t.kpis.enterWeight as string}
+              />
+              <p className="text-xs text-muted-foreground">
+                {t.kpis.weightDescription as string}
+              </p>
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                {t.common.cancel as string}
+              </Button>
+              <Button onClick={handleAddKpi}>
+                {t.kpis.saveKpi as string}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -502,29 +387,33 @@ export default function KpiDefinitionsPage() {
         </Card>
       </div>
 
-      {/* Search */}
-      <Card>
-        <CardContent className="pt-4">
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder={t.common.search as string}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* KPI Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Target className="w-5 h-5" />
-            {t.kpis.kpiName as string} ({filteredKpis.length})
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              {t.kpis.kpiName as string} ({filteredKpis.length})
+            </CardTitle>
+            <div className="flex items-center gap-4">
+              <div className="w-64">
+                <Input
+                  placeholder={t.common.search as string}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <PlusCircle className="w-4 h-4 mr-2" />
+                    {t.kpis.addKpi as string}
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {filteredKpis.length === 0 ? (
@@ -737,7 +626,6 @@ export default function KpiDefinitionsPage() {
           </div>
         </DialogContent>
       </Dialog>
-      </div>
     </div>
   );
 }
