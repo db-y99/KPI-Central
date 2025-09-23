@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { PlusCircle, Users, Search, Edit2, Trash2, RefreshCw } from 'lucide-react';
+import { PlusCircle, Users, Search, Edit2, Trash2, RefreshCw, MoreVertical } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Select,
   SelectContent,
@@ -38,7 +44,7 @@ import { Badge } from '@/components/ui/badge';
 import { DataContext } from '@/context/data-context';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
-import { createUserAction } from '@/lib/server-actions';
+import { createUserAction, deleteUserAction } from '@/lib/server-actions';
 import type { Employee } from '@/types';
 
 export default function EmployeesPage() {
@@ -56,12 +62,17 @@ export default function EmployeesPage() {
   const [newEmployee, setNewEmployee] = useState({
     name: '',
     email: '',
+    username: '',
     position: '',
     phone: '',
     departmentId: '',
     password: '',
+    confirmPassword: '',
     role: 'employee' as const,
     avatar: '',
+    startDate: new Date().toISOString().split('T')[0],
+    employeeId: '',
+    address: '',
   });
 
   const [editEmployee, setEditEmployee] = useState({
@@ -74,89 +85,101 @@ export default function EmployeesPage() {
     avatar: '',
   });
 
-  // Filter employees
-  const filteredEmployees = employees.filter(emp => {
+  // Filter employees (exclude admin users)
+  const nonAdminEmployees = employees.filter(emp => emp.role !== 'admin');
+
+  // Filter employees based on search and department
+  const filteredEmployees = nonAdminEmployees.filter(emp => {
     const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          emp.position.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesDepartment = departmentFilter === 'all' || emp.departmentId === departmentFilter;
-    
-    return matchesSearch && matchesDepartment && emp.role !== 'admin';
-  });
 
-  const nonAdminEmployees = employees.filter(emp => emp.role !== 'admin');
+    const matchesDepartment = departmentFilter === 'all' || emp.departmentId === departmentFilter;
+
+    return matchesSearch && matchesDepartment;
+  });
 
   const getDepartmentName = (departmentId: string) => {
     const department = departments.find(dept => dept.id === departmentId);
-    return department ? department.name : 'Chưa phân công';
+    return department ? department.name : t.employees.notAssigned as string;
   };
 
   const handleAddEmployee = async () => {
-    if (!newEmployee.name || !newEmployee.email || !newEmployee.position || !newEmployee.departmentId || !newEmployee.password) {
+    if (!newEmployee.name || !newEmployee.email || !newEmployee.username || !newEmployee.position || !newEmployee.departmentId || !newEmployee.password || !newEmployee.employeeId) {
       toast({
-        title: "Lỗi",
-        description: "Vui lòng điền đầy đủ thông tin bắt buộc",
+        title: t.common.error as string,
+        description: t.employees.fillRequiredFields as string,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newEmployee.password !== newEmployee.confirmPassword) {
+      toast({
+        title: t.common.error as string,
+        description: t.employees.passwordMismatch as string,
         variant: "destructive",
       });
       return;
     }
 
     try {
-      // Create user in Firebase Auth
+      // Create user in Firebase Auth and Firestore
       const userResult = await createUserAction({
+        name: newEmployee.name,
         email: newEmployee.email,
+        username: newEmployee.username,
         password: newEmployee.password,
-        displayName: newEmployee.name,
+        confirmPassword: newEmployee.confirmPassword,
+        position: newEmployee.position,
+        departmentId: newEmployee.departmentId,
+        role: 'employee' as const,
+        phone: newEmployee.phone || '',
+        address: newEmployee.address || '',
+        startDate: newEmployee.startDate,
+        employeeId: newEmployee.employeeId,
       });
 
-      if (userResult.error) {
+      if (!userResult.success) {
         toast({
-          title: "Lỗi tạo tài khoản",
+          title: t.common.error as string,
           description: userResult.error,
           variant: "destructive",
         });
         return;
       }
 
-      // Add employee to context
-      const employeeData = {
-        uid: userResult.uid!,
-        name: newEmployee.name,
-        email: newEmployee.email,
-        position: newEmployee.position,
-        phone: newEmployee.phone,
-        departmentId: newEmployee.departmentId,
-        role: 'employee' as const,
-        avatar: newEmployee.avatar,
-        createdAt: new Date().toISOString(),
-      };
-
-      addEmployee(employeeData);
+      // Refresh data to show the new employee
+      await addEmployee();
 
       // Reset form
       setNewEmployee({
         name: '',
         email: '',
+        username: '',
         position: '',
         phone: '',
         departmentId: '',
         password: '',
+        confirmPassword: '',
         role: 'employee',
         avatar: '',
+        startDate: new Date().toISOString().split('T')[0],
+        employeeId: '',
+        address: '',
       });
 
       setIsAddDialogOpen(false);
 
       toast({
-        title: "Thành công",
-        description: "Tài khoản nhân viên đã được tạo",
+        title: t.employees.success as string,
+        description: t.employees.accountCreatedForEmployee.replace('{name}', newEmployee.name).replace('{email}', newEmployee.email) as string,
       });
     } catch (error) {
       console.error('Error creating employee:', error);
       toast({
-        title: "Lỗi",
-        description: "Có lỗi xảy ra khi tạo tài khoản",
+        title: t.common.error as string,
+        description: t.employees.errorOccurredAddingEmployee as string,
         variant: "destructive",
       });
     }
@@ -179,8 +202,8 @@ export default function EmployeesPage() {
   const handleUpdateEmployee = () => {
     if (!editingEmployee || !editEmployee.name || !editEmployee.email || !editEmployee.position || !editEmployee.departmentId) {
       toast({
-        title: "Lỗi",
-        description: "Vui lòng điền đầy đủ thông tin bắt buộc",
+        title: t.common.error as string,
+        description: t.employees.fillRequiredFields as string,
         variant: "destructive",
       });
       return;
@@ -191,17 +214,39 @@ export default function EmployeesPage() {
     setEditingEmployee(null);
 
     toast({
-      title: "Thành công",
-      description: "Thông tin nhân viên đã được cập nhật",
+      title: t.employees.updateSuccess as string,
+      description: t.employees.updatedEmployeeInfo.replace('{name}', editEmployee.name) as string,
     });
   };
 
-  const handleDeleteEmployee = (employee: Employee) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa nhân viên ${employee.name}?`)) {
-      deleteEmployee(employee.uid);
+  const handleDeleteEmployee = async (employee: Employee) => {
+    if (!window.confirm(t.employees.confirmDeleteEmployee.replace('{name}', employee.name) as string)) {
+      return;
+    }
+
+    try {
+      const result = await deleteUserAction(employee.uid);
+
+      if (result.success) {
+        // Refresh data to show the updated list
+        await addEmployee(); // This refreshes data
+        toast({
+          title: t.employees.employeeDeleteSuccess as string,
+          description: t.employees.deletedEmployee.replace('{name}', employee.name) as string,
+        });
+      } else {
+        toast({
+          title: t.common.error as string,
+          description: result.error,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting employee:', error);
       toast({
-        title: "Thành công",
-        description: "Nhân viên đã được xóa",
+        title: t.common.error as string,
+        description: t.employees.errorOccurredDeletingEmployee as string,
+        variant: "destructive",
       });
     }
   };
@@ -212,7 +257,7 @@ export default function EmployeesPage() {
     for (let i = 0; i < 12; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    setNewEmployee({...newEmployee, password});
+    setNewEmployee({...newEmployee, password, confirmPassword: password});
   };
 
   return (
@@ -236,7 +281,7 @@ export default function EmployeesPage() {
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold">{filteredEmployees.length}</div>
-            <p className="text-xs text-muted-foreground">{t.employees.filteredResults}</p>
+            <p className="text-xs text-muted-foreground">{t.employees.filteredResults as string}</p>
           </CardContent>
         </Card>
       </div>
@@ -286,47 +331,95 @@ export default function EmployeesPage() {
                   </p>
                 </DialogHeader>
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">{t.employees.fullName} *</Label>
-                    <Input
-                      id="name"
-                      value={newEmployee.name}
-                      onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
-                      placeholder={t.employees.enterFullName as string}
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">{t.employees.fullName} *</Label>
+                      <Input
+                        id="name"
+                        value={newEmployee.name}
+                        onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
+                        placeholder={t.employees.enterFullName as string}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="username">{t.employees.username} *</Label>
+                      <Input
+                        id="username"
+                        value={newEmployee.username}
+                        onChange={(e) => setNewEmployee({...newEmployee, username: e.target.value})}
+                        placeholder={t.employees.enterUsername as string}
+                      />
+                    </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={newEmployee.email}
-                      onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
-                      placeholder="Nhập email"
-                    />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={newEmployee.email}
+                        onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
+                        placeholder={t.employees.enterEmail as string}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="employeeId">{t.employees.employeeId} *</Label>
+                      <Input
+                        id="employeeId"
+                        value={newEmployee.employeeId}
+                        onChange={(e) => setNewEmployee({...newEmployee, employeeId: e.target.value})}
+                        placeholder={t.employees.enterEmployeeId as string}
+                      />
+                    </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="position">{t.employees.position} *</Label>
-                    <Input
-                      id="position"
-                      value={newEmployee.position}
-                      onChange={(e) => setNewEmployee({...newEmployee, position: e.target.value})}
-                      placeholder={t.employees.enterPosition as string}
-                    />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="position">{t.employees.position} *</Label>
+                      <Input
+                        id="position"
+                        value={newEmployee.position}
+                        onChange={(e) => setNewEmployee({...newEmployee, position: e.target.value})}
+                        placeholder={t.employees.enterPosition as string}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="startDate">{t.employees.startDate} *</Label>
+                      <Input
+                        id="startDate"
+                        type="date"
+                        value={newEmployee.startDate}
+                        onChange={(e) => setNewEmployee({...newEmployee, startDate: e.target.value})}
+                      />
+                    </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">{t.employees.phone}</Label>
-                    <Input
-                      id="phone"
-                      value={newEmployee.phone}
-                      onChange={(e) => setNewEmployee({...newEmployee, phone: e.target.value})}
-                      placeholder={t.employees.enterPhoneNumber as string}
-                    />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">{t.employees.phone}</Label>
+                      <Input
+                        id="phone"
+                        value={newEmployee.phone}
+                        onChange={(e) => setNewEmployee({...newEmployee, phone: e.target.value})}
+                        placeholder={t.employees.enterPhoneNumber as string}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="address">{t.employees.address}</Label>
+                      <Input
+                        id="address"
+                        value={newEmployee.address}
+                        onChange={(e) => setNewEmployee({...newEmployee, address: e.target.value})}
+                        placeholder={t.employees.enterAddress as string}
+                      />
+                    </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="department">{t.employees.department} *</Label>
                     <Select value={newEmployee.departmentId} onValueChange={(value) => setNewEmployee({...newEmployee, departmentId: value})}>
@@ -342,30 +435,43 @@ export default function EmployeesPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="password">{t.employees.loginPassword} *</Label>
-                    <div className="flex gap-2">
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="password">{t.employees.loginPassword} *</Label>
                       <Input
                         id="password"
-                        type="text"
+                        type="password"
                         value={newEmployee.password}
                         onChange={(e) => setNewEmployee({...newEmployee, password: e.target.value})}
                         placeholder={t.employees.passwordForEmployeeLogin as string}
                       />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={generateRandomPassword}
-                        className="flex-shrink-0"
-                      >
-                        <RefreshCw className="w-4 h-4" />
-                      </Button>
                     </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">{t.employees.confirmPassword} *</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        value={newEmployee.confirmPassword}
+                        onChange={(e) => setNewEmployee({...newEmployee, confirmPassword: e.target.value})}
+                        placeholder={t.employees.confirmPassword as string}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={generateRandomPassword}
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      {t.employees.generateRandomPassword}
+                    </Button>
                     <p className="text-xs text-muted-foreground">
-                      {t.employees.employeeWillUseEmailPassword}
-                      <RefreshCw className="w-3 h-3 inline mx-1" /> {t.employees.clickToGenerateRandom}.
+                      {t.employees.clickToGenerateRandom}
                     </p>
                   </div>
                   
@@ -397,12 +503,15 @@ export default function EmployeesPage() {
                   <TableHead>{t.employees.position}</TableHead>
                   <TableHead>{t.employees.department}</TableHead>
                   <TableHead>{t.employees.contact}</TableHead>
-                  <TableHead>{t.common.actions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredEmployees.map((employee) => (
-                  <TableRow key={employee.uid}>
+                  <TableRow 
+                    key={employee.uid}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors group"
+                    onClick={() => handleEditEmployee(employee)}
+                  >
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="w-8 h-8">
@@ -424,24 +533,39 @@ export default function EmployeesPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <p className="text-sm">{employee.phone || t.employees.noPhone as string}</p>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditEmployee(employee)}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteEmployee(employee)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm">{employee.phone || t.employees.noPhone as string}</p>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditEmployee(employee);
+                            }}>
+                              <Edit2 className="w-4 h-4 mr-2" />
+                              {t.employees.editEmployee}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteEmployee(employee);
+                              }}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              {t.employees.deleteEmployee}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -476,7 +600,7 @@ export default function EmployeesPage() {
                 type="email"
                 value={editEmployee.email}
                 onChange={(e) => setEditEmployee({...editEmployee, email: e.target.value})}
-                placeholder="Nhập email"
+                placeholder={t.employees.enterEmail as string}
               />
             </div>
             

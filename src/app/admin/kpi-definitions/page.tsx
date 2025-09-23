@@ -48,7 +48,9 @@ export default function KpiDefinitionsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [editingKpi, setEditingKpi] = useState<Kpi | null>(null);
+  const [selectedKpi, setSelectedKpi] = useState<Kpi | null>(null);
 
   // Add KPI Form State
   const [newKpi, setNewKpi] = useState({
@@ -130,6 +132,11 @@ export default function KpiDefinitionsPage() {
     }
   };
 
+  const handleRowClick = (kpi: Kpi) => {
+    setSelectedKpi(kpi);
+    setIsDetailsDialogOpen(true);
+  };
+
   const handleEditKpi = (kpi: Kpi) => {
     setEditingKpi(kpi);
     setEditKpi({
@@ -144,6 +151,7 @@ export default function KpiDefinitionsPage() {
       weight: kpi.weight || 1
     });
     setIsEditDialogOpen(true);
+    setIsDetailsDialogOpen(false);
   };
 
   const handleUpdateKpi = async () => {
@@ -188,6 +196,7 @@ export default function KpiDefinitionsPage() {
           title: t.common.success as string,
           description: t.kpis.deleteSuccess as string,
         });
+        setIsDetailsDialogOpen(false);
       } catch (error) {
         toast({
           variant: 'destructive',
@@ -223,7 +232,7 @@ export default function KpiDefinitionsPage() {
           <DialogHeader>
             <DialogTitle>{t.kpis.addKpiTitle as string}</DialogTitle>
             <p className="text-sm text-muted-foreground">
-              Định nghĩa chỉ số KPI để có thể giao cho nhân viên
+              {t.kpis.addKpiDescription as string}
             </p>
           </DialogHeader>
           <div className="space-y-4">
@@ -431,12 +440,15 @@ export default function KpiDefinitionsPage() {
                   <TableHead>{t.kpis.kpiFrequency as string}</TableHead>
                   <TableHead>{t.kpis.kpiCategory as string}</TableHead>
                   <TableHead>{t.kpis.kpiRewardPenalty as string}</TableHead>
-                  <TableHead>{t.kpis.actions as string}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredKpis.map((kpi) => (
-                  <TableRow key={kpi.id}>
+                  <TableRow 
+                    key={kpi.id}
+                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => handleRowClick(kpi)}
+                  >
                     <TableCell>
                       <div>
                         <p className="font-medium">{kpi.name}</p>
@@ -472,24 +484,6 @@ export default function KpiDefinitionsPage() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditKpi(kpi)}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteKpi(kpi)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -497,6 +491,121 @@ export default function KpiDefinitionsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* KPI Details Dialog */}
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              {selectedKpi?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedKpi && (
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    {t.kpis.description as string}
+                  </Label>
+                  <p className="text-sm">{selectedKpi.description}</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    {t.kpis.department as string}
+                  </Label>
+                  <Badge variant="outline">
+                    {getDepartmentName(selectedKpi.departmentId || '')}
+                  </Badge>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    {t.kpis.unit as string}
+                  </Label>
+                  <p className="text-sm">{selectedKpi.unit}</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    {t.kpis.frequency as string}
+                  </Label>
+                  <Badge variant="secondary">
+                    {getFrequencyLabel(selectedKpi.frequency)}
+                  </Badge>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    {t.kpis.category as string}
+                  </Label>
+                  {selectedKpi.category ? (
+                    <Badge variant="outline">{selectedKpi.category}</Badge>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">{t.kpis.noCategory as string}</p>
+                  )}
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    {t.kpis.weight as string}
+                  </Label>
+                  <p className="text-sm">{selectedKpi.weight || 1}</p>
+                </div>
+              </div>
+              
+              {/* Reward/Penalty Information */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-muted-foreground">
+                  {t.kpis.kpiRewardPenalty as string}
+                </Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 border rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-1">{t.kpis.reward as string}</p>
+                    {selectedKpi.reward && selectedKpi.reward > 0 ? (
+                      <p className="text-lg font-semibold text-green-600">
+                        +{selectedKpi.reward.toLocaleString()} VND
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{t.kpis.noReward as string}</p>
+                    )}
+                  </div>
+                  <div className="p-3 border rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-1">{t.kpis.penalty as string}</p>
+                    {selectedKpi.penalty && selectedKpi.penalty > 0 ? (
+                      <p className="text-lg font-semibold text-red-600">
+                        -{selectedKpi.penalty.toLocaleString()} VND
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{t.kpis.noPenalty as string}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => setIsDetailsDialogOpen(false)}>
+                  {t.common.close as string}
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => handleDeleteKpi(selectedKpi)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  {t.kpis.deleteKpi as string}
+                </Button>
+                <Button onClick={() => handleEditKpi(selectedKpi)}>
+                  <Edit2 className="w-4 h-4 mr-2" />
+                  {t.kpis.editKpi as string}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Edit KPI Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

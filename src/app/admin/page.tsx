@@ -33,11 +33,11 @@ export default function AdminDashboardPage() {
 
     // Basic KPI statistics
     const totalKpis = kpiRecords.length;
-    const completedKpis = kpiRecords.filter(r => r.status === 'completed').length;
-    const inProgressKpis = kpiRecords.filter(r => r.status === 'in-progress').length;
+    const completedKpis = kpiRecords.filter(r => r.status === 'approved').length;
+    const inProgressKpis = kpiRecords.filter(r => r.status === 'awaiting_approval').length;
     const overdueKpis = kpiRecords.filter(r => {
       const endDate = new Date(r.endDate);
-      return endDate < today && r.status !== 'completed';
+      return endDate < today && r.status !== 'approved';
     }).length;
 
     // Completion rate
@@ -217,22 +217,79 @@ export default function AdminDashboardPage() {
             </Link>
       </div>
 
-      {/* System Status */}
+      {/* Recent Activities */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-green-500" />
-            {t.dashboard.systemStatus}
+            <Activity className="w-5 h-5 text-purple-600" />
+            {t.dashboard.recentActivities}
           </CardTitle>
+          <CardDescription>
+            {t.dashboard.latestSystemActivities}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center p-8">
-            <div className="text-center">
-              <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <p className="text-lg font-medium text-green-800">{t.dashboard.systemRunningNormal}</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                {t.dashboard.allFunctionsReady}
-              </p>
+          <div className="space-y-3">
+            {/* Recent KPI Updates */}
+            {kpiRecords
+              .sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime())
+              .slice(0, 5)
+              .map((record) => {
+                const employee = employees.find(e => e.id === record.employeeId);
+                const kpi = kpis.find(k => k.id === record.kpiId);
+
+                let activityText = '';
+                let activityIcon = null;
+                let activityColor = '';
+
+                switch (record.status) {
+                  case 'approved':
+                    activityText = `${t.dashboard.completedKpiActivity} ${kpi?.name || 'Unknown KPI'}`;
+                    activityIcon = <CheckCircle className="w-4 h-4" />;
+                    activityColor = 'text-green-600';
+                    break;
+                  case 'awaiting_approval':
+                    activityText = `${t.dashboard.startedKpiActivity} ${kpi?.name || 'Unknown KPI'}`;
+                    activityIcon = <Target className="w-4 h-4" />;
+                    activityColor = 'text-blue-600';
+                    break;
+                  case 'pending':
+                    activityText = `${t.dashboard.assignedKpiActivity} ${kpi?.name || 'Unknown KPI'}`;
+                    activityIcon = <Plus className="w-4 h-4" />;
+                    activityColor = 'text-orange-600';
+                    break;
+                  default:
+                    activityText = `${t.dashboard.updatedKpiActivity} ${kpi?.name || 'Unknown KPI'}`;
+                    activityIcon = <Activity className="w-4 h-4" />;
+                    activityColor = 'text-gray-600';
+                }
+
+                return (
+                  <div key={record.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
+                    <div className={`mt-0.5 ${activityColor}`}>
+                      {activityIcon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{activityText}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {employee?.name || 'Unknown Employee'} • {new Date(record.updatedAt || record.createdAt).toLocaleDateString('vi-VN')}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+
+            {kpiRecords.length === 0 && (
+              <div className="text-center py-8">
+                <Activity className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">{t.dashboard.noRecentActivities}</p>
+              </div>
+            )}
+
+            <div className="pt-2 border-t">
+              <Button size="sm" className="w-full" variant="outline">
+                {t.dashboard.viewAllActivities}
+              </Button>
             </div>
           </div>
         </CardContent>

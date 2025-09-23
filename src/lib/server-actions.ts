@@ -60,7 +60,7 @@ export async function createUserAction(userData: CreateUserParams) {
   try {
     // Initialize Firebase Admin SDK dynamically
     const isInitialized = await initializeFirebaseAdmin();
-    
+
     // Check if Firebase Admin services are available
     if (!isInitialized || !auth || !db) {
       return { success: false, error: 'Firebase Admin SDK chưa được cấu hình. Vui lòng thiết lập biến môi trường.' };
@@ -75,7 +75,7 @@ export async function createUserAction(userData: CreateUserParams) {
     const usernameQuery = await db.collection('employees')
       .where('username', '==', userData.username)
       .get();
-    
+
     if (!usernameQuery.empty) {
       return { success: false, error: 'Tên đăng nhập đã tồn tại' };
     }
@@ -84,7 +84,7 @@ export async function createUserAction(userData: CreateUserParams) {
     const employeeIdQuery = await db.collection('employees')
       .where('employeeId', '==', userData.employeeId)
       .get();
-    
+
     if (!employeeIdQuery.empty) {
       return { success: false, error: 'Mã nhân viên đã tồn tại' };
     }
@@ -123,8 +123,8 @@ export async function createUserAction(userData: CreateUserParams) {
     // Use the Auth UID as the document ID in Firestore
     await db.collection('employees').doc(userRecord.uid).set(employeeData);
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       uid: userRecord.uid,
       message: `Tài khoản nhân viên ${userData.name} đã được tạo thành công!`
     };
@@ -138,6 +138,32 @@ export async function createUserAction(userData: CreateUserParams) {
         console.error('Failed to delete user after error:', deleteError);
       }
     }
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteUserAction(uid: string) {
+  try {
+    // Initialize Firebase Admin SDK dynamically
+    const isInitialized = await initializeFirebaseAdmin();
+
+    // Check if Firebase Admin services are available
+    if (!isInitialized || !auth || !db) {
+      return { success: false, error: 'Firebase Admin SDK chưa được cấu hình. Vui lòng thiết lập biến môi trường.' };
+    }
+
+    // 1. Delete from Firestore first
+    await db.collection('employees').doc(uid).delete();
+
+    // 2. Delete from Firebase Auth
+    await auth.deleteUser(uid);
+
+    return {
+      success: true,
+      message: 'Tài khoản nhân viên đã được xóa thành công!'
+    };
+  } catch (error: any) {
+    console.error('Error deleting user:', error);
     return { success: false, error: error.message };
   }
 }

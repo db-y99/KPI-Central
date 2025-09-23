@@ -84,9 +84,10 @@ const createKpi = (
   type: string,
   category: string,
   reward?: number,
-  penalty?: number
+  penalty?: number,
+  customId?: string
 ) => ({
-  id: generateId(),
+  id: customId || generateId(),
   name,
   description,
   department,
@@ -769,7 +770,8 @@ const kpiDefinitions = [
     'system_performance',
     'system_performance',
     300000,
-    300000
+    300000,
+    'kpi_system_uptime'
   ),
   createKpi(
     'Tỷ lệ hoàn thành sao lưu',
@@ -781,7 +783,8 @@ const kpiDefinitions = [
     'data_management',
     'data_management',
     200000,
-    0
+    0,
+    'kpi_bug_resolution'
   ),
   createKpi(
     'Số công việc sửa chữa hoàn thành',
@@ -793,7 +796,8 @@ const kpiDefinitions = [
     'maintenance',
     'maintenance',
     200000,
-    0
+    0,
+    'kpi_repair_jobs'
   ),
   createKpi(
     'Tỷ lệ báo cáo đúng hạn',
@@ -805,7 +809,8 @@ const kpiDefinitions = [
     'reporting',
     'reporting',
     300000,
-    0
+    0,
+    'kpi_report_timeliness'
   ),
 
   // Marketing KPIs
@@ -819,7 +824,8 @@ const kpiDefinitions = [
     'lead_generation',
     'lead_generation',
     500000,
-    0
+    0,
+    'kpi_customer_acquisition'
   ),
   createKpi(
     'Số khoản vay xử lý',
@@ -831,7 +837,8 @@ const kpiDefinitions = [
     'loan_processing',
     'loan_processing',
     100000,
-    0
+    0,
+    'kpi_loan_processing'
   ),
   createKpi(
     'Tỷ lệ thành công chiến dịch viral',
@@ -843,7 +850,8 @@ const kpiDefinitions = [
     'campaign_effectiveness',
     'campaign_effectiveness',
     2000000,
-    0
+    0,
+    'kpi_campaign_success'
   ),
 
   // Customer Service KPIs
@@ -857,95 +865,77 @@ const kpiDefinitions = [
     'service_quality',
     'service_quality',
     50000,
-    0
+    0,
+    'kpi_customer_satisfaction'
   ),
   createKpi(
-    'Số lỗi chứng từ',
-    'Số lượng lỗi trong xử lý chứng từ',
+    'Thời gian phản hồi',
+    'Thời gian trung bình phản hồi khách hàng',
     'Customer Service',
-    'errors',
+    'hours',
     'monthly',
+    2,
+    'response_time',
+    'response_time',
     0,
-    'accuracy',
-    'accuracy',
     0,
-    500000
+    'kpi_response_time'
   ),
 
   // Credit Appraisal KPIs
   createKpi(
-    'Điểm thẩm định hàng tháng',
-    'Điểm đánh giá chất lượng thẩm định tín dụng',
-    'Credit',
-    'points',
-    'monthly',
-    80,
-    'appraisal_quality',
-    'appraisal_quality',
-    100000,
-    0
-  ),
-  createKpi(
-    'Tỷ lệ nợ xấu',
-    'Tỷ lệ phần trăm nợ xấu trong danh mục',
+    'Tỷ lệ phê duyệt khoản vay',
+    'Tỷ lệ phần trăm khoản vay được phê duyệt',
     'Credit',
     '%',
-    'quarterly',
-    5,
-    'risk_management',
-    'risk_management',
-    7500000,
-    500000
+    'monthly',
+    75,
+    'loan_approval',
+    'loan_approval',
+    100000,
+    0,
+    'kpi_loan_approval_rate'
+  ),
+  createKpi(
+    'Độ chính xác đánh giá rủi ro',
+    'Tỷ lệ chính xác trong đánh giá rủi ro tín dụng',
+    'Credit',
+    '%',
+    'monthly',
+    90,
+    'risk_assessment',
+    'risk_assessment',
+    0,
+    0,
+    'kpi_risk_assessment'
   ),
 
   // HR/Admin KPIs
   createKpi(
-    'Độ chính xác hồ sơ nhân sự',
-    'Tỷ lệ chính xác của hồ sơ nhân sự',
+    'Tỷ lệ thành công tuyển dụng',
+    'Tỷ lệ thành công trong quá trình tuyển dụng',
+    'HR',
+    '%',
+    'monthly',
+    85,
+    'recruitment',
+    'recruitment',
+    300000,
+    0,
+    'kpi_recruitment_success'
+  ),
+  createKpi(
+    'Tỷ lệ giữ chân nhân viên',
+    'Tỷ lệ nhân viên ở lại công ty',
     'HR',
     '%',
     'monthly',
     95,
-    'data_accuracy',
-    'data_accuracy',
+    'retention',
+    'retention',
     300000,
-    0
-  ),
-  createKpi(
-    'Tỷ lệ chính xác bảng lương',
-    'Tỷ lệ chính xác trong xử lý bảng lương',
-    'HR',
-    '%',
-    'monthly',
-    98,
-    'payroll_accuracy',
-    'payroll_accuracy',
-    300000,
-    300000
-  ),
-  createKpi(
-    'Tỷ lệ tuân thủ quy định',
-    'Tỷ lệ tuân thủ các quy định của công ty',
-    'HR',
-    '%',
-    'quarterly',
-    95,
-    'compliance',
-    'compliance',
-    200000,
-    0
-  ),
-  createKpi(
-    'Số sáng kiến cải tiến',
-    'Số lượng sáng kiến cải tiến được đề xuất',
-    'HR',
-    'initiatives',
-    'quarterly',
-    1,
-    'innovation',
-    'innovation',
-    200000,
-    0
+    0,
+    'kpi_employee_retention'
   ),
 
   // Accounting KPIs
@@ -959,31 +949,21 @@ const kpiDefinitions = [
     'financial_reporting',
     'financial_reporting',
     300000,
-    0
+    0,
+    'kpi_financial_accuracy'
   ),
   createKpi(
-    'Độ chính xác đối chiếu tài khoản',
-    'Tỷ lệ chính xác trong đối chiếu tài khoản',
+    'Tỷ lệ báo cáo đúng hạn',
+    'Tỷ lệ báo cáo được nộp đúng hạn',
     'Accounting',
     '%',
     'monthly',
-    98,
-    'reconciliation',
-    'reconciliation',
-    300000,
-    0
-  ),
-  createKpi(
-    'Độ chính xác khai thuế',
-    'Tỷ lệ chính xác trong khai báo thuế',
-    'Accounting',
-    '%',
-    'quarterly',
     100,
-    'tax_compliance',
-    'tax_compliance',
+    'report_timeliness',
+    'report_timeliness',
     300000,
-    300000
+    0,
+    'kpi_report_timeliness'
   ),
   createKpi(
     'Số sáng kiến tiết kiệm chi phí',

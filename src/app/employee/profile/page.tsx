@@ -58,9 +58,11 @@ export default function ProfilePage() {
     return <Loading />;
   }
 
+  const { t } = useLanguage();
+  
   const userKpiRecords = kpiRecords.filter(r => r.employeeId === user.uid);
   const departmentName =
-    departments.find(d => d.id === user.departmentId)?.name || 'Không rõ';
+    departments.find(d => d.id === user.departmentId)?.name || t.employeeProfile.unknown;
 
   const completedKpiRecords = useMemo(() => {
     return userKpiRecords
@@ -70,7 +72,7 @@ export default function ProfilePage() {
           record.target > 0 ? (record.actual / record.target) * 100 : 0;
         return {
           ...record,
-          name: kpiDetail?.name || 'Không xác định',
+          name: kpiDetail?.name || t.employeeProfile.notDefined,
           unit: kpiDetail?.unit || '',
           completion: Math.round(completion),
         };
@@ -114,7 +116,7 @@ export default function ProfilePage() {
   
   const chartConfig = {
       completed: {
-          label: 'KPIs Hoàn thành',
+          label: t.employeeProfile.kpisCompleted,
           color: 'hsl(var(--chart-1))',
       },
   };
@@ -146,29 +148,29 @@ export default function ProfilePage() {
             <Link href="/employee/profile/edit">
               <Button variant="outline">
                 <Edit className="w-4 h-4 mr-2" />
-                Chỉnh sửa
+                {t.employeeProfile.editProfile}
               </Button>
             </Link>
           </div>
         </CardHeader>
         <CardContent>
           <div className="border-t pt-6">
-            <h3 className="text-xl font-semibold mb-4">Thông tin chi tiết</h3>
+            <h3 className="text-xl font-semibold mb-4">{t.employeeProfile.personalDetails}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <p>
                 <strong>Email:</strong> {user.email}
               </p>
               <p>
-                <strong>Vai trò:</strong>{' '}
+                <strong>{t.employeeProfile.role}:</strong>{' '}
                 <span className="capitalize">
-                  {user.role === 'admin' ? 'Quan tri vien' : 'Nhan vien'}
+                  {user.role === 'admin' ? t.employeeProfile.admin : t.employeeProfile.employee}
                 </span>
               </p>
               <p>
-                <strong>Phòng ban:</strong> {departmentName}
+                <strong>{t.employeeProfile.department}:</strong> {departmentName}
               </p>
               <p>
-                <strong>Mã nhân viên:</strong> {user.employeeId || user.id}
+                <strong>{t.employeeProfile.employeeId}:</strong> {user.employeeId || user.id}
               </p>
             </div>
           </div>
@@ -177,30 +179,30 @@ export default function ProfilePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Tổng quan KPI</CardTitle>
-          <CardDescription>Thống kê hiệu suất làm việc của bạn.</CardDescription>
+          <CardTitle>{t.employeeProfile.kpiOverview}</CardTitle>
+          <CardDescription>{t.employeeProfile.kpiOverviewDescription}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div className="p-4 rounded-lg bg-muted">
               <List className="mx-auto mb-2 h-8 w-8 text-primary" />
               <p className="text-2xl font-bold">{userKpiRecords.length}</p>
-              <p className="text-sm text-muted-foreground">Tổng KPI</p>
+              <p className="text-sm text-muted-foreground">{t.employeeProfile.totalKpis}</p>
             </div>
             <div className="p-4 rounded-lg bg-muted">
               <CheckCircle className="mx-auto mb-2 h-8 w-8 text-green-500" />
               <p className="text-2xl font-bold">{completedKpiRecords.length}</p>
-              <p className="text-sm text-muted-foreground">KPI Hoàn thành</p>
+              <p className="text-sm text-muted-foreground">{t.employeeProfile.completedKpis}</p>
             </div>
             <div className="p-4 rounded-lg bg-muted">
               <TrendingUp className="mx-auto mb-2 h-8 w-8 text-blue-500" />
               <p className="text-2xl font-bold">{averageCompletion}%</p>
-              <p className="text-sm text-muted-foreground">Hoàn thành TB</p>
+              <p className="text-sm text-muted-foreground">{t.employeeProfile.averageCompletion}</p>
             </div>
             <div className="p-4 rounded-lg bg-muted">
               <Award className="mx-auto mb-2 h-8 w-8 text-amber-500" />
               <p className="text-2xl font-bold">{overachievedKpis}</p>
-              <p className="text-sm text-muted-foreground">KPI Vượt chỉ tiêu</p>
+              <p className="text-sm text-muted-foreground">{t.employeeProfile.exceededKpis}</p>
             </div>
           </div>
         </CardContent>
@@ -208,8 +210,8 @@ export default function ProfilePage() {
       
       <Card>
         <CardHeader>
-          <CardTitle>Hiệu suất theo tháng</CardTitle>
-          <CardDescription>Số lượng KPI hoàn thành trong 12 tháng qua.</CardDescription>
+          <CardTitle>{t.employeeProfile.monthlyPerformance}</CardTitle>
+          <CardDescription>{t.employeeProfile.monthlyDescription}</CardDescription>
         </CardHeader>
         <CardContent>
            <ChartContainer config={chartConfig} className="h-[250px] w-full">
@@ -240,18 +242,18 @@ export default function ProfilePage() {
 
       <Card>
           <CardHeader>
-              <CardTitle>Danh sách KPI đã hoàn thành</CardTitle>
-              <CardDescription>Chi tiết các KPI bạn đã đạt hoặc vượt chỉ tiêu.</CardDescription>
+              <CardTitle>{t.employeeProfile.completedKpisList}</CardTitle>
+              <CardDescription>{t.employeeProfile.completedKpisDescription}</CardDescription>
           </CardHeader>
           <CardContent>
               {completedKpiRecords.length > 0 ? (
                  <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Tên KPI</TableHead>
-                            <TableHead className="text-center">Chỉ tiêu</TableHead>
-                            <TableHead className="text-center">Thực tế</TableHead>
-                            <TableHead className="w-[150px] text-right">Hoàn thành</TableHead>
+                            <TableHead>{t.employeeProfile.kpiName}</TableHead>
+                            <TableHead className="text-center">{t.employeeProfile.target}</TableHead>
+                            <TableHead className="text-center">{t.employeeProfile.actual}</TableHead>
+                            <TableHead className="w-[150px] text-right">{t.employeeProfile.completion}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -271,7 +273,7 @@ export default function ProfilePage() {
                     </TableBody>
                  </Table>
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">Bạn chưa hoàn thành KPI nào.</p>
+                <p className="text-sm text-muted-foreground text-center py-4">{t.employeeProfile.noCompletedKpis}</p>
               )}
           </CardContent>
       </Card>

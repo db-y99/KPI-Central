@@ -96,8 +96,14 @@ class ApiIntegrationService {
   async updateApiIntegration(integrationId: string, updates: Partial<ApiIntegration>): Promise<void> {
     try {
       const integrationRef = doc(db, 'apiIntegrations', integrationId);
+      
+      // Filter out undefined values to prevent Firebase errors
+      const filteredUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([_, value]) => value !== undefined)
+      );
+      
       await updateDoc(integrationRef, {
-        ...updates,
+        ...filteredUpdates,
         updatedAt: new Date().toISOString()
       });
     } catch (error) {

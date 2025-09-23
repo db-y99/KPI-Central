@@ -13,7 +13,12 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "init:policies": "tsx src/scripts/init-policies-cli.ts"
+    "init:policies": "tsx src/scripts/init-policies-cli.ts",
+    "seed:policies": "tsx scripts/seed-data-cli.ts policies",
+    "seed:data": "tsx scripts/seed-data-cli.ts data",
+    "seed:reset": "tsx scripts/seed-data-cli.ts reset",
+    "seed:clear": "tsx scripts/seed-data-cli.ts clear",
+    "test:data": "tsx scripts/test-data.ts"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",
@@ -51,6 +56,7 @@
     "firebase": "^11.9.1",
     "firebase-admin": "^13.5.0",
     "genkit": "^1.14.1",
+    "googleapis": "^160.0.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.3",
     "jspdf-autotable": "^5.0.2",
@@ -78,6 +84,7 @@
     "genkit-cli": "^1.14.1",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }

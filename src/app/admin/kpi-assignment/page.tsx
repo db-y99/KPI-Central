@@ -35,7 +35,7 @@ import { useLanguage } from '@/context/language-context';
 import { DataContext } from '@/context/data-context';
 
 export default function KpiAssignmentPage() {
-  const { employees, kpis, departments, assignKpi, kpiRecords, loading } = useContext(DataContext);
+  const { employees, kpis: allKpis, departments, assignKpi, kpiRecords, loading } = useContext(DataContext);
   const [assignmentType, setAssignmentType] = useState<'individual' | 'department'>('individual');
   const [selectedEmployeeUid, setSelectedEmployeeUid] = useState<string | undefined>();
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string | undefined>();
@@ -50,7 +50,7 @@ export default function KpiAssignmentPage() {
   // Debug data loading
   console.log('KPI Assignment Page - Data Status:', {
     employees: employees.length,
-    kpis: kpis.length,
+    kpis: allKpis.length,
     departments: departments.length,
     kpiRecords: kpiRecords.length,
     loading
@@ -65,15 +65,15 @@ export default function KpiAssignmentPage() {
   };
 
   const selectedEmployee = employees.find(e => e.uid === selectedEmployeeUid);
-  const selectedKpi = kpis.find(k => k.id === selectedKpiId);
+  const selectedKpi = allKpis.find(k => k.id === selectedKpiId);
   const selectedDepartment = departments.find(d => d.id === selectedDepartmentId);
 
-  // Get filtered assignments
+  // Get filtered assignments with unique employee-KPI combinations
   const filteredAssignments = kpiRecords
     .filter(record => {
       if (searchTerm === '') return true;
       const employee = employees.find(e => e.uid === record.employeeId);
-      const kpi = kpis.find(k => k.id === record.kpiId);
+      const kpi = allKpis.find(k => k.id === record.kpiId);
       const department = departments.find(d => d.id === employee?.departmentId);
       
       return employee?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -82,19 +82,62 @@ export default function KpiAssignmentPage() {
     })
     .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
 
+  // Group assignments by employee to show unique employees with their KPI count
+  const uniqueEmployeeAssignments = filteredAssignments.reduce((acc, record) => {
+    const employee = employees.find(e => e.uid === record.employeeId);
+    if (!employee) return acc;
+    
+    const existingEmployee = acc.find(item => item.employeeId === record.employeeId);
+    if (existingEmployee) {
+      existingEmployee.kpiCount += 1;
+      existingEmployee.kpis.push(record);
+    } else {
+      acc.push({
+        employeeId: record.employeeId,
+        employee,
+        kpiCount: 1,
+        kpis: [record],
+        latestRecord: record
+      });
+    }
+    return acc;
+  }, [] as Array<{
+    employeeId: string;
+    employee: any;
+    kpiCount: number;
+    kpis: any[];
+    latestRecord: any;
+  }>);
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
       case 'completed':
-        return <Badge className="bg-green-100 text-green-800">Đã duyệt</Badge>;
+        return <Badge className="bg-green-100 text-green-800">{t.dashboard.approved}</Badge>;
       case 'awaiting_approval':
-        return <Badge className="bg-blue-100 text-blue-800">Chờ duyệt</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800">{t.dashboard.pending}</Badge>;
       case 'pending':
-        return <Badge className="bg-orange-100 text-orange-800">Đang thực hiện</Badge>;
+        return <Badge className="bg-orange-100 text-orange-800">{t.dashboard.inProgress}</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-100 text-red-800">Từ chối</Badge>;
+        return <Badge className="bg-red-100 text-red-800">{t.dashboard.rejected}</Badge>;
       default:
-        return <Badge variant="outline">Chưa bắt đầu</Badge>;
+        return <Badge variant="outline">{t.employeeDashboard.waitingToStart}</Badge>;
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'approved':
+      case 'completed':
+        return t.dashboard.approved;
+      case 'awaiting_approval':
+        return t.dashboard.pending;
+      case 'pending':
+        return t.dashboard.inProgress;
+      case 'rejected':
+        return t.dashboard.rejected;
+      default:
+        return t.employeeDashboard.waitingToStart;
     }
   };
 
@@ -103,8 +146,8 @@ export default function KpiAssignmentPage() {
     if (!selectedKpiId || !target.trim()) {
       toast({
         variant: 'destructive',
-        title: 'Lỗi',
-        description: 'Vui lòng chọn KPI và nhập chỉ tiêu.',
+        title: t.common.error,
+        description: t.kpiAssignment.pleaseSelectKpiAndTarget,
       });
       return;
     }
@@ -112,8 +155,8 @@ export default function KpiAssignmentPage() {
     if (assignmentType === 'individual' && !selectedEmployeeUid) {
       toast({
         variant: 'destructive',
-        title: 'Lỗi',
-        description: 'Vui lòng chọn nhân viên.',
+        title: t.common.error,
+        description: t.kpiAssignment.pleaseSelectEmployee,
       });
       return;
     }
@@ -121,8 +164,8 @@ export default function KpiAssignmentPage() {
     if (assignmentType === 'department' && !selectedDepartmentId) {
       toast({
         variant: 'destructive',
-        title: 'Lỗi',
-        description: 'Vui lòng chọn phòng ban.',
+        title: t.common.error,
+        description: t.kpiAssignment.pleaseSelectDepartment,
       });
       return;
     }
@@ -131,8 +174,8 @@ export default function KpiAssignmentPage() {
     if (isNaN(targetValue) || targetValue <= 0) {
       toast({
         variant: 'destructive',
-        title: 'Lỗi',
-        description: 'Chỉ tiêu phải là số dương hợp lệ.',
+        title: t.common.error,
+        description: t.kpiAssignment.targetMustBePositive,
       });
       return;
     }
@@ -156,19 +199,19 @@ export default function KpiAssignmentPage() {
         });
 
         toast({
-          title: 'Thành công!',
-          description: `KPI "${selectedKpi?.name}" đã được giao cho ${selectedEmployee?.name}.`,
+          title: t.kpiAssignment.success,
+          description: t.kpiAssignment.kpiAssignedSuccessIndividual.replace('{kpiName}', selectedKpi?.name || '').replace('{employeeName}', selectedEmployee?.name || ''),
         });
       } else {
         // Assign to all employees in department
         const departmentEmployees = getEmployeesByDepartment(selectedDepartmentId!);
         
         if (departmentEmployees.length === 0) {
-          toast({
-            variant: 'destructive',
-            title: 'Lỗi',
-            description: 'Phòng ban này không có nhân viên nào.',
-          });
+        toast({
+          variant: 'destructive',
+          title: t.common.error,
+          description: t.kpiAssignment.noDepartmentEmployees,
+        });
           return;
         }
 
@@ -186,8 +229,8 @@ export default function KpiAssignmentPage() {
         await Promise.all(assignments);
 
         toast({
-          title: 'Thành công!',
-          description: `KPI "${selectedKpi?.name}" đã được giao cho ${departmentEmployees.length} nhân viên trong phòng ban ${selectedDepartment?.name}.`,
+          title: t.kpiAssignment.success,
+          description: t.kpiAssignment.assignedToEmployeesSuccess.replace('{kpiName}', selectedKpi?.name || '').replace('{count}', departmentEmployees.length.toString()).replace('{departmentName}', selectedDepartment?.name || ''),
         });
       }
 
@@ -199,8 +242,8 @@ export default function KpiAssignmentPage() {
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Lỗi',
-        description: error instanceof Error ? error.message : 'Có lỗi xảy ra khi giao KPI. Vui lòng thử lại.',
+        title: t.common.error,
+        description: error instanceof Error ? error.message : t.kpiAssignment.genericError,
       });
       console.error("Failed to assign KPI: ", error);
     } finally {
@@ -215,7 +258,7 @@ export default function KpiAssignmentPage() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Đang tải dữ liệu...</p>
+            <p className="text-muted-foreground">{t.kpiAssignment.loadingData}</p>
           </div>
         </div>
       </div>
@@ -230,21 +273,21 @@ export default function KpiAssignmentPage() {
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold">{nonAdminEmployees.length}</div>
-            <p className="text-xs text-muted-foreground">Nhân viên</p>
+            <p className="text-xs text-muted-foreground">{t.kpiAssignment.employeesCanReceiveKpi}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-4">
-            <div className="text-2xl font-bold">{kpis.length}</div>
-            <p className="text-xs text-muted-foreground">KPI có sẵn</p>
+            <div className="text-2xl font-bold">{allKpis.length}</div>
+            <p className="text-xs text-muted-foreground">{t.kpiAssignment.availableKpis}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold text-green-600">{kpiRecords.length}</div>
-            <p className="text-xs text-muted-foreground">Đã giao</p>
+            <p className="text-xs text-muted-foreground">{t.kpiAssignment.alreadyHaveKpi}</p>
           </CardContent>
         </Card>
 
@@ -253,7 +296,7 @@ export default function KpiAssignmentPage() {
             <div className="text-2xl font-bold text-blue-600">
               {kpiRecords.filter(r => r.status === 'pending' || r.status === 'awaiting_approval').length}
             </div>
-            <p className="text-xs text-muted-foreground">Đang xử lý</p>
+            <p className="text-xs text-muted-foreground">{t.dashboard.inProgress}</p>
           </CardContent>
         </Card>
       </div>
@@ -263,16 +306,16 @@ export default function KpiAssignmentPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Plus className="w-5 h-5" />
-            + Giao KPI mới
+            {t.kpiAssignment.assignNewKpi}
           </CardTitle>
           <CardDescription>
-            Chọn nhân viên, KPI và thiết lập chỉ tiêu
+            {t.kpiAssignment.assignNewKpiDescription}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Assignment Type Selection */}
           <div className="space-y-3">
-            <Label className="text-base font-medium">Loại giao KPI</Label>
+            <Label className="text-base font-medium">{t.kpiAssignment.assignmentType}</Label>
             <div className="flex gap-2">
               <Button
                 type="button"
@@ -285,7 +328,7 @@ export default function KpiAssignmentPage() {
                 className="flex items-center gap-2 flex-1"
               >
                 <User className="w-4 h-4" />
-                Giao cho nhân viên cụ thể
+                {t.kpiAssignment.assignToSpecificEmployee}
               </Button>
               <Button
                 type="button"
@@ -298,7 +341,7 @@ export default function KpiAssignmentPage() {
                 className="flex items-center gap-2 flex-1"
               >
                 <Building2 className="w-4 h-4" />
-                Giao cho toàn phòng ban
+                {t.kpiAssignment.assignToEntireDepartment}
               </Button>
             </div>
           </div>
@@ -330,30 +373,30 @@ export default function KpiAssignmentPage() {
                 <>
                   <Label className="flex items-center gap-2">
                     <Building2 className="w-4 h-4" />
-                    Chọn phòng ban
+                    {t.kpiAssignment.selectDepartment}
                   </Label>
                   <Select onValueChange={setSelectedDepartmentId} value={selectedDepartmentId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Chọn phòng ban..." />
+                      <SelectValue placeholder={t.kpiAssignment.selectDepartmentPlaceholder} />
                     </SelectTrigger>
                     <SelectContent>
                       {departments.map(department => (
                         <SelectItem key={department.id} value={department.id}>
-                          {department.name} ({getEmployeesByDepartment(department.id).length} nhân viên)
+                          {department.name} ({getEmployeesByDepartment(department.id).length} {t.kpiAssignment.employeesLabel})
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {selectedDepartmentId && (
                     <div className="text-sm text-muted-foreground">
-                      Sẽ giao KPI cho {getEmployeesByDepartment(selectedDepartmentId).length} nhân viên trong phòng ban {selectedDepartment?.name}
+                      {t.kpiAssignment.willAssignToEmployees.replace('{count}', getEmployeesByDepartment(selectedDepartmentId).length.toString()).replace('{departmentName}', selectedDepartment?.name || '')}
                     </div>
                   )}
                 </>
               )}
             </div>
 
-            {/* Chọn KPI */}
+            {/* Select KPI */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Target className="w-4 h-4" />
@@ -364,7 +407,7 @@ export default function KpiAssignmentPage() {
                   <SelectValue placeholder={t.kpiAssignment.selectKpiPlaceholder} />
                 </SelectTrigger>
                 <SelectContent>
-                  {kpis.map(kpi => (
+                  {allKpis.map(kpi => (
                     <SelectItem key={kpi.id} value={kpi.id}>
                       {kpi.name} - {kpi.unit}
                     </SelectItem>
@@ -377,11 +420,11 @@ export default function KpiAssignmentPage() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Target className="w-4 h-4" />
-                Chỉ tiêu
+                {t.kpiAssignment.target}
               </Label>
               <Input
                 type="number"
-                placeholder="Nhập chỉ tiêu..."
+                placeholder={t.kpiAssignment.targetPlaceholder}
                 value={target}
                 onChange={(e) => setTarget(e.target.value)}
                 min="0"
@@ -409,7 +452,7 @@ export default function KpiAssignmentPage() {
               className="w-full"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Đang xử lý...' : 'Giao KPI'}
+              {isSubmitting ? t.kpiAssignment.processing : t.kpiAssignment.assignKpi}
             </Button>
           )}
 
@@ -422,12 +465,12 @@ export default function KpiAssignmentPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Target className="w-5 h-5" />
-              KPI đã giao ({filteredAssignments.length})
+              {t.kpiAssignment.assignedKpisList} ({uniqueEmployeeAssignments.length})
             </CardTitle>
             <div className="flex items-center gap-4">
               <div className="w-64">
                 <Input
-                  placeholder="Tìm kiếm nhân viên, KPI..."
+                  placeholder={t.kpiAssignment.searchEmployeesKpis}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full"
@@ -437,26 +480,26 @@ export default function KpiAssignmentPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {filteredAssignments.length === 0 ? (
+          {uniqueEmployeeAssignments.length === 0 ? (
             <div className="text-center py-8">
               <Target className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               {kpiRecords.length === 0 ? (
                 <>
-                  <h3 className="text-lg font-semibold mb-2">Chưa có KPI nào được giao</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t.kpiAssignment.noKpisAssignedTitle}</h3>
                   <p className="text-muted-foreground mb-4">
-                    Sử dụng form bên trên để giao KPI cho nhân viên.
+                    {t.kpiAssignment.noKpisAssignedDescription}
                   </p>
                   <div className="space-y-2 text-sm text-muted-foreground">
-                    <p>• Chọn nhân viên hoặc phòng ban</p>
-                    <p>• Chọn KPI và thiết lập chỉ tiêu</p>
-                    <p>• Nhấn "Giao KPI" để hoàn tất</p>
+                    <p>• {t.kpiAssignment.selectEmployeeOrDepartment}</p>
+                    <p>• {t.kpiAssignment.selectKpiAndTarget}</p>
+                    <p>• {t.kpiAssignment.clickAssignToComplete}</p>
                   </div>
                 </>
               ) : (
                 <>
-                  <h3 className="text-lg font-semibold mb-2">Không tìm thấy KPI</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t.kpiAssignment.noKpisFoundTitle}</h3>
                   <p className="text-muted-foreground">
-                    Không có KPI nào phù hợp với tiêu chí tìm kiếm.
+                    {t.kpiAssignment.noKpisMatchCriteria}
                   </p>
                 </>
               )}
@@ -465,22 +508,21 @@ export default function KpiAssignmentPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nhân viên</TableHead>
+                  <TableHead>{t.kpiAssignment.employeeColumn}</TableHead>
                   <TableHead>KPI</TableHead>
-                  <TableHead>Phòng ban</TableHead>
-                  <TableHead>Chỉ tiêu</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead>Hạn chót</TableHead>
+                  <TableHead>{t.kpiAssignment.departmentColumn}</TableHead>
+                  <TableHead>{t.kpiAssignment.targetColumn}</TableHead>
+                  <TableHead>{t.kpiAssignment.statusColumn}</TableHead>
+                  <TableHead>{t.kpiAssignment.deadlineColumn}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAssignments.map((record) => {
-                  const employee = employees.find(e => e.uid === record.employeeId);
-                  const kpi = kpis.find(k => k.id === record.kpiId);
+                {uniqueEmployeeAssignments.map((employeeAssignment) => {
+                  const { employee, kpiCount, kpis: employeeKpis, latestRecord } = employeeAssignment;
                   const department = departments.find(d => d.id === employee?.departmentId);
                   
                   return (
-                    <TableRow key={record.id}>
+                    <TableRow key={employee.uid}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="w-8 h-8">
@@ -497,29 +539,74 @@ export default function KpiAssignmentPage() {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{kpi?.name}</p>
-                          <p className="text-sm text-muted-foreground">{kpi?.description}</p>
+                          <p className="font-medium">{kpiCount} KPI được giao</p>
+                          <p className="text-sm text-muted-foreground">
+                            {employeeKpis.map(kpiRecord => {
+                              const kpi = allKpis.find(k => k.id === kpiRecord.kpiId);
+                              return kpi?.name || 'KPI không xác định';
+                            }).filter(Boolean).join(', ')}
+                          </p>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{department?.name}</Badge>
+                        <Badge variant="outline">{department?.name || '-'}</Badge>
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-semibold">{record.target} {kpi?.unit}</p>
-                          <p className="text-sm text-muted-foreground">Tần suất: {kpi?.frequency}</p>
+                          <p className="font-semibold">Tổng: {employeeKpis.reduce((sum, kpi) => {
+                            const target = typeof kpi.target === 'string' ? parseFloat(kpi.target) : kpi.target;
+                            return sum + (isNaN(target) ? 0 : target);
+                          }, 0).toFixed(1)}</p>
+                          <p className="text-sm text-muted-foreground">{t.kpiAssignment.frequencyLabel}: Hàng tháng</p>
                         </div>
                       </TableCell>
                       <TableCell>
-                        {getStatusBadge(record.status)}
+                        <div className="space-y-1">
+                          {(() => {
+                            // Group statuses by type
+                            const statusCounts = employeeKpis.reduce((acc, kpiRecord) => {
+                              acc[kpiRecord.status] = (acc[kpiRecord.status] || 0) + 1;
+                              return acc;
+                            }, {} as Record<string, number>);
+                            
+                            // Get the most common status
+                            const mostCommonStatus = Object.entries(statusCounts)
+                              .sort(([,a], [,b]) => b - a)[0]?.[0] || 'pending';
+                            
+                            // Show summary if multiple statuses
+                            if (Object.keys(statusCounts).length > 1) {
+                              return (
+                                <div className="space-y-1">
+                                  <div>{getStatusBadge(mostCommonStatus)}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {Object.entries(statusCounts).map(([status, count]) => (
+                                      <span key={status} className="mr-2">
+                                        {getStatusText(status)}: {count}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            }
+                            
+                            // Show single status
+                            return getStatusBadge(mostCommonStatus);
+                          })()}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div>
                           <p className="text-sm">
-                            {new Date(record.endDate).toLocaleDateString('vi-VN')}
+                            {(() => {
+                              const endDate = new Date(latestRecord.endDate);
+                              return isNaN(endDate.getTime()) ? 'Chưa xác định' : endDate.toLocaleDateString('vi-VN');
+                            })()}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Tạo: {new Date(record.createdAt || '').toLocaleDateString('vi-VN')}
+                            {t.kpiAssignment.createdLabel}: {(() => {
+                              const createdDate = new Date(latestRecord.createdAt || '');
+                              return isNaN(createdDate.getTime()) ? 'Chưa xác định' : createdDate.toLocaleDateString('vi-VN');
+                            })()}
                           </p>
                         </div>
                       </TableCell>

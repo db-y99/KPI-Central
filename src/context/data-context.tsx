@@ -500,15 +500,21 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const updateEmployee = async (employeeUid: string, updates: Partial<Employee>) => {
     try {
       const employeeRef = doc(db, 'employees', employeeUid);
+      
+      // Filter out undefined values to prevent Firebase errors
+      const filteredUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([_, value]) => value !== undefined)
+      );
+      
       await updateDoc(employeeRef, {
-        ...updates,
+        ...filteredUpdates,
         updatedAt: new Date().toISOString(),
       });
       
       // Update local state
       setEmployees(prev =>
         prev.map(emp => 
-          emp.uid === employeeUid ? { ...emp, ...updates } : emp
+          emp.uid === employeeUid ? { ...emp, ...filteredUpdates } : emp
         )
       );
     } catch (error) {

@@ -201,44 +201,44 @@ export default function ReportsPage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="pt-4">
-            <div className="text-2xl font-bold">{reports.length}</div>
-            <p className="text-xs text-muted-foreground">{t.reports.totalReports}</p>
-          </CardContent>
-        </Card>
+        {/* Stats */}
+        <div className="grid gap-4 md:grid-cols-4">
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-2xl font-bold">{reports.length}</div>
+              <p className="text-xs text-muted-foreground">{t.reports.totalReports}</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-blue-600">
-              {nonAdminEmployees.length}
-            </div>
-            <p className="text-xs text-muted-foreground">{t.reports.totalEmployees}</p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-2xl font-bold text-blue-600">
+                {nonAdminEmployees.length}
+              </div>
+              <p className="text-xs text-muted-foreground">{t.reports.totalEmployees}</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-green-600">
-              {kpiRecords.length}
-            </div>
-            <p className="text-xs text-muted-foreground">Tổng bản ghi KPI</p>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-2xl font-bold text-green-600">
+                {kpiRecords.length}
+              </div>
+              <p className="text-xs text-muted-foreground">{t.reports.totalKpiRecords}</p>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="pt-4">
-            <div className="text-2xl font-bold text-purple-600">
-              {kpiRecords.length > 0 ? 
-                (kpiRecords.reduce((sum, record) => sum + (record.actual / record.target * 100), 0) / kpiRecords.length).toFixed(1) : 0
-              }%
-            </div>
-            <p className="text-xs text-muted-foreground">Tỷ lệ đạt TB</p>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardContent className="pt-4">
+              <div className="text-2xl font-bold text-purple-600">
+                {kpiRecords.length > 0 ? 
+                  (kpiRecords.reduce((sum, record) => sum + (record.actual / record.target * 100), 0) / kpiRecords.length).toFixed(1) : 0
+                }%
+              </div>
+              <p className="text-xs text-muted-foreground">{t.reports.averageCompletion}</p>
+            </CardContent>
+          </Card>
+        </div>
 
       {/* Reports Table */}
       <Card>
@@ -251,7 +251,7 @@ export default function ReportsPage() {
             <div className="flex items-center gap-4">
               <div className="w-64">
                 <Input
-                  placeholder="Tìm kiếm báo cáo..."
+                  placeholder={t.reports.searchReports}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full"
@@ -259,19 +259,19 @@ export default function ReportsPage() {
               </div>
               <Select value={selectedReportType} onValueChange={setSelectedReportType}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Chọn loại báo cáo" />
+                  <SelectValue placeholder={t.reports.selectReportType} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tất cả loại</SelectItem>
+                  <SelectItem value="all">{t.reports.allTypes}</SelectItem>
                   <SelectItem value="individual">{t.reports.individual}</SelectItem>
                   <SelectItem value="department">{t.reports.department}</SelectItem>
-                  <SelectItem value="kpi-specific">KPI cụ thể</SelectItem>
-                  <SelectItem value="company-wide">Tổng quan</SelectItem>
+                  <SelectItem value="kpi-specific">{t.reports.kpiSpecific}</SelectItem>
+                  <SelectItem value="company-wide">{t.reports.companyWide}</SelectItem>
                 </SelectContent>
               </Select>
               <Button onClick={() => handleGenerateReport('new')}>
                 <Plus className="w-4 h-4 mr-2" />
-                Tạo báo cáo
+                {t.reports.createReport}
               </Button>
             </div>
           </div>
@@ -282,21 +282,21 @@ export default function ReportsPage() {
               <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               {reports.length === 0 ? (
                 <>
-                  <h3 className="text-lg font-semibold mb-2">Chưa có báo cáo nào</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t.reports.noReports}</h3>
                   <p className="text-muted-foreground mb-4">
-                    Hệ thống cần có nhân viên và KPI để tạo báo cáo.
+                    {t.reports.noReportsDescription}
                   </p>
                   <div className="space-y-2 text-sm text-muted-foreground">
-                    <p>• Thêm nhân viên tại <a href="/admin/employees" className="text-blue-600 hover:underline">Quản lý nhân viên</a></p>
-                    <p>• Định nghĩa KPI tại <a href="/admin/kpi-definitions" className="text-blue-600 hover:underline">Định nghĩa KPI</a></p>
-                    <p>• Giao KPI tại <a href="/admin/kpi-assignment" className="text-blue-600 hover:underline">Giao KPI</a></p>
+                    <p>• {t.reports.addEmployee} tại <a href="/admin/employees" className="text-blue-600 hover:underline">{t.nav.employees}</a></p>
+                    <p>• {t.reports.defineKpi} tại <a href="/admin/kpi-definitions" className="text-blue-600 hover:underline">{t.nav.defineKpi}</a></p>
+                    <p>• {t.reports.assignKpi} tại <a href="/admin/kpi-assignment" className="text-blue-600 hover:underline">{t.nav.assignKpi}</a></p>
                   </div>
                 </>
               ) : (
                 <>
-                  <h3 className="text-lg font-semibold mb-2">Không tìm thấy báo cáo</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t.reports.noReportsFound}</h3>
                   <p className="text-muted-foreground mb-4">
-                    Không có báo cáo nào phù hợp với tiêu chí tìm kiếm.
+                    {t.reports.noReportsFoundDescription}
                   </p>
                 </>
               )}
@@ -305,13 +305,13 @@ export default function ReportsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Báo cáo</TableHead>
-                  <TableHead>Loại</TableHead>
-                  <TableHead>Kỳ</TableHead>
-                  <TableHead>Số liệu</TableHead>
-                  <TableHead>Tỷ lệ đạt</TableHead>
-                  <TableHead>Tạo lúc</TableHead>
-                  <TableHead>Thao tác</TableHead>
+                  <TableHead>{t.reports.report}</TableHead>
+                  <TableHead>{t.reports.type}</TableHead>
+                  <TableHead>{t.reports.period}</TableHead>
+                  <TableHead>{t.reports.data}</TableHead>
+                  <TableHead>{t.reports.completionRate}</TableHead>
+                  <TableHead>{t.reports.createdAt}</TableHead>
+                  <TableHead>{t.reports.actions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -325,7 +325,7 @@ export default function ReportsPage() {
                         <div>
                           <p className="font-medium">{report.title}</p>
                           <p className="text-sm text-muted-foreground">
-                            {report.recordsCount} bản ghi
+                            {report.recordsCount} {t.reports.totalKpiRecords.toLowerCase()}
                           </p>
                         </div>
                       </div>
@@ -338,8 +338,8 @@ export default function ReportsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <p>Đối tượng: {report.totalEmployees || 0}</p>
-                        <p>Bản ghi: {report.recordsCount}</p>
+                        <p>{t.reports.totalEmployees}: {report.totalEmployees || 0}</p>
+                        <p>{t.reports.totalKpiRecords}: {report.recordsCount}</p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -360,7 +360,7 @@ export default function ReportsPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleExportPDF(report)}
-                          title="Xuất PDF"
+                          title={t.reports.exportPDF}
                         >
                           <Download className="w-4 h-4" />
                         </Button>

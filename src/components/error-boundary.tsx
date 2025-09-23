@@ -150,21 +150,26 @@ export const useErrorHandler = () => {
     errorHandler.logError(error, context);
   }, []);
 
-  const handleAsyncError = React.useCallback(async <T>(
-    asyncFn: () => Promise<T>,
-    context?: {
-      component?: string;
-      action?: string;
-      userId?: string;
-    }
-  ): Promise<T | null> => {
-    try {
-      return await asyncFn();
-    } catch (error) {
-      errorHandler.logError(error as Error, context);
-      return null;
-    }
-  }, []);
+  const handleAsyncError = React.useCallback(
+    <T,>(
+      asyncFn: () => Promise<T>,
+      context?: {
+        component?: string;
+        action?: string;
+        userId?: string;
+      }
+    ): Promise<T | null> => {
+      return (async () => {
+        try {
+          return await asyncFn();
+        } catch (error) {
+          errorHandler.logError(error as Error, context);
+          return null;
+        }
+      })();
+    },
+    []
+  );
 
   return {
     handleError,

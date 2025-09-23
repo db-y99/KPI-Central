@@ -375,6 +375,10 @@ export type ReportFile = {
   type: string;
   uploadedAt: string;
   uploadedBy: string;
+  storageType?: 'firebase' | 'google-drive';
+  driveFileId?: string; // Google Drive file ID
+  webViewLink?: string; // Google Drive web view link
+  thumbnailLink?: string; // Google Drive thumbnail
 };
 
 export type ReportSubmission = {

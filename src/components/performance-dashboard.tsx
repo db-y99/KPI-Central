@@ -65,29 +65,29 @@ export function PerformanceDashboard() {
   };
 
   const getPerformanceStatus = (loadTime: number) => {
-    if (loadTime < 1000) return { status: 'excellent', color: 'text-green-600' };
-    if (loadTime < 2000) return { status: 'good', color: 'text-yellow-600' };
-    if (loadTime < 3000) return { status: 'fair', color: 'text-orange-600' };
-    return { status: 'poor', color: 'text-red-600' };
+    if (loadTime < 1000) return { status: t.performanceDashboard.excellent, color: 'text-green-600' };
+    if (loadTime < 2000) return { status: t.performanceDashboard.good, color: 'text-yellow-600' };
+    if (loadTime < 3000) return { status: t.performanceDashboard.fair, color: 'text-orange-600' };
+    return { status: t.performanceDashboard.poor, color: 'text-red-600' };
   };
 
   const getErrorRateStatus = (errorRate: number) => {
-    if (errorRate < 0.01) return { status: 'low', color: 'text-green-600' };
-    if (errorRate < 0.03) return { status: 'medium', color: 'text-yellow-600' };
-    return { status: 'high', color: 'text-red-600' };
+    if (errorRate < 0.01) return { status: t.performanceDashboard.low, color: 'text-green-600' };
+    if (errorRate < 0.03) return { status: t.performanceDashboard.medium, color: 'text-yellow-600' };
+    return { status: t.performanceDashboard.high, color: 'text-red-600' };
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Performance Dashboard</h2>
+          <h2 className="text-2xl font-bold">{t.performanceDashboard.title}</h2>
           <p className="text-muted-foreground">
-            Monitor system performance and optimization metrics
+            {t.performanceDashboard.subtitle}
           </p>
         </div>
         <Button onClick={loadPerformanceReport} disabled={isLoading}>
-          Refresh Report
+          {t.performanceDashboard.refreshReport}
         </Button>
       </div>
 
@@ -97,9 +97,9 @@ export function PerformanceDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Page Load Time</p>
+                <p className="text-sm font-medium text-muted-foreground">{t.performanceDashboard.pageLoadTime}</p>
                 <p className={`text-2xl font-bold ${getPerformanceStatus(realTimeMetrics.pageLoadTime).color}`}>
-                  {realTimeMetrics.pageLoadTime.toFixed(0)}ms
+                  {realTimeMetrics.pageLoadTime.toFixed(0)}{t.performanceDashboard.milliseconds}
                 </p>
               </div>
               <Clock className="w-8 h-8 text-blue-500" />
@@ -111,9 +111,9 @@ export function PerformanceDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">API Response Time</p>
+                <p className="text-sm font-medium text-muted-foreground">{t.performanceDashboard.apiResponseTime}</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {realTimeMetrics.apiResponseTime.toFixed(0)}ms
+                  {realTimeMetrics.apiResponseTime.toFixed(0)}{t.performanceDashboard.milliseconds}
                 </p>
               </div>
               <Zap className="w-8 h-8 text-green-500" />
@@ -125,7 +125,7 @@ export function PerformanceDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Users</p>
+                <p className="text-sm font-medium text-muted-foreground">{t.performanceDashboard.activeUsers}</p>
                 <p className="text-2xl font-bold text-blue-600">
                   {realTimeMetrics.activeUsers}
                 </p>
@@ -139,7 +139,7 @@ export function PerformanceDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Error Rate</p>
+                <p className="text-sm font-medium text-muted-foreground">{t.performanceDashboard.errorRate}</p>
                 <p className={`text-2xl font-bold ${getErrorRateStatus(realTimeMetrics.errorRate).color}`}>
                   {(realTimeMetrics.errorRate * 100).toFixed(2)}%
                 </p>

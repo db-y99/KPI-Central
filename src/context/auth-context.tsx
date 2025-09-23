@@ -284,10 +284,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       // Update user document in Firestore
       const userDocRef = doc(db, 'employees', firebaseUser.uid);
-      await setDoc(userDocRef, updates, { merge: true });
+      
+      // Filter out undefined values to prevent Firebase errors
+      const filteredUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([_, value]) => value !== undefined)
+      );
+      
+      await setDoc(userDocRef, filteredUpdates, { merge: true });
       
       // Update local user state
-      setUser({ ...user, ...updates });
+      setUser({ ...user, ...filteredUpdates });
     } catch (error) {
       console.error('Error updating user:', error);
       throw error;

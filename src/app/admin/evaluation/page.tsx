@@ -12,7 +12,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -75,7 +74,7 @@ export default function EvaluationPage() {
         employeeId: employee.uid!,
         employeeName: employee.name,
         position: employee.position,
-        department: department?.name || 'Chưa phân bổ',
+        department: department?.name || t.evaluationPage.notAssigned,
         avatar: employee.avatar,
         totalKpis,
         completedKpis: completedCount,
@@ -103,19 +102,19 @@ export default function EvaluationPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'excellent':
-        return <Badge className="bg-green-100 text-green-800"><Trophy className="w-3 h-3 mr-1" />Xuất sắc</Badge>;
+        return <Badge className="bg-green-100 text-green-800"><Trophy className="w-3 h-3 mr-1" />{t.evaluationPage.excellent}</Badge>;
       case 'good':
-        return <Badge className="bg-blue-100 text-blue-800"><Star className="w-3 h-3 mr-1" />Tốt</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800"><Star className="w-3 h-3 mr-1" />{t.evaluationPage.good}</Badge>;
       case 'average':
-        return <Badge className="bg-yellow-100 text-yellow-800"><Target className="w-3 h-3 mr-1" />Trung bình</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800"><Target className="w-3 h-3 mr-1" />{t.evaluationPage.average}</Badge>;
       default:
-        return <Badge className="bg-red-100 text-red-800"><AlertTriangle className="w-3 h-3 mr-1" />Cần cải thiện</Badge>;
+        return <Badge className="bg-red-100 text-red-800"><AlertTriangle className="w-3 h-3 mr-1" />{t.evaluationPage.needsImprovement}</Badge>;
     }
   };
 
   const getDepartmentName = (departmentId: string) => {
     const department = departments.find(d => d.id === departmentId);
-    return department ? department.name : 'Chưa phân bổ';
+    return department ? department.name : t.evaluationPage.notAssigned;
   };
 
   return (
@@ -125,7 +124,7 @@ export default function EvaluationPage() {
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold">{nonAdminEmployees.length}</div>
-            <p className="text-xs text-muted-foreground">Tổng nhân viên</p>
+            <p className="text-xs text-muted-foreground">{t.evaluationPage.totalEmployees}</p>
           </CardContent>
         </Card>
 
@@ -134,7 +133,7 @@ export default function EvaluationPage() {
             <div className="text-2xl font-bold text-green-600">
               {employeeEvaluations.filter(emp => emp.status === 'excellent').length}
             </div>
-            <p className="text-xs text-muted-foreground">Nhân viên xuất sắc</p>
+            <p className="text-xs text-muted-foreground">{t.evaluationPage.excellentEmployees}</p>
           </CardContent>
         </Card>
 
@@ -143,7 +142,7 @@ export default function EvaluationPage() {
             <div className="text-2xl font-bold text-blue-600">
               {employeeEvaluations.filter(emp => emp.status === 'good').length}
             </div>
-            <p className="text-xs text-muted-foreground">Nhân viên tốt</p>
+            <p className="text-xs text-muted-foreground">{t.evaluationPage.goodEmployees}</p>
           </CardContent>
         </Card>
 
@@ -152,7 +151,7 @@ export default function EvaluationPage() {
             <div className="text-2xl font-bold text-red-600">
               {employeeEvaluations.filter(emp => emp.status === 'needs_improvement').length}
             </div>
-            <p className="text-xs text-muted-foreground">Cần cải thiện</p>
+            <p className="text-xs text-muted-foreground">{t.evaluationPage.needsImprovementEmployees}</p>
           </CardContent>
         </Card>
       </div>
@@ -163,12 +162,12 @@ export default function EvaluationPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Users className="w-5 h-5" />
-              Đánh giá nhân viên ({filteredEvaluations.length})
+              {t.evaluationPage.evaluationTitle} ({filteredEvaluations.length})
             </CardTitle>
             <div className="flex items-center gap-4">
               <div className="w-64">
                 <Input
-                  placeholder="Tìm kiếm nhân viên..."
+                  placeholder={t.evaluationPage.searchEmployeePlaceholder}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full"
@@ -176,10 +175,10 @@ export default function EvaluationPage() {
               </div>
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Chọn phòng ban" />
+                  <SelectValue placeholder={t.evaluationPage.selectDepartmentPlaceholder} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tất cả phòng ban</SelectItem>
+                  <SelectItem value="all">{t.evaluationPage.allDepartments}</SelectItem>
                   {departments.map(dept => (
                     <SelectItem key={dept.id} value={dept.name}>
                       {dept.name}
@@ -189,7 +188,7 @@ export default function EvaluationPage() {
               </Select>
               <Button variant="outline">
                 <FileText className="w-4 h-4 mr-2" />
-                Xuất báo cáo
+                {t.evaluationPage.exportReport}
               </Button>
             </div>
           </div>
@@ -200,20 +199,20 @@ export default function EvaluationPage() {
               <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               {employeeEvaluations.length === 0 ? (
                 <>
-                  <h3 className="text-lg font-semibold mb-2">Chưa có nhân viên để đánh giá</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t.evaluationPage.noEmployeesToEvaluate}</h3>
                   <p className="text-muted-foreground mb-4">
-                    Hệ thống cần có nhân viên và KPI để thực hiện đánh giá.
+                    {t.evaluationPage.noEmployeesDescription}
                   </p>
                   <div className="space-y-2 text-sm text-muted-foreground">
-                    <p>• Thêm nhân viên tại <a href="/admin/employees" className="text-blue-600 hover:underline">Quản lý nhân viên</a></p>
-                    <p>• Giao KPI tại <a href="/admin/kpi-assignment" className="text-blue-600 hover:underline">Giao KPI</a></p>
+                    <p>• {t.evaluationPage.addEmployeesAt} <a href="/admin/employees" className="text-blue-600 hover:underline">{t.evaluationPage.employeeManagementLink}</a></p>
+                    <p>• {t.evaluationPage.assignKpisAt} <a href="/admin/kpi-assignment" className="text-blue-600 hover:underline">{t.evaluationPage.kpiAssignmentLink}</a></p>
                   </div>
                 </>
               ) : (
                 <>
-                  <h3 className="text-lg font-semibold mb-2">Không tìm thấy nhân viên</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t.evaluationPage.noEmployeesFound}</h3>
                   <p className="text-muted-foreground">
-                    Không có nhân viên nào phù hợp với tiêu chí tìm kiếm.
+                    {t.evaluationPage.noEmployeesMatchFilter}
                   </p>
                 </>
               )}
@@ -222,12 +221,11 @@ export default function EvaluationPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nhân viên</TableHead>
-                  <TableHead>Phòng ban</TableHead>
-                  <TableHead>KPI</TableHead>
-                  <TableHead>Tỷ lệ đạt</TableHead>
-                  <TableHead>Đánh giá</TableHead>
-                  <TableHead>Tiến độ</TableHead>
+                  <TableHead>{t.evaluationPage.employeeColumn}</TableHead>
+                  <TableHead>{t.evaluationPage.departmentColumn}</TableHead>
+                  <TableHead>{t.evaluationPage.kpiColumn}</TableHead>
+                  <TableHead>{t.evaluationPage.completionRateColumn}</TableHead>
+                  <TableHead>{t.evaluationPage.evaluationColumn}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -252,8 +250,8 @@ export default function EvaluationPage() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <p>Hoàn thành: {evaluation.completedKpis}</p>
-                        <p className="text-muted-foreground">Tổng: {evaluation.totalKpis}</p>
+                        <p>{t.evaluationPage.completedLabel}: {evaluation.completedKpis}</p>
+                        <p className="text-muted-foreground">{t.evaluationPage.totalLabel}: {evaluation.totalKpis}</p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -263,11 +261,6 @@ export default function EvaluationPage() {
                     </TableCell>
                     <TableCell>
                       {getStatusBadge(evaluation.status)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="w-20">
-                        <Progress value={evaluation.completionRate} className="h-2" />
-                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -102,20 +102,32 @@ export default function AdminApprovalPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
 
-  // Get reports for approval
+  // Get all reports (not just submitted ones)
   const reportsForApproval = useMemo(() => {
+    // Only process if we have all required data
+    if (employees.length === 0 || departments.length === 0 || kpis.length === 0) {
+      return [];
+    }
+
     return reports
-      .filter(report => report.status === 'submitted')
+      .filter((report, index, self) => {
+        // Remove duplicates based on id
+        return self.findIndex(r => r.id === report.id) === index;
+      })
+      .filter(report => {
+        // Only show reports that have been submitted for approval (not draft)
+        return report.status !== 'draft';
+      })
       .map(report => {
         const employee = employees.find(e => e.uid === report.employeeId);
         const department = departments.find(d => d.id === employee?.departmentId);
         const kpi = kpis.find(k => k.id === report.kpiId);
-        
+
         return {
           id: report.id,
           employeeId: report.employeeId,
-          employeeName: employee?.name || 'Unknown',
-          department: department?.name || 'Unknown',
+          employeeName: employee?.name || 'Unknown Employee',
+          department: department?.name || 'Unknown Department',
           kpiId: report.kpiId,
           kpiName: kpi?.name || 'Unknown KPI',
           title: report.title,
@@ -276,12 +288,12 @@ export default function AdminApprovalPage() {
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold text-blue-600">
-              {reportsForApproval.length}
+              {reports.filter(r => r.status === 'submitted').length}
             </div>
             <p className="text-xs text-muted-foreground">{t.admin.awaitingApproval}</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold text-green-600">
@@ -290,7 +302,7 @@ export default function AdminApprovalPage() {
             <p className="text-xs text-muted-foreground">{t.admin.approved}</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold text-red-600">
@@ -299,7 +311,7 @@ export default function AdminApprovalPage() {
             <p className="text-xs text-muted-foreground">{t.admin.rejected}</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold text-yellow-600">

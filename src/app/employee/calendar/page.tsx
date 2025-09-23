@@ -54,6 +54,7 @@ interface KPICalendarEvent {
 export default function KPICalendarPage() {
   const { user } = useContext(AuthContext);
   const { kpis, kpiRecords } = useContext(DataContext);
+  const { t } = useLanguage();
   
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
@@ -83,13 +84,13 @@ export default function KPICalendarPage() {
         id: `${record.id}-deadline`,
         kpiId: record.kpiId,
         kpiName: kpi.name,
-        title: `Deadline: ${kpi.name}`,
+        title: `${t.employeeCalendar.deadlinePrefix} ${kpi.name}`,
         date: endDate,
         type: 'deadline',
         status: endDate < today ? 'overdue' : 
                 endDate.getTime() - today.getTime() <= 3 * 24 * 60 * 60 * 1000 ? 'upcoming' : 'pending',
         priority: endDate.getTime() - today.getTime() <= 24 * 60 * 60 * 1000 ? 'urgent' : 'high',
-        description: `Hoàn thành KPI "${kpi.name}"`,
+        description: t.employeeCalendar.completeKpi.replace('{name}', kpi.name),
         progress: record.target > 0 ? ((record.actual || 0) / record.target * 100) : 0
       });
 
@@ -102,12 +103,12 @@ export default function KPICalendarPage() {
           id: `${record.id}-reminder`,
           kpiId: record.kpiId,
           kpiName: kpi.name,
-          title: `Nhắc nhở: ${kpi.name}`,
+          title: `${t.employeeCalendar.reminderPrefix} ${kpi.name}`,
           date: reminderDate,
           type: 'reminder',
           status: 'upcoming',
           priority: 'medium',
-          description: `Còn 3 ngày để hoàn thành KPI "${kpi.name}"`
+          description: t.employeeCalendar.reminderDescription.replace('{name}', kpi.name)
         });
       }
 
@@ -124,12 +125,12 @@ export default function KPICalendarPage() {
               id: `${record.id}-milestone-${i}`,
               kpiId: record.kpiId,
               kpiName: kpi.name,
-              title: `Milestone ${i}/4: ${kpi.name}`,
+              title: `${t.employeeCalendar.milestone.replace('{number}', i.toString())}: ${kpi.name}`,
               date: milestoneDate,
               type: 'milestone',
               status: 'upcoming',
               priority: 'medium',
-              description: `Kiểm tra tiến độ quý ${i}`
+              description: t.employeeCalendar.quarterlyCheck.replace('{quarter}', i.toString())
             });
           }
         }
@@ -182,26 +183,26 @@ export default function KPICalendarPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />Hoàn thành</Badge>;
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />{t.employeeCalendar.completed}</Badge>;
       case 'overdue':
-        return <Badge className="bg-red-100 text-red-800"><AlertTriangle className="w-3 h-3 mr-1" />Quá hạn</Badge>;
+        return <Badge className="bg-red-100 text-red-800"><AlertTriangle className="w-3 h-3 mr-1" />{t.employeeCalendar.overdue}</Badge>;
       case 'upcoming':
-        return <Badge className="bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" />Sắp tới</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" />{t.employeeCalendar.upcoming}</Badge>;
       default:
-        return <Badge className="bg-gray-100 text-gray-800"><Clock className="w-3 h-3 mr-1" />Chờ xử lý</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800"><Clock className="w-3 h-3 mr-1" />{t.employeeCalendar.pending}</Badge>;
     }
   };
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return <Badge className="bg-red-100 text-red-800">Khẩn cấp</Badge>;
+        return <Badge className="bg-red-100 text-red-800">{t.employeeCalendar.urgent}</Badge>;
       case 'high':
-        return <Badge className="bg-orange-100 text-orange-800">Cao</Badge>;
+        return <Badge className="bg-orange-100 text-orange-800">{t.employeeCalendar.high}</Badge>;
       case 'medium':
-        return <Badge className="bg-yellow-100 text-yellow-800">Trung bình</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800">{t.employeeCalendar.medium}</Badge>;
       default:
-        return <Badge className="bg-gray-100 text-gray-800">Thấp</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800">{t.employeeCalendar.low}</Badge>;
     }
   };
 
@@ -225,9 +226,9 @@ export default function KPICalendarPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Lịch KPI</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t.employeeCalendar.title}</h1>
           <p className="text-muted-foreground">
-            Theo dõi deadline và các sự kiện KPI quan trọng
+            {t.employeeCalendar.subtitle}
           </p>
         </div>
         <div className="flex gap-2">
@@ -246,31 +247,31 @@ export default function KPICalendarPage() {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4" />
-              <span className="text-sm font-medium">Lọc theo:</span>
+              <span className="text-sm font-medium">{t.employeeCalendar.filterBy}</span>
             </div>
             <div className="flex gap-4">
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder={t.departments.status as string} />
+                  <SelectValue placeholder={t.common.status} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  <SelectItem value="pending">Chờ xử lý</SelectItem>
-                  <SelectItem value="upcoming">Sắp tới</SelectItem>
-                  <SelectItem value="overdue">Quá hạn</SelectItem>
-                  <SelectItem value="completed">Hoàn thành</SelectItem>
+                  <SelectItem value="all">{t.employeeCalendar.allStatuses}</SelectItem>
+                  <SelectItem value="pending">{t.employeeCalendar.pending}</SelectItem>
+                  <SelectItem value="upcoming">{t.employeeCalendar.upcoming}</SelectItem>
+                  <SelectItem value="overdue">{t.employeeCalendar.overdue}</SelectItem>
+                  <SelectItem value="completed">{t.employeeCalendar.completed}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterPriority} onValueChange={setFilterPriority}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Ưu tiên" />
+                  <SelectValue placeholder={t.employeeCalendar.priority} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tất cả ưu tiên</SelectItem>
-                  <SelectItem value="urgent">Khẩn cấp</SelectItem>
-                  <SelectItem value="high">Cao</SelectItem>
-                  <SelectItem value="medium">Trung bình</SelectItem>
-                  <SelectItem value="low">Thấp</SelectItem>
+                  <SelectItem value="all">{t.employeeCalendar.allPriorities}</SelectItem>
+                  <SelectItem value="urgent">{t.employeeCalendar.urgent}</SelectItem>
+                  <SelectItem value="high">{t.employeeCalendar.high}</SelectItem>
+                  <SelectItem value="medium">{t.employeeCalendar.medium}</SelectItem>
+                  <SelectItem value="low">{t.employeeCalendar.low}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -281,9 +282,9 @@ export default function KPICalendarPage() {
       {/* Calendar View */}
       <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'month' | 'week' | 'day')}>
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="month">Tháng</TabsTrigger>
-          <TabsTrigger value="week">Tuần</TabsTrigger>
-          <TabsTrigger value="day">Ngày</TabsTrigger>
+          <TabsTrigger value="month">{t.employeeCalendar.monthView}</TabsTrigger>
+          <TabsTrigger value="week">{t.employeeCalendar.weekView}</TabsTrigger>
+                  <TabsTrigger value="day">{t.employeeCalendar.dayView}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="month" className="space-y-4">
@@ -349,7 +350,7 @@ export default function KPICalendarPage() {
                         ))}
                         {dayEvents.length > 2 && (
                           <div className="text-xs text-muted-foreground">
-                            +{dayEvents.length - 2} sự kiện khác
+                            {t.employeeCalendar.otherEvents.replace('{count}', (dayEvents.length - 2).toString())}
                           </div>
                         )}
                       </div>
@@ -364,9 +365,9 @@ export default function KPICalendarPage() {
         <TabsContent value="week" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Tuần hiện tại</CardTitle>
+              <CardTitle>{t.employeeCalendar.currentWeek}</CardTitle>
               <CardDescription>
-                Các sự kiện KPI trong tuần này
+                {t.employeeCalendar.weekDescription}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -409,9 +410,9 @@ export default function KPICalendarPage() {
         <TabsContent value="day" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Hôm nay</CardTitle>
+              <CardTitle>{t.employeeCalendar.today}</CardTitle>
               <CardDescription>
-                Các sự kiện KPI trong ngày hôm nay
+                {t.employeeCalendar.todayDescription}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -449,7 +450,7 @@ export default function KPICalendarPage() {
                 {getEventsForDate(new Date()).length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Không có sự kiện KPI nào trong ngày hôm nay</p>
+                    <p>{t.employeeCalendar.noEventsToday}</p>
                   </div>
                 )}
               </div>
@@ -463,10 +464,10 @@ export default function KPICalendarPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5" />
-            Sự kiện Sắp tới
+            {t.employeeCalendar.upcomingEvents}
           </CardTitle>
           <CardDescription>
-            Các deadline và sự kiện KPI quan trọng trong 7 ngày tới
+            {t.employeeCalendar.upcomingDescription}
           </CardDescription>
         </CardHeader>
         <CardContent>

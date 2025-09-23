@@ -89,15 +89,15 @@ export default function EmployeeDashboardPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />Hoàn thành</Badge>;
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />{t.employeeDashboard.completed}</Badge>;
       case 'awaiting_approval':
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Chờ duyệt</Badge>;
+        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />{t.employeeDashboard.awaitingApproval}</Badge>;
       case 'pending':
-        return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />Chờ bắt đầu</Badge>;
+        return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />{t.employeeDashboard.waitingToStart}</Badge>;
       case 'rejected':
-        return <Badge variant="destructive"><AlertTriangle className="w-3 h-3 mr-1" />Bị từ chối</Badge>;
+        return <Badge variant="destructive"><AlertTriangle className="w-3 h-3 mr-1" />{t.employeeDashboard.rejected}</Badge>;
       default:
-        return <Badge variant="outline">Chờ bắt đầu</Badge>;
+        return <Badge variant="outline">{t.employeeDashboard.waitingToStart}</Badge>;
     }
   };
 
@@ -109,21 +109,21 @@ export default function EmployeeDashboardPage() {
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold">{employeeStats.kpis.total}</div>
-            <p className="text-xs text-muted-foreground">Tổng KPI</p>
+            <p className="text-xs text-muted-foreground">{t.employeeDashboard.totalKpis}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold text-green-600">{employeeStats.kpis.completed}</div>
-            <p className="text-xs text-muted-foreground">Hoàn thành</p>
+            <p className="text-xs text-muted-foreground">{t.employeeDashboard.completed}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold text-orange-600">{employeeStats.kpis.inProgress}</div>
-            <p className="text-xs text-muted-foreground">Chờ duyệt</p>
+            <p className="text-xs text-muted-foreground">{t.employeeDashboard.awaitingApproval}</p>
           </CardContent>
         </Card>
 
@@ -132,7 +132,7 @@ export default function EmployeeDashboardPage() {
             <div className="text-2xl font-bold text-blue-600">
               {employeeStats.kpis.completionRate.toFixed(1)}%
             </div>
-            <p className="text-xs text-muted-foreground">Tỷ lệ hoàn thành</p>
+            <p className="text-xs text-muted-foreground">{t.employeeDashboard.completionRate}</p>
           </CardContent>
         </Card>
       </div>
@@ -146,10 +146,10 @@ export default function EmployeeDashboardPage() {
                 <AlertTriangle className="w-5 h-5 text-red-600" />
                 <div>
                   <p className="font-medium text-red-800">
-                    Có {employeeStats.kpis.overdue} KPI quá hạn!
+                    {t.employeeDashboard.overdueAlert.replace('{count}', employeeStats.kpis.overdue.toString())}
                   </p>
                   <p className="text-sm text-red-600">
-                    Cần cập nhật tiến độ gấp để tránh bị đánh giá thấp
+                    {t.employeeDashboard.overdueDescription}
                   </p>
                 </div>
               </div>
@@ -164,10 +164,10 @@ export default function EmployeeDashboardPage() {
                 <Clock className="w-5 h-5 text-orange-600" />
                 <div>
                   <p className="font-medium text-orange-800">
-                    Deadline sắp đến: {employeeStats.nextDeadline.toLocaleDateString('vi-VN')}
+                    {t.employeeDashboard.upcomingDeadline.replace('{date}', employeeStats.nextDeadline.toLocaleDateString('vi-VN'))}
                   </p>
                   <p className="text-sm text-orange-600">
-                    Hãy cập nhật tiến độ trước khi quá hạn
+                    {t.employeeDashboard.upcomingDescription}
                   </p>
                 </div>
               </div>
@@ -181,10 +181,10 @@ export default function EmployeeDashboardPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="w-5 h-5" />
-            KPI của tôi
+            {t.employeeDashboard.myKpis}
           </CardTitle>
           <CardDescription>
-            Danh sách KPI được giao và tiến độ thực hiện
+            {t.employeeDashboard.kpiListDescription}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -192,10 +192,10 @@ export default function EmployeeDashboardPage() {
             <div className="text-center py-8">
               <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground mb-2">
-                Chưa có KPI nào được giao
+                {t.employeeDashboard.noKpisAssigned}
               </p>
               <p className="text-sm text-muted-foreground">
-                Liên hệ quản lý để được giao KPI
+                {t.employeeDashboard.noKpisDescription}
               </p>
             </div>
           ) : (
@@ -214,7 +214,7 @@ export default function EmployeeDashboardPage() {
                       </span>
                     </div>
                     <div className="text-muted-foreground">
-                      Hạn: {new Date(record.endDate).toLocaleDateString('vi-VN')}
+                      {t.employeeDashboard.deadline}: {new Date(record.endDate).toLocaleDateString('vi-VN')}
                     </div>
                   </div>
                   <div className="mt-2">
@@ -234,16 +234,16 @@ export default function EmployeeDashboardPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Cập nhật KPI</CardTitle>
+            <CardTitle className="text-base">{t.employeeDashboard.updateKpiTitle}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              Cập nhật tiến độ thực hiện các KPI được giao
+              {t.employeeDashboard.updateKpiDescription}
             </p>
             <Link href="/employee/profile">
               <Button className="w-full">
                 <Target className="w-4 h-4 mr-2" />
-                Cập nhật tiến độ
+                {t.employeeDashboard.updateProgress}
               </Button>
             </Link>
           </CardContent>
@@ -251,16 +251,16 @@ export default function EmployeeDashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Thông tin cá nhân</CardTitle>
+            <CardTitle className="text-base">{t.employeeDashboard.personalInfoTitle}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              Xem thông tin cá nhân và lịch sử KPI
+              {t.employeeDashboard.personalInfoDescription}
             </p>
             <Link href="/employee/profile">
               <Button variant="outline" className="w-full">
                 <User className="w-4 h-4 mr-2" />
-                Xem hồ sơ
+                {t.employeeDashboard.viewProfile}
               </Button>
             </Link>
           </CardContent>

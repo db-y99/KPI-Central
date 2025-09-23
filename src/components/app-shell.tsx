@@ -24,6 +24,7 @@ import {
   Bell,
   Calendar,
   UserPlus,
+  Database,
 } from 'lucide-react';
 import { AuthContext } from '@/context/auth-context';
 import { useLanguage } from '@/context/language-context';
@@ -148,6 +149,14 @@ export default function AppShell({ children }: { children: ReactNode }) {
       icon: FileText,
       isActive: pathname.startsWith('/employee/reports'),
       key: 'employee-reports',
+    }] : []),
+    // Seed Data (Admin only)
+    ...(isAdmin ? [{
+      href: '/admin/seed-data',
+      label: 'Seed Data',
+      icon: Database,
+      isActive: pathname.startsWith('/admin/seed-data'),
+      key: 'seed-data',
     }] : []),
   ];
 

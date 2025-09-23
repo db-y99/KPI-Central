@@ -26,7 +26,8 @@ import {
   MapPin,
   Phone,
   Mail,
-  User
+  User,
+  MoreVertical
 } from 'lucide-react';
 import {
   Dialog,
@@ -35,6 +36,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -218,28 +225,28 @@ export default function DepartmentsPage() {
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold">{departments.length}</div>
-            <p className="text-xs text-muted-foreground">Tổng phòng ban</p>
+            <p className="text-xs text-muted-foreground">{t.departments.totalDepartments as string}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold">{totalEmployees}</div>
-            <p className="text-xs text-muted-foreground">Tổng nhân viên</p>
+            <p className="text-xs text-muted-foreground">{t.departments.totalEmployees as string}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold text-green-600">{departmentsWithManagers}</div>
-            <p className="text-xs text-muted-foreground">Có trưởng phòng</p>
+            <p className="text-xs text-muted-foreground">{t.departments.withManagers as string}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold text-blue-600">{avgEmployeesPerDept}</div>
-            <p className="text-xs text-muted-foreground">NV/Phòng ban TB</p>
+            <p className="text-xs text-muted-foreground">{t.departments.avgEmployeesPerDept as string}</p>
           </CardContent>
         </Card>
       </div>
@@ -394,12 +401,15 @@ export default function DepartmentsPage() {
                 <TableHead>{t.departments.employees}</TableHead>
                 <TableHead>{t.departments.location}</TableHead>
                 <TableHead>{t.departments.budgetAmount}</TableHead>
-                <TableHead>{t.departments.actions}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredDepartments.map((department) => (
-                <TableRow key={department.id}>
+                <TableRow 
+                  key={department.id}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors group"
+                  onClick={() => handleEditDepartment(department)}
+                >
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -432,32 +442,47 @@ export default function DepartmentsPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm font-medium">
-                      {department.budget ? 
-                        new Intl.NumberFormat('vi-VN', {
-                          style: 'currency',
-                          currency: 'VND'
-                        }).format(department.budget) : 
-                        t.departments.notSet as string
-                      }
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditDepartment(department)}
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteDepartment(department.id, department.name)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">
+                        {department.budget ? 
+                          new Intl.NumberFormat('vi-VN', {
+                            style: 'currency',
+                            currency: 'VND'
+                          }).format(department.budget) : 
+                          t.departments.notSet as string
+                        }
+                      </span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditDepartment(department);
+                          }}>
+                            <Edit2 className="w-4 h-4 mr-2" />
+                            {t.departments.editDepartment}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteDepartment(department.id, department.name);
+                            }}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            {t.departments.deleteDepartment}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </TableCell>
                 </TableRow>

@@ -99,14 +99,23 @@ export default function EditEmployeeForm({ employee, onSave, onClose }: EditEmpl
     try {
       // Update employee in Firestore
       const employeeRef = doc(db, 'employees', employee.uid!);
-      await updateDoc(employeeRef, {
+      
+      // Filter out undefined values to prevent Firebase errors
+      const updateData = {
         name: data.name,
         email: data.email,
         position: data.position,
         departmentId: data.departmentId,
         role: data.role,
         updatedAt: new Date().toISOString(),
-      });
+      };
+      
+      // Remove undefined values
+      const filteredData = Object.fromEntries(
+        Object.entries(updateData).filter(([_, value]) => value !== undefined)
+      );
+      
+      await updateDoc(employeeRef, filteredData);
 
       toast({
         title: t.common.success as string,
