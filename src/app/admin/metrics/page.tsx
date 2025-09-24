@@ -162,7 +162,7 @@ export default function MetricsPage() {
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
+    <div className="space-y-6">
 
       {/* Summary Stats */}
       <div className="grid gap-4 md:grid-cols-4">
@@ -213,8 +213,8 @@ export default function MetricsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả nhân viên</SelectItem>
-                  {nonAdminEmployees.map(emp => (
-                    <SelectItem key={emp.uid} value={emp.uid!}>
+                  {nonAdminEmployees.map((emp, index) => (
+                    <SelectItem key={emp.uid || `emp-${index}`} value={emp.uid!}>
                       {emp.name}
                     </SelectItem>
                   ))}
@@ -230,8 +230,8 @@ export default function MetricsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả KPI</SelectItem>
-                  {kpis.map(kpi => (
-                    <SelectItem key={kpi.id} value={kpi.id}>
+                  {kpis.map((kpi, index) => (
+                    <SelectItem key={kpi.id || `kpi-${index}`} value={kpi.id}>
                       {kpi.name}
                     </SelectItem>
                   ))}
@@ -247,8 +247,8 @@ export default function MetricsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả kỳ</SelectItem>
-                  {periods.map(period => (
-                    <SelectItem key={period} value={period}>
+                  {periods.map((period, index) => (
+                    <SelectItem key={period || `period-${index}`} value={period}>
                       {period}
                     </SelectItem>
                   ))}
@@ -284,8 +284,8 @@ export default function MetricsPage() {
                 <p className="text-muted-foreground">Không có dữ liệu KPI nào</p>
               </div>
             ) : (
-              filteredMetrics.map((metric) => (
-                <div key={metric.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+              filteredMetrics.map((metric, index) => (
+                <div key={metric.id || `metric-${index}`} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -359,8 +359,8 @@ export default function MetricsPage() {
                   <SelectValue placeholder="Chọn nhân viên" />
                 </SelectTrigger>
                 <SelectContent>
-                  {nonAdminEmployees.map(emp => (
-                    <SelectItem key={emp.uid} value={emp.uid!}>
+                  {nonAdminEmployees.map((emp, index) => (
+                    <SelectItem key={emp.uid || `emp-${index}`} value={emp.uid!}>
                       {emp.name}
                     </SelectItem>
                   ))}
@@ -375,8 +375,8 @@ export default function MetricsPage() {
                   <SelectValue placeholder="Chọn KPI" />
                 </SelectTrigger>
                 <SelectContent>
-                  {kpis.map(kpi => (
-                    <SelectItem key={kpi.id} value={kpi.id}>
+                  {kpis.map((kpi, index) => (
+                    <SelectItem key={kpi.id || `kpi-${index}`} value={kpi.id}>
                       {kpi.name}
                     </SelectItem>
                   ))}

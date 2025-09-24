@@ -49,7 +49,7 @@ import { Badge } from '@/components/ui/badge';
 import { DataContext } from '@/context/data-context';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
-import type { Department } from '@/types';
+import type { Department, Employee } from '@/types';
 
 export default function DepartmentsPage() {
   const { departments, employees, addDepartment, updateDepartment, deleteDepartment } = useContext(DataContext);
@@ -60,6 +60,9 @@ export default function DepartmentsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const [isEmployeeListOpen, setIsEmployeeListOpen] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
+  const [selectedDepartmentEmployees, setSelectedDepartmentEmployees] = useState<Employee[]>([]);
   
   // Form State
   const [newDepartment, setNewDepartment] = useState({
@@ -212,6 +215,14 @@ export default function DepartmentsPage() {
     return manager ? manager.name : t.departments.notAssigned as string;
   };
 
+  // Show employees for a department
+  const showDepartmentEmployees = (department: Department) => {
+    const deptEmployees = employees.filter(emp => emp.departmentId === department.id);
+    setSelectedDepartment(department);
+    setSelectedDepartmentEmployees(deptEmployees);
+    setIsEmployeeListOpen(true);
+  };
+
   // Calculate stats
   const totalEmployees = employees.filter(emp => emp.role !== 'admin').length;
   const departmentsWithManagers = departments.filter(dept => dept.manager).length;
@@ -219,7 +230,7 @@ export default function DepartmentsPage() {
   const avgEmployeesPerDept = departments.length > 0 ? Math.round(totalEmployees / departments.length) : 0;
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
+    <div className="space-y-6">
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -356,6 +367,58 @@ export default function DepartmentsPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Department Employees Dialog */}
+      <Dialog open={isEmployeeListOpen} onOpenChange={setIsEmployeeListOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              {(t.departments.employeesInDepartment as string)?.replace('{department}', selectedDepartment?.name || '') || `Employees in ${selectedDepartment?.name || ''}`}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            {selectedDepartmentEmployees.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">{(t.departments.noEmployeesInDepartment as string) || 'No employees in this department'}</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t.employees.employee}</TableHead>
+                    <TableHead>{t.employees.position}</TableHead>
+                    <TableHead>{t.employees.contact}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedDepartmentEmployees.map((employee) => (
+                    <TableRow key={employee.uid}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            <User className="w-4 h-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{employee.name}</p>
+                            <p className="text-sm text-muted-foreground">{employee.email}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{employee.position}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="text-sm">{employee.phone || t.employees.noPhone as string}</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Departments Table */}
       <Card>
         <CardHeader>
@@ -430,7 +493,14 @@ export default function DepartmentsPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">
+                    <Badge 
+                      variant="secondary" 
+                      className="cursor-pointer hover:bg-secondary/80"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        showDepartmentEmployees(department);
+                      }}
+                    >
                       <Users className="w-3 h-3 mr-1" />
                       {getEmployeeCount(department.id)} {t.departments.employeesCount as string}
                     </Badge>

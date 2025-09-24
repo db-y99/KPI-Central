@@ -102,7 +102,7 @@ export default function EmployeeDashboardPage() {
   };
 
   return (
-    <div className="h-full p-4 md:p-6 space-y-6">
+    <div className="h-full p-4 md:p-6 lg:p-8 space-y-6">
 
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">

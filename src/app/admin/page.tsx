@@ -10,7 +10,9 @@ import {
   Plus,
   Eye,
   UserCheck,
-  Settings
+  Settings,
+  BarChart3,
+  Gift
 } from 'lucide-react';
 import type { Kpi, KpiRecord } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -64,7 +66,7 @@ export default function AdminDashboardPage() {
   }, [kpis, kpiRecords, employees, departments]);
 
   return (
-    <div className="h-full p-4 md:p-6 space-y-6">
+    <div className="h-full p-4 md:p-6 lg:p-8 space-y-6">
 
       {/* Quick Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -134,87 +136,72 @@ export default function AdminDashboardPage() {
         </Card>
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions - Cập nhật theo cấu trúc mới */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-        <Link href="/admin/employees">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Plus className="w-5 h-5 text-primary" />
-                {t.dashboard.createEmployee}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {t.dashboard.createEmployeeDesc}
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/admin/kpi-assignment">
+        <Link href="/admin/kpi-management">
           <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
                 <Target className="w-5 h-5 text-primary" />
-                {t.dashboard.assignKpi}
+                KPI Management
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {t.dashboard.assignKpiDesc}
-              </p>
             </CardContent>
           </Card>
         </Link>
 
-        <Link href="/admin/kpi-tracking">
+        <Link href="/admin/hr-management">
           <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
-                <Eye className="w-5 h-5 text-primary" />
-                {t.dashboard.trackProgress}
+                <Users className="w-5 h-5 text-primary" />
+                HR Management
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {t.dashboard.trackProgressDesc}
-              </p>
             </CardContent>
           </Card>
         </Link>
 
-            <Link href="/admin/kpi-definitions">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Settings className="w-5 h-5 text-primary" />
-                    {t.dashboard.manageKpi}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {t.dashboard.manageKpiDesc}
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
+        <Link href="/admin/evaluation-reports">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-primary" />
+                Evaluation & Reports
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+            </CardContent>
+          </Card>
+        </Link>
 
-            <Link href="/admin/evaluation">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <UserCheck className="w-5 h-5 text-primary" />
-                    {t.dashboard.evaluateEmployee}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {t.dashboard.evaluateEmployeeDesc}
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
+        <Link href="/admin/reward-system">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Gift className="w-5 h-5 text-primary" />
+                Reward System
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/admin/system-settings">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Settings className="w-5 h-5 text-primary" />
+                System Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Recent Activities */}

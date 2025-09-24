@@ -21,16 +21,20 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
 
   // Load language from localStorage on mount
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('language') as Language;
-    if (savedLanguage && (savedLanguage === 'vi' || savedLanguage === 'en')) {
-      setLanguageState(savedLanguage);
+    if (typeof window !== 'undefined') {
+      const savedLanguage = localStorage.getItem('language') as Language;
+      if (savedLanguage && (savedLanguage === 'vi' || savedLanguage === 'en')) {
+        setLanguageState(savedLanguage);
+      }
     }
     setIsLoaded(true);
   }, []);
 
   const setLanguage = (newLanguage: Language) => {
     setLanguageState(newLanguage);
-    localStorage.setItem('language', newLanguage);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('language', newLanguage);
+    }
   };
 
   const value = {

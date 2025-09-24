@@ -28,7 +28,7 @@ export default function DashboardRedirectPage() {
     } else {
       router.push('/employee');
     }
-  }, [loading, user, router]);
+  }, [loading, user, router, t]);
 
   // Show loading screen while checking and redirecting
   return <Loading />;

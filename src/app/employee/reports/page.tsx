@@ -251,7 +251,7 @@ export default function EmployeeReportsPage() {
   const needsRevisionReports = employeeReports.filter(r => r.status === 'needs_revision').length;
 
   return (
-    <div className="h-full p-6 md:p-8 space-y-8">
+    <div className="h-full p-4 md:p-6 lg:p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">{t.employeeReports.title}</h1>

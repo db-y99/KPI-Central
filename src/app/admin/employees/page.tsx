@@ -261,7 +261,7 @@ export default function EmployeesPage() {
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
+    <div className="space-y-6">
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>

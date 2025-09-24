@@ -209,20 +209,20 @@ export default function KpiTrackingPage() {
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
+    <div className="space-y-6">
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold">{nonAdminEmployees.length}</div>
-            <p className="text-xs text-muted-foreground">{t.kpiTracking.totalEmployees}</p>
+            <p className="text-xs text-muted-foreground">{t.kpiTracking.totalEmployees || 'Tổng nhân viên'}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold">{enrichedRecords.length}</div>
-            <p className="text-xs text-muted-foreground">{t.kpiTracking.totalKpis}</p>
+            <p className="text-xs text-muted-foreground">{t.kpiTracking.totalKpis || 'Tổng KPI'}</p>
           </CardContent>
         </Card>
 
@@ -231,7 +231,7 @@ export default function KpiTrackingPage() {
             <div className="text-2xl font-bold text-green-600">
               {enrichedRecords.filter(r => r.status === 'approved').length}
             </div>
-            <p className="text-xs text-muted-foreground">{t.kpiTracking.completedKpis}</p>
+            <p className="text-xs text-muted-foreground">{t.kpiTracking.completedKpis || 'Đã hoàn thành'}</p>
           </CardContent>
         </Card>
 
@@ -244,7 +244,7 @@ export default function KpiTrackingPage() {
                 return endDate < today && r.status !== 'approved';
               }).length}
             </div>
-            <p className="text-xs text-muted-foreground">{t.kpiTracking.overdueKpis}</p>
+            <p className="text-xs text-muted-foreground">{t.kpiTracking.overdueKpis || 'Quá hạn'}</p>
           </CardContent>
         </Card>
       </div>
@@ -255,12 +255,12 @@ export default function KpiTrackingPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Target className="w-5 h-5" />
-              {t.kpiTracking.tracking} ({filteredRecords.length})
+              {t.kpiTracking.tracking || 'Theo dõi KPI'} ({filteredRecords.length})
             </CardTitle>
             <div className="flex items-center gap-4">
               <div className="w-64">
                 <Input
-                  placeholder={t.kpiTracking.searchPlaceholder}
+                  placeholder={t.kpiTracking.searchPlaceholder || 'Tìm kiếm nhân viên hoặc KPI...'}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full"
@@ -268,10 +268,10 @@ export default function KpiTrackingPage() {
               </div>
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder={t.kpiTracking.selectDepartmentPlaceholder} />
+                  <SelectValue placeholder={t.kpiTracking.selectDepartmentPlaceholder || 'Chọn phòng ban'} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t.kpiTracking.allDepartments}</SelectItem>
+                  <SelectItem value="all">{t.kpiTracking.allDepartments || 'Tất cả phòng ban'}</SelectItem>
                   {departments.map(dept => (
                     <SelectItem key={dept.id} value={dept.id}>
                       {dept.name}
@@ -281,7 +281,7 @@ export default function KpiTrackingPage() {
               </Select>
               <Button onClick={handleRefreshData} variant="outline">
                 <RefreshCw className="w-4 h-4 mr-2" />
-                {t.kpiTracking.refresh}
+                {t.kpiTracking.refresh || 'Làm mới'}
               </Button>
             </div>
           </div>
@@ -314,12 +314,12 @@ export default function KpiTrackingPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t.kpiTracking.employeeColumn}</TableHead>
-                  <TableHead>{t.kpiTracking.kpiColumn}</TableHead>
-                  <TableHead>{t.kpiTracking.departmentColumn}</TableHead>
-                  <TableHead>{t.kpiTracking.progressColumn}</TableHead>
-                  <TableHead>{t.kpiTracking.statusColumn}</TableHead>
-                  <TableHead>{t.kpiTracking.deadlineColumn}</TableHead>
+                  <TableHead>{t.kpiTracking.employeeColumn || 'Nhân viên'}</TableHead>
+                  <TableHead>{t.kpiTracking.kpiColumn || 'KPI'}</TableHead>
+                  <TableHead>{t.kpiTracking.departmentColumn || 'Phòng ban'}</TableHead>
+                  <TableHead>{t.kpiTracking.progressColumn || 'Tiến độ'}</TableHead>
+                  <TableHead>{t.kpiTracking.statusColumn || 'Trạng thái'}</TableHead>
+                  <TableHead>{t.kpiTracking.deadlineColumn || 'Hạn chót'}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -381,10 +381,10 @@ export default function KpiTrackingPage() {
                             daysRemaining <= 7 ? 'text-orange-600' : 'text-muted-foreground'
                           }`}>
                             {daysRemaining < 0 
-                              ? t.kpiTracking.overdue.replace('{days}', Math.abs(daysRemaining).toString())
+                              ? (t.kpiTracking.overdue as string)?.replace('{days}', Math.abs(daysRemaining).toString()) || `Overdue ${Math.abs(daysRemaining)} days`
                               : daysRemaining === 0 
-                              ? t.kpiTracking.dueToday
-                              : t.kpiTracking.daysRemaining.replace('{days}', daysRemaining.toString())
+                              ? (t.kpiTracking.dueToday as string) || 'Due today'
+                              : (t.kpiTracking.daysRemaining as string)?.replace('{days}', daysRemaining.toString()) || `${daysRemaining} days left`
                             }
                           </p>
                         </div>

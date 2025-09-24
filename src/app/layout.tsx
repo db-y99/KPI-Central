@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Providers } from '@/components/providers';
+import { ErrorBoundary } from '@/components/error-boundary';
 
 export const metadata: Metadata = {
   title: 'KPI Central - Hệ thống quản lý KPI',
@@ -35,9 +36,11 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="https://y99.vn/logo.png" />
       </head>
       <body className="font-body antialiased">
-        <Providers>
-          {children}
-        </Providers>
+        <ErrorBoundary>
+          <Providers>
+            {children}
+          </Providers>
+        </ErrorBoundary>
         <Toaster />
       </body>
     </html>

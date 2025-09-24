@@ -275,7 +275,7 @@ export const DataContext = createContext<DataContextType>({
   getPerformancePredictionsByKpi: () => [],
   updateSelfServiceSettings: async () => {},
   getSelfServiceSettings: () => null,
-  generatePerformanceInsight: async () => '',
+  generatePerformanceInsights: async () => '',
   getPerformanceInsightsByEmployee: () => [],
   getPerformanceInsightsByKpi: () => [],
   // Reward System Functions
@@ -1955,6 +1955,12 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   };
 
+  const getPerformanceInsightsByKpi = (kpiId: string): PerformanceInsight[] => {
+    return performanceInsights
+      .filter(i => i.kpiId === kpiId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  };
+
   const markInsightAsRead = async (insightId: string) => {
     const insightRef = doc(db, 'performanceInsights', insightId);
     await updateDoc(insightRef, {
@@ -2066,6 +2072,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     getSelfServiceSettings,
     generatePerformanceInsights,
     getPerformanceInsightsByEmployee,
+    getPerformanceInsightsByKpi,
     markInsightAsRead,
     
     // Reward System Functions

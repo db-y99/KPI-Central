@@ -61,7 +61,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   const isAdmin = user?.role === 'admin';
 
-  // Navigation đơn giản - chỉ các chức năng CỐT LÕI cho đánh giá KPI
+  // Navigation được tổ chức theo nhóm chức năng để dễ quản lý
   const navLinks = [
     {
       href: isAdmin ? '/admin' : '/employee',
@@ -70,69 +70,66 @@ export default function AppShell({ children }: { children: ReactNode }) {
       isActive: pathname === '/admin' || pathname === '/employee',
       key: 'dashboard',
     },
-    // Quản lý nhân viên (Admin only)
+    // Quản lý KPI (Admin only) - Gộp các chức năng KPI
     ...(isAdmin ? [{
-      href: '/admin/employees',
-      label: t.nav.allEmployees as string,
-      icon: Users,
-      isActive: pathname.startsWith('/admin/employees'),
-      key: 'employees',
-    }] : []),
-    // Quản lý phòng ban (Admin only)
-    ...(isAdmin ? [{
-      href: '/admin/departments',
-      label: t.departments.title as unknown as string,
-      icon: Building2,
-      isActive: pathname.startsWith('/admin/departments'),
-      key: 'departments',
-    }] : []),
-    // Quản lý KPI (Admin only)
-    ...(isAdmin ? [{
-      href: '/admin/kpi-definitions',
-      label: t.nav.defineKpi as string,
+      href: '/admin/kpi-management',
+      label: 'KPI Management',
       icon: Target,
-      isActive: pathname.startsWith('/admin/kpi-definitions'),
-      key: 'kpi-definitions',
+      isActive: pathname.startsWith('/admin/kpi-management') || 
+                pathname.startsWith('/admin/kpi-definitions') ||
+                pathname.startsWith('/admin/kpi-assignment') ||
+                pathname.startsWith('/admin/kpi-tracking') ||
+                pathname.startsWith('/admin/metrics'),
+      key: 'kpi-management',
     }] : []),
-    // Giao KPI (Admin only)
+    // Quản lý Nhân sự (Admin only) - Gộp các chức năng HR
     ...(isAdmin ? [{
-      href: '/admin/kpi-assignment',
-      label: t.nav.assignKpi as string,
-      icon: UserPlus,
-      isActive: pathname.startsWith('/admin/kpi-assignment'),
-      key: 'kpi-assignment',
+      href: '/admin/hr-management',
+      label: 'HR Management',
+      icon: Users,
+      isActive: pathname.startsWith('/admin/hr-management') ||
+                pathname.startsWith('/admin/employees') ||
+                pathname.startsWith('/admin/departments') ||
+                pathname.startsWith('/admin/employee-management'),
+      key: 'hr-management',
     }] : []),
-    // Theo dõi KPI (Admin only)
+    // Đánh giá & Báo cáo (Admin only) - Gộp các chức năng đánh giá
     ...(isAdmin ? [{
-      href: '/admin/kpi-tracking',
-      label: t.nav.trackKpi as string,
-      icon: TrendingUp,
-      isActive: pathname.startsWith('/admin/kpi-tracking'),
-      key: 'kpi-tracking',
-    }] : []),
-    // Duyệt báo cáo (Admin only)
-    ...(isAdmin ? [{
-      href: '/admin/approval',
-      label: t.nav.approveReports as string,
-      icon: FileCheck,
-      isActive: pathname.startsWith('/admin/approval'),
-      key: 'approval',
-    }] : []),
-    // Đánh giá & Thưởng (Admin only)
-    ...(isAdmin ? [{
-      href: '/admin/evaluation',
-      label: t.nav.evaluateReward as string,
-      icon: Gift,
-      isActive: pathname.startsWith('/admin/evaluation'),
-      key: 'evaluation',
-    }] : []),
-    // Báo cáo (Admin only)
-    ...(isAdmin ? [{
-      href: '/admin/reports',
-      label: t.nav.reports as string,
+      href: '/admin/evaluation-reports',
+      label: 'Evaluation & Reports',
       icon: BarChart3,
-      isActive: pathname.startsWith('/admin/reports'),
-      key: 'reports',
+      isActive: pathname.startsWith('/admin/evaluation-reports') ||
+                pathname.startsWith('/admin/approval') ||
+                pathname.startsWith('/admin/evaluation') ||
+                pathname.startsWith('/admin/reports') ||
+                pathname.startsWith('/admin/reports-analytics'),
+      key: 'evaluation-reports',
+    }] : []),
+    // Hệ thống Thưởng (Admin only) - Gộp các chức năng thưởng
+    ...(isAdmin ? [{
+      href: '/admin/reward-system',
+      label: 'Reward System',
+      icon: Gift,
+      isActive: pathname.startsWith('/admin/reward-system') ||
+                pathname.startsWith('/admin/reward-programs') ||
+                pathname.startsWith('/admin/reward-calculations') ||
+                pathname.startsWith('/admin/evaluation-rewards'),
+      key: 'reward-system',
+    }] : []),
+    // Cài đặt & Hệ thống (Admin only) - Gộp các chức năng cài đặt
+    ...(isAdmin ? [{
+      href: '/admin/system-settings',
+      label: 'System Settings',
+      icon: Settings,
+      isActive: pathname.startsWith('/admin/system-settings') ||
+                pathname.startsWith('/admin/settings') ||
+                pathname.startsWith('/admin/notifications') ||
+                pathname.startsWith('/admin/google-drive-config') ||
+                pathname.startsWith('/admin/payroll-integration') ||
+                pathname.startsWith('/admin/policies-overview') ||
+                pathname.startsWith('/admin/init-policies') ||
+                pathname.startsWith('/admin/seed-data'),
+      key: 'system-settings',
     }] : []),
     // Profile (Employee only)
     ...(!isAdmin ? [{
@@ -149,14 +146,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
       icon: FileText,
       isActive: pathname.startsWith('/employee/reports'),
       key: 'employee-reports',
-    }] : []),
-    // Seed Data (Admin only)
-    ...(isAdmin ? [{
-      href: '/admin/seed-data',
-      label: 'Seed Data',
-      icon: Database,
-      isActive: pathname.startsWith('/admin/seed-data'),
-      key: 'seed-data',
     }] : []),
   ];
 

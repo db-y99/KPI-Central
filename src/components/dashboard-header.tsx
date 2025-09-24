@@ -14,7 +14,17 @@ export default function DashboardHeader() {
   const { t } = useLanguage();
 
   let title = t.dashboard.title;
-  if (pathname.startsWith('/admin/reports')) {
+  if (pathname.startsWith('/admin/kpi-management')) {
+    title = 'KPI Management';
+  } else if (pathname.startsWith('/admin/hr-management')) {
+    title = 'HR Management';
+  } else if (pathname.startsWith('/admin/evaluation-reports')) {
+    title = 'Evaluation & Reports';
+  } else if (pathname.startsWith('/admin/reward-system')) {
+    title = 'Reward System';
+  } else if (pathname.startsWith('/admin/system-settings')) {
+    title = 'System Settings';
+  } else if (pathname.startsWith('/admin/reports')) {
     title = t.nav.reports;
   } else if (pathname.startsWith('/admin/kpi-definitions')) {
     title = t.kpis.title;

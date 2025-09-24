@@ -12,7 +12,9 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
   useEffect(() => {
     // Update the html lang attribute based on the current language
-    document.documentElement.lang = language;
+    if (typeof window !== 'undefined') {
+      document.documentElement.lang = language;
+    }
   }, [language]);
 
   return <>{children}</>;

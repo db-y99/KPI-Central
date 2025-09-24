@@ -205,7 +205,7 @@ export default function SystemSettingsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -280,12 +280,37 @@ export default function SystemSettingsPage() {
 
       {/* Settings Tabs */}
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="general">Chung</TabsTrigger>
-          <TabsTrigger value="kpi">KPI</TabsTrigger>
-          <TabsTrigger value="rewards">Thưởng</TabsTrigger>
-          <TabsTrigger value="notifications">Thông báo</TabsTrigger>
-          <TabsTrigger value="security">Bảo mật</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5 gap-0 p-1 h-12 bg-gray-100 rounded-lg">
+          <TabsTrigger 
+            value="general" 
+            className="flex items-center justify-center px-3 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=inactive]:text-gray-600 hover:text-gray-900"
+          >
+            Chung
+          </TabsTrigger>
+          <TabsTrigger 
+            value="kpi" 
+            className="flex items-center justify-center px-3 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=inactive]:text-gray-600 hover:text-gray-900"
+          >
+            KPI
+          </TabsTrigger>
+          <TabsTrigger 
+            value="rewards" 
+            className="flex items-center justify-center px-3 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=inactive]:text-gray-600 hover:text-gray-900"
+          >
+            Thưởng
+          </TabsTrigger>
+          <TabsTrigger 
+            value="notifications" 
+            className="flex items-center justify-center px-3 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=inactive]:text-gray-600 hover:text-gray-900"
+          >
+            Thông báo
+          </TabsTrigger>
+          <TabsTrigger 
+            value="security" 
+            className="flex items-center justify-center px-3 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=inactive]:text-gray-600 hover:text-gray-900"
+          >
+            Bảo mật
+          </TabsTrigger>
         </TabsList>
 
         {/* General Settings */}
