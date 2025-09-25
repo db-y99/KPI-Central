@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
+import { withSecurity, createSuccessResponse, createErrorResponse, authRateLimit, logApiAccess } from '@/lib/api-security';
 
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_DRIVE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID,
@@ -13,18 +14,16 @@ const SCOPES = [
   'https://www.googleapis.com/auth/drive.metadata.readonly'
 ];
 
-export async function GET(request: NextRequest) {
+async function handleGoogleDriveAuth(request: NextRequest, user?: any) {
   try {
+    logApiAccess(request, user, 'google-drive-auth');
+    
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const error = searchParams.get('error');
 
     if (error) {
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Authorization failed',
-        message: error 
-      }, { status: 400 });
+      return createErrorResponse('Authorization failed', 400, { error });
     }
 
     if (!code) {
@@ -35,11 +34,7 @@ export async function GET(request: NextRequest) {
         prompt: 'consent'
       });
 
-      return NextResponse.json({ 
-        success: true, 
-        authUrl,
-        message: 'Authorization URL generated' 
-      });
+      return createSuccessResponse({ authUrl }, 'Authorization URL generated');
     }
 
     // Exchange code for tokens
@@ -53,9 +48,7 @@ export async function GET(request: NextRequest) {
       fields: 'files(id,name)',
     });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Google Drive connected successfully',
+    return createSuccessResponse({
       tokens: {
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
@@ -65,20 +58,28 @@ export async function GET(request: NextRequest) {
         filesFound: response.data.files?.length || 0,
         sampleFile: response.data.files?.[0]?.name || 'No files found'
       }
-    });
+    }, 'Google Drive connected successfully');
 
   } catch (error) {
     console.error('Google Drive auth error:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Authentication failed',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return createErrorResponse(
+      'Authentication failed',
+      500,
+      error instanceof Error ? error.message : 'Unknown error'
+    );
   }
 }
 
-export async function POST(request: NextRequest) {
+export const GET = withSecurity(handleGoogleDriveAuth, {
+  requireAuth: true,
+  requireRole: 'admin',
+  rateLimit: authRateLimit
+});
+
+async function handleGoogleDriveActions(request: NextRequest, user?: any) {
   try {
+    logApiAccess(request, user, 'google-drive-actions');
+    
     const body = await request.json();
     const { action, tokens } = body;
 
@@ -88,10 +89,7 @@ export async function POST(request: NextRequest) {
                           process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
       
       if (!refreshToken) {
-        return NextResponse.json({ 
-          success: false, 
-          error: 'No refresh token provided' 
-        }, { status: 400 });
+        return createErrorResponse('No refresh token provided', 400);
       }
 
       // Set credentials and test connection
@@ -106,14 +104,10 @@ export async function POST(request: NextRequest) {
         orderBy: 'createdTime desc'
       });
 
-      return NextResponse.json({
-        success: true,
-        message: 'Connection test successful',
-        data: {
-          filesCount: response.data.files?.length || 0,
-          files: response.data.files || []
-        }
-      });
+      return createSuccessResponse({
+        filesCount: response.data.files?.length || 0,
+        files: response.data.files || []
+      }, 'Connection test successful');
     }
 
     if (action === 'create-folder') {
@@ -124,10 +118,7 @@ export async function POST(request: NextRequest) {
                           process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
       
       if (!refreshToken) {
-        return NextResponse.json({ 
-          success: false, 
-          error: 'No refresh token provided' 
-        }, { status: 400 });
+        return createErrorResponse('No refresh token provided', 400);
       }
 
       oauth2Client.setCredentials({
@@ -144,15 +135,11 @@ export async function POST(request: NextRequest) {
         fields: 'id,name,webViewLink',
       });
 
-      return NextResponse.json({
-        success: true,
-        message: 'Folder created successfully',
-        data: {
-          id: response.data.id,
-          name: response.data.name,
-          webViewLink: response.data.webViewLink
-        }
-      });
+      return createSuccessResponse({
+        id: response.data.id,
+        name: response.data.name,
+        webViewLink: response.data.webViewLink
+      }, 'Folder created successfully');
     }
 
     if (action === 'check-config') {
@@ -167,25 +154,26 @@ export async function POST(request: NextRequest) {
 
       const allConfigured = Object.values(config).every(Boolean);
 
-      return NextResponse.json({
-        success: true,
-        message: allConfigured ? 'Configuration complete' : 'Configuration incomplete',
+      return createSuccessResponse({
         config,
         allConfigured
-      });
+      }, allConfigured ? 'Configuration complete' : 'Configuration incomplete');
     }
 
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Invalid action' 
-    }, { status: 400 });
+    return createErrorResponse('Invalid action', 400);
 
   } catch (error) {
     console.error('Google Drive API error:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'API request failed',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    return createErrorResponse(
+      'API request failed',
+      500,
+      error instanceof Error ? error.message : 'Unknown error'
+    );
   }
 }
+
+export const POST = withSecurity(handleGoogleDriveActions, {
+  requireAuth: true,
+  requireRole: 'admin',
+  rateLimit: authRateLimit
+});
