@@ -1,5 +1,5 @@
 'use client';
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '@/context/auth-context';
 import { useLanguage } from '@/context/language-context';
 import { useRouter } from 'next/navigation';
@@ -9,15 +9,29 @@ export default function DashboardRedirectPage() {
   const { user, loading } = useContext(AuthContext);
   const { t } = useLanguage();
   const router = useRouter();
+  const [redirectTimeout, setRedirectTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (loading) {
-      // Wait for authentication to complete
-      return;
+    // Clear any existing timeout
+    if (redirectTimeout) {
+      clearTimeout(redirectTimeout);
     }
 
+    // Only redirect when authentication is complete (loading is false)
+    if (loading) {
+      return; // Still loading, wait
+    }
+
+    // Set a timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      console.log('⏰ Redirect timeout reached, forcing redirect to login');
+      router.push('/login');
+    }, 5000); // 5 second timeout
+
+    setRedirectTimeout(timeout);
+
     if (!user) {
-      // If no user, redirect to login page
+      // If no user after loading is complete, redirect to login
       router.push('/login');
       return;
     }
@@ -28,8 +42,15 @@ export default function DashboardRedirectPage() {
     } else {
       router.push('/employee');
     }
+
+    // Cleanup timeout on successful redirect
+    return () => {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+    };
   }, [loading, user, router, t]);
 
-  // Show loading screen while checking and redirecting
+  // Always show loading screen while checking authentication and redirecting
   return <Loading />;
 }

@@ -90,36 +90,6 @@ http://localhost:9001
 - **Admin**: `db@y99.vn` / `123456`
 - **Employee**: Tạo tài khoản mới qua giao diện admin
 
-## 🌱 **Seed Data - Dữ liệu mẫu**
-
-Hệ thống đã tích hợp sẵn tính năng seed data để nhanh chóng thiết lập dữ liệu mẫu:
-
-### Qua giao diện Web (Khuyến nghị)
-1. Đăng nhập với tài khoản admin
-2. Vào menu **Seed Data** 
-3. Chọn **Initialize Policies** → **Seed Sample Data**
-
-### Qua Command Line
-```bash
-# Khởi tạo chính sách công ty
-npm run seed:policies
-
-# Thêm dữ liệu mẫu (13 nhân viên + KPI records)
-npm run seed:data
-
-# Reset và seed lại toàn bộ
-npm run seed:reset
-```
-
-**Dữ liệu được tạo:**
-- 6 phòng ban (IT, Marketing, Customer Service, Credit, HR, Accounting)
-- 13 nhân viên mẫu với các vị trí khác nhau
-- 7 chương trình thưởng theo chính sách công ty
-- 19 KPIs đa dạng cho từng vị trí
-- 40+ KPI records với dữ liệu thực tế
-
-📖 **Chi tiết**: Xem [Seed Data Guide](docs/seed-data-guide.md)
-
 ## 🎨 **Giao diện**
 
 ### Desktop

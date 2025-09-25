@@ -44,8 +44,6 @@ export default function DashboardHeader() {
     title = t.nav.notifications;
   } else if (pathname.startsWith('/admin/settings')) {
     title = t.nav.settings;
-  } else if (pathname.startsWith('/admin/seed-data')) {
-    title = 'Seed Data';
   } else if (pathname.startsWith('/admin')) {
     title = t.dashboard.adminTitle;
   } else if (pathname.startsWith('/employee/profile')) {

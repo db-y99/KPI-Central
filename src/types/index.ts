@@ -1,3 +1,6 @@
+// Import KpiStatus từ service
+import { KpiStatus } from '@/lib/kpi-status-service';
+
 export type Department = {
   id: string;
   name: string;
@@ -153,8 +156,17 @@ export type KpiRecord = {
   startDate: string;
   endDate: string;
   submittedReport?: string;
-  status: 'pending' | 'awaiting_approval' | 'approved' | 'rejected' | 'completed' | 'in-progress';
+  status: KpiStatus; // Sử dụng KpiStatus từ service
   approvalComment?: string;
+  // Thêm các field mới để hỗ trợ audit trail
+  statusHistory?: Array<{
+    status: KpiStatus;
+    changedAt: string;
+    changedBy: string;
+    comment?: string;
+  }>;
+  lastStatusChange?: string;
+  lastStatusChangedBy?: string;
 };
 
 // Reward System Types
@@ -759,4 +771,110 @@ export type ApiIntegration = {
   updatedAt: string;
 };
 
+// Employee Ranking System
+export type EmployeeRanking = {
+  id: string;
+  employeeId: string;
+  period: string; // YYYY-MM format
+  departmentId: string;
+  position: string;
+  
+  // Rankings
+  overallRank: number; // Thứ hạng tổng thể
+  departmentRank: number; // Thứ hạng trong phòng ban
+  positionRank: number; // Thứ hạng theo vị trí
+  
+  // Scores
+  totalScore: number;
+  kpiScore: number;
+  reportScore: number;
+  behaviorScore: number;
+  
+  // Percentiles
+  percentile: number; // Phần trăm so với đồng nghiệp
+  quartile: 'Q1' | 'Q2' | 'Q3' | 'Q4'; // Tứ phân vị
+  
+  // Historical comparison
+  previousRank: number;
+  rankChange: number; // Thay đổi thứ hạng
+  trend: 'up' | 'down' | 'stable';
+  
+  createdAt: string;
+  updatedAt: string;
+};
+
+// Performance Comparison
+export type PerformanceComparison = {
+  id: string;
+  employeeId: string;
+  period: string;
+  
+  // Comparisons
+  vsDepartmentAverage: {
+    score: number;
+    percentage: number;
+    status: 'above' | 'below' | 'equal';
+  };
+  
+  vsCompanyAverage: {
+    score: number;
+    percentage: number;
+    status: 'above' | 'below' | 'equal';
+  };
+  
+  vsPreviousPeriod: {
+    score: number;
+    percentage: number;
+    trend: 'improving' | 'declining' | 'stable';
+  };
+  
+  vsTopPerformer: {
+    score: number;
+    percentage: number;
+    gap: number;
+  };
+  
+  createdAt: string;
+};
+
+// Performance History
+export type PerformanceHistory = {
+  id: string;
+  employeeId: string;
+  period: string;
+  
+  // Historical data
+  monthlyScores: {
+    month: string;
+    score: number;
+    rank: number;
+    percentile: number;
+  }[];
+  
+  quarterlyTrends: {
+    quarter: string;
+    averageScore: number;
+    trend: 'up' | 'down' | 'stable';
+    improvement: number;
+  }[];
+  
+  yearlySummary: {
+    year: string;
+    averageScore: number;
+    bestMonth: string;
+    worstMonth: string;
+    totalImprovement: number;
+  }[];
+  
+  // Milestones
+  achievements: {
+    date: string;
+    type: 'score_milestone' | 'rank_milestone' | 'improvement_milestone';
+    description: string;
+    value: number;
+  }[];
+  
+  createdAt: string;
+  updatedAt: string;
+};
 

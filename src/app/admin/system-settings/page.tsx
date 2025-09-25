@@ -1,11 +1,10 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Settings, 
-  Bell, 
-  Database, 
   FileText, 
   CreditCard,
   Shield,
@@ -17,74 +16,75 @@ import { useLanguage } from '@/context/language-context';
 import dynamic from 'next/dynamic';
 
 // Lazy load components for better performance
-const SettingsPage = dynamic(() => import('../settings/page'), { 
+const SettingsComponent = dynamic(() => import('@/components/settings-component'), { 
   loading: () => <div className="p-4">Loading Settings...</div>
 });
-const NotificationsPage = dynamic(() => import('../notifications/page'), { 
-  loading: () => <div className="p-4">Loading Notifications...</div>
-});
-const SeedDataPage = dynamic(() => import('../seed-data/page'), { 
-  loading: () => <div className="p-4">Loading Seed Data...</div>
-});
-const PoliciesOverviewPage = dynamic(() => import('../policies-overview/page'), { 
+const PoliciesOverviewComponent = dynamic(() => import('@/components/policies-overview-component'), { 
   loading: () => <div className="p-4">Loading Policies Overview...</div>
 });
-const InitPoliciesPage = dynamic(() => import('../init-policies/page'), { 
+const InitPoliciesComponent = dynamic(() => import('@/components/init-policies-component'), { 
   loading: () => <div className="p-4">Loading Init Policies...</div>
 });
-const GoogleDriveConfigPage = dynamic(() => import('../google-drive-config/page'), { 
+const GoogleDriveConfigComponent = dynamic(() => import('@/components/google-drive-config-component'), { 
   loading: () => <div className="p-4">Loading Google Drive Config...</div>
 });
-const PayrollIntegrationPage = dynamic(() => import('../payroll-integration/page'), { 
+const PayrollIntegrationComponent = dynamic(() => import('@/components/payroll-integration-component'), { 
   loading: () => <div className="p-4">Loading Payroll Integration...</div>
 });
 
 export default function SystemSettingsPage() {
   const { t } = useLanguage();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('settings');
+
+  // Handle query parameter for tab
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['settings', 'policies', 'init-policies', 'google-drive', 'payroll'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
+  // Handle tab change and update URL
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Update URL without causing a page reload
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', value);
+    router.replace(url.pathname + url.search, { scroll: false });
+  };
 
   const tabs = [
     {
       id: 'settings',
       label: t.nav.settings,
       icon: Settings,
-      component: SettingsPage
-    },
-    {
-      id: 'notifications',
-      label: 'Notifications',
-      icon: Bell,
-      component: NotificationsPage
+      component: SettingsComponent
     },
     {
       id: 'policies',
       label: 'Policies Overview',
       icon: Shield,
-      component: PoliciesOverviewPage
+      component: PoliciesOverviewComponent
     },
     {
       id: 'init-policies',
       label: 'Init Policies',
       icon: FileText,
-      component: InitPoliciesPage
+      component: InitPoliciesComponent
     },
     {
       id: 'google-drive',
       label: 'Google Drive Config',
       icon: FolderOpen,
-      component: GoogleDriveConfigPage
+      component: GoogleDriveConfigComponent
     },
     {
       id: 'payroll',
       label: 'Payroll Integration',
       icon: CreditCard,
-      component: PayrollIntegrationPage
-    },
-    {
-      id: 'seed-data',
-      label: 'Seed Data',
-      icon: Database,
-      component: SeedDataPage
+      component: PayrollIntegrationComponent
     }
   ];
 
@@ -92,8 +92,8 @@ export default function SystemSettingsPage() {
     <div className="h-full p-4 md:p-6 lg:p-8 space-y-6">
 
       {/* Tabs Section */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 gap-0 p-1 h-12 bg-gray-100 rounded-lg">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-6 gap-0 p-1 h-12 bg-gray-100 rounded-lg">
           {tabs.map((tab) => (
             <TabsTrigger 
               key={tab.id} 

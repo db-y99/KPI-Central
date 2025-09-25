@@ -12,7 +12,12 @@ import {
   UserCheck,
   Settings,
   BarChart3,
-  Gift
+  Gift,
+  Bell,
+  AlertTriangle,
+  XCircle,
+  Info,
+  FileText
 } from 'lucide-react';
 import type { Kpi, KpiRecord } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -22,10 +27,11 @@ import { Progress } from '@/components/ui/progress';
 import { DataContext } from '@/context/data-context';
 import { useLanguage } from '@/context/language-context';
 import Link from 'next/link';
+import SystemNotificationPanel from '@/components/system-notification-panel';
 
 
 export default function AdminDashboardPage() {
-  const { kpis, kpiRecords, employees, departments } = useContext(DataContext);
+  const { kpis, kpiRecords, employees, departments, notifications } = useContext(DataContext);
   const { t } = useLanguage();
 
   // Simple statistics for core functions
@@ -204,83 +210,9 @@ export default function AdminDashboardPage() {
         </Link>
       </div>
 
-      {/* Recent Activities */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="w-5 h-5 text-purple-600" />
-            {t.dashboard.recentActivities}
-          </CardTitle>
-          <CardDescription>
-            {t.dashboard.latestSystemActivities}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {/* Recent KPI Updates */}
-            {kpiRecords
-              .sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime())
-              .slice(0, 5)
-              .map((record) => {
-                const employee = employees.find(e => e.id === record.employeeId);
-                const kpi = kpis.find(k => k.id === record.kpiId);
 
-                let activityText = '';
-                let activityIcon = null;
-                let activityColor = '';
-
-                switch (record.status) {
-                  case 'approved':
-                    activityText = `${t.dashboard.completedKpiActivity} ${kpi?.name || 'Unknown KPI'}`;
-                    activityIcon = <CheckCircle className="w-4 h-4" />;
-                    activityColor = 'text-green-600';
-                    break;
-                  case 'awaiting_approval':
-                    activityText = `${t.dashboard.startedKpiActivity} ${kpi?.name || 'Unknown KPI'}`;
-                    activityIcon = <Target className="w-4 h-4" />;
-                    activityColor = 'text-blue-600';
-                    break;
-                  case 'pending':
-                    activityText = `${t.dashboard.assignedKpiActivity} ${kpi?.name || 'Unknown KPI'}`;
-                    activityIcon = <Plus className="w-4 h-4" />;
-                    activityColor = 'text-orange-600';
-                    break;
-                  default:
-                    activityText = `${t.dashboard.updatedKpiActivity} ${kpi?.name || 'Unknown KPI'}`;
-                    activityIcon = <Activity className="w-4 h-4" />;
-                    activityColor = 'text-gray-600';
-                }
-
-                return (
-                  <div key={record.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
-                    <div className={`mt-0.5 ${activityColor}`}>
-                      {activityIcon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{activityText}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {employee?.name || 'Unknown Employee'} • {new Date(record.updatedAt || record.createdAt).toLocaleDateString('vi-VN')}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-
-            {kpiRecords.length === 0 && (
-              <div className="text-center py-8">
-                <Activity className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">{t.dashboard.noRecentActivities}</p>
-              </div>
-            )}
-
-            <div className="pt-2 border-t">
-              <Button size="sm" className="w-full" variant="outline">
-                {t.dashboard.viewAllActivities}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* System Notifications & Quick Actions */}
+      <SystemNotificationPanel />
     </div>
   );
 }

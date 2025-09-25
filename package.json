@@ -13,12 +13,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "init:policies": "tsx src/scripts/init-policies-cli.ts",
-    "seed:policies": "tsx scripts/seed-data-cli.ts policies",
-    "seed:data": "tsx scripts/seed-data-cli.ts data",
-    "seed:reset": "tsx scripts/seed-data-cli.ts reset",
-    "seed:clear": "tsx scripts/seed-data-cli.ts clear",
-    "test:data": "tsx scripts/test-data.ts"
+    "init:policies": "tsx src/scripts/init-policies-cli.ts"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",
@@ -75,6 +70,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.1",
     "@types/node": "^20",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18",

@@ -1,438 +1,289 @@
-import { db } from './firebase';
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  orderBy, 
-  onSnapshot, 
-  Timestamp,
-  getDocs,
-  doc,
-  updateDoc,
-  writeBatch
-} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, doc, updateDoc, deleteDoc, query, where, orderBy, getDocs, writeBatch } from 'firebase/firestore';
+import { Notification, NotificationTemplate, NotificationSettings } from '@/types';
 
-export interface Notification {
-  id: string;
-  userId: string;
-  title: string;
-  message: string;
-  type: 'info' | 'warning' | 'error' | 'success';
-  category: 'kpi' | 'reward' | 'system' | 'approval' | 'alert';
-  isRead: boolean;
-  createdAt: string;
-  actionUrl?: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  metadata?: Record<string, any>;
-}
-
-export interface NotificationSettings {
-  id: string;
-  userId: string;
-  emailNotifications: boolean;
-  pushNotifications: boolean;
-  categories: {
-    kpi: boolean;
-    reward: boolean;
-    system: boolean;
-    approval: boolean;
-    alert: boolean;
-  };
-  frequency: 'immediate' | 'daily' | 'weekly';
-  quietHours: {
-    enabled: boolean;
-    start: string; // HH:mm format
-    end: string;   // HH:mm format
-  };
-}
-
-class NotificationService {
-  private static instance: NotificationService;
-  private listeners: Map<string, () => void> = new Map();
-
-  public static getInstance(): NotificationService {
-    if (!NotificationService.instance) {
-      NotificationService.instance = new NotificationService();
-    }
-    return NotificationService.instance;
+export class NotificationService {
+  /**
+   * Tạo thông báo mới
+   */
+  static async createNotification(notification: Omit<Notification, 'id' | 'createdAt' | 'readAt'>): Promise<string> {
+    const now = new Date().toISOString();
+    const newNotification: Omit<Notification, 'id'> = {
+      ...notification,
+      createdAt: now
+    };
+    
+    const docRef = await addDoc(collection(db, 'notifications'), newNotification);
+    return docRef.id;
   }
 
   /**
-   * Send notification to specific user
+   * Đánh dấu thông báo đã đọc
    */
-  async sendNotification(
-    userId: string,
-    title: string,
-    message: string,
-    type: Notification['type'] = 'info',
-    category: Notification['category'] = 'system',
-    priority: Notification['priority'] = 'medium',
-    actionUrl?: string,
-    metadata?: Record<string, any>
-  ): Promise<string> {
-    try {
-      const notification: Omit<Notification, 'id'> = {
-        userId,
-        title,
-        message,
-        type,
-        category,
-        isRead: false,
-        createdAt: new Date().toISOString(),
-        actionUrl,
-        priority,
-        metadata
-      };
-
-      const docRef = await addDoc(collection(db, 'notifications'), notification);
-      
-      // Send email notification if enabled
-      await this.sendEmailNotification(userId, notification);
-      
-      return docRef.id;
-    } catch (error) {
-      console.error('Error sending notification:', error);
-      throw error;
-    }
+  static async markNotificationAsRead(notificationId: string): Promise<void> {
+    const notificationRef = doc(db, 'notifications', notificationId);
+    const readAt = new Date().toISOString();
+    
+    await updateDoc(notificationRef, {
+      isRead: true,
+      readAt
+    });
   }
 
   /**
-   * Send notification to multiple users
+   * Đánh dấu tất cả thông báo của user đã đọc
    */
-  async sendBulkNotification(
-    userIds: string[],
-    title: string,
-    message: string,
-    type: Notification['type'] = 'info',
-    category: Notification['category'] = 'system',
-    priority: Notification['priority'] = 'medium',
-    actionUrl?: string,
-    metadata?: Record<string, any>
-  ): Promise<string[]> {
-    const promises = userIds.map(userId => 
-      this.sendNotification(userId, title, message, type, category, priority, actionUrl, metadata)
+  static async markAllNotificationsAsRead(userId: string): Promise<void> {
+    const notificationsQuery = query(
+      collection(db, 'notifications'),
+      where('userId', '==', userId),
+      where('isRead', '==', false)
     );
     
-    return Promise.all(promises);
-  }
-
-  /**
-   * Send notification to all users in a department
-   */
-  async sendDepartmentNotification(
-    departmentId: string,
-    title: string,
-    message: string,
-    type: Notification['type'] = 'info',
-    category: Notification['category'] = 'system',
-    priority: Notification['priority'] = 'medium',
-    actionUrl?: string,
-    metadata?: Record<string, any>
-  ): Promise<string[]> {
-    // This would require getting all users in department first
-    // For now, we'll implement a simplified version
-    const userIds = await this.getDepartmentUserIds(departmentId);
-    return this.sendBulkNotification(userIds, title, message, type, category, priority, actionUrl, metadata);
-  }
-
-  /**
-   * Get notifications for a user
-   */
-  async getUserNotifications(userId: string, limit: number = 50): Promise<Notification[]> {
-    try {
-      const q = query(
-        collection(db, 'notifications'),
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc')
-      );
-
-      const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Notification)).slice(0, limit);
-    } catch (error) {
-      console.error('Error getting user notifications:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Mark notification as read
-   */
-  async markAsRead(notificationId: string): Promise<void> {
-    try {
-      const notificationRef = doc(db, 'notifications', notificationId);
-      await updateDoc(notificationRef, {
+    const snapshot = await getDocs(notificationsQuery);
+    const batch = writeBatch(db);
+    const readAt = new Date().toISOString();
+    
+    snapshot.docs.forEach(doc => {
+      batch.update(doc.ref, {
         isRead: true,
-        readAt: new Date().toISOString()
+        readAt
       });
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-      throw error;
-    }
+    });
+    
+    await batch.commit();
   }
 
   /**
-   * Mark all notifications as read for a user
+   * Xóa thông báo
    */
-  async markAllAsRead(userId: string): Promise<void> {
-    try {
-      const q = query(
-        collection(db, 'notifications'),
-        where('userId', '==', userId),
-        where('isRead', '==', false)
-      );
-
-      const snapshot = await getDocs(q);
-      const batch = writeBatch(db);
-
-      snapshot.docs.forEach(doc => {
-        batch.update(doc.ref, {
-          isRead: true,
-          readAt: new Date().toISOString()
-        });
-      });
-
-      await batch.commit();
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-      throw error;
-    }
+  static async deleteNotification(notificationId: string): Promise<void> {
+    const notificationRef = doc(db, 'notifications', notificationId);
+    await deleteDoc(notificationRef);
   }
 
   /**
-   * Subscribe to real-time notifications for a user
+   * Lấy thông báo của user
    */
-  subscribeToUserNotifications(
-    userId: string,
-    callback: (notifications: Notification[]) => void
-  ): () => void {
-    const q = query(
+  static async getNotificationsByUser(userId: string): Promise<Notification[]> {
+    const notificationsQuery = query(
       collection(db, 'notifications'),
       where('userId', '==', userId),
       orderBy('createdAt', 'desc')
     );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const notifications = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Notification));
-      callback(notifications);
-    });
-
-    this.listeners.set(userId, unsubscribe);
-    return unsubscribe;
+    
+    const snapshot = await getDocs(notificationsQuery);
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    } as Notification));
   }
 
   /**
-   * Get notification settings for a user
+   * Đếm số thông báo chưa đọc
    */
-  async getNotificationSettings(userId: string): Promise<NotificationSettings | null> {
-    try {
-      const q = query(
-        collection(db, 'notificationSettings'),
-        where('userId', '==', userId)
-      );
+  static async getUnreadNotificationsCount(userId: string): Promise<number> {
+    const notificationsQuery = query(
+      collection(db, 'notifications'),
+      where('userId', '==', userId),
+      where('isRead', '==', false)
+    );
+    
+    const snapshot = await getDocs(notificationsQuery);
+    return snapshot.size;
+  }
 
-      const snapshot = await getDocs(q);
-      if (snapshot.empty) {
-        return null;
-      }
+  /**
+   * Tạo template thông báo
+   */
+  static async createNotificationTemplate(template: Omit<NotificationTemplate, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const now = new Date().toISOString();
+    const newTemplate: Omit<NotificationTemplate, 'id'> = {
+      ...template,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    const docRef = await addDoc(collection(db, 'notificationTemplates'), newTemplate);
+    return docRef.id;
+  }
 
-      return {
-        id: snapshot.docs[0].id,
-        ...snapshot.docs[0].data()
-      } as NotificationSettings;
-    } catch (error) {
-      console.error('Error getting notification settings:', error);
+  /**
+   * Gửi thông báo cho user dựa trên template
+   */
+  static async sendNotificationToUser(userId: string, templateId: string, data?: Record<string, any>): Promise<void> {
+    // Lấy template từ database
+    const templateQuery = query(
+      collection(db, 'notificationTemplates'),
+      where('id', '==', templateId)
+    );
+    
+    const templateSnapshot = await getDocs(templateQuery);
+    if (templateSnapshot.empty) {
+      throw new Error('Template not found');
+    }
+    
+    const template = templateSnapshot.docs[0].data() as NotificationTemplate;
+    
+    // Tạo thông báo từ template
+    const notification: Omit<Notification, 'id' | 'createdAt' | 'readAt'> = {
+      userId,
+      title: this.interpolateTemplate(template.title, data),
+      message: this.interpolateTemplate(template.message, data),
+      type: template.type,
+      category: template.category,
+      data,
+      isRead: false,
+      isImportant: template.isImportant || false,
+      actionUrl: template.actionUrl ? this.interpolateTemplate(template.actionUrl, data) : undefined,
+      actionText: template.actionText
+    };
+    
+    await this.createNotification(notification);
+  }
+
+  /**
+   * Gửi thông báo hàng loạt
+   */
+  static async sendBulkNotification(userIds: string[], templateId: string, data?: Record<string, any>): Promise<void> {
+    const batch = writeBatch(db);
+    const now = new Date().toISOString();
+    
+    // Lấy template
+    const templateQuery = query(
+      collection(db, 'notificationTemplates'),
+      where('id', '==', templateId)
+    );
+    
+    const templateSnapshot = await getDocs(templateQuery);
+    if (templateSnapshot.empty) {
+      throw new Error('Template not found');
+    }
+    
+    const template = templateSnapshot.docs[0].data() as NotificationTemplate;
+    
+    userIds.forEach(userId => {
+      const notificationRef = doc(collection(db, 'notifications'));
+      const notification: Omit<Notification, 'id'> = {
+        userId,
+        title: this.interpolateTemplate(template.title, data),
+        message: this.interpolateTemplate(template.message, data),
+        type: template.type,
+        category: template.category,
+        data,
+        isRead: false,
+        isImportant: template.isImportant || false,
+        actionUrl: template.actionUrl ? this.interpolateTemplate(template.actionUrl, data) : undefined,
+        actionText: template.actionText,
+        createdAt: now
+      };
+      
+      batch.set(notificationRef, notification);
+    });
+    
+    await batch.commit();
+  }
+
+  /**
+   * Cập nhật cài đặt thông báo
+   */
+  static async updateNotificationSettings(userId: string, settings: Partial<NotificationSettings>): Promise<void> {
+    const settingsRef = doc(db, 'notificationSettings', userId);
+    const now = new Date().toISOString();
+    
+    await updateDoc(settingsRef, {
+      ...settings,
+      updatedAt: now
+    });
+  }
+
+  /**
+   * Lấy cài đặt thông báo
+   */
+  static async getNotificationSettings(userId: string): Promise<NotificationSettings | null> {
+    const settingsRef = doc(db, 'notificationSettings', userId);
+    const settingsDoc = await getDocs(query(collection(db, 'notificationSettings'), where('userId', '==', userId)));
+    
+    if (settingsDoc.empty) {
       return null;
     }
+    
+    return settingsDoc.docs[0].data() as NotificationSettings;
   }
 
   /**
-   * Update notification settings for a user
+   * Tạo thông báo mẫu cho testing
    */
-  async updateNotificationSettings(
-    userId: string,
-    settings: Partial<NotificationSettings>
-  ): Promise<void> {
-    try {
-      const existingSettings = await this.getNotificationSettings(userId);
-      
-      if (existingSettings) {
-        const settingsRef = doc(db, 'notificationSettings', existingSettings.id);
-        await updateDoc(settingsRef, {
-          ...settings,
-          updatedAt: new Date().toISOString()
-        });
-      } else {
-        await addDoc(collection(db, 'notificationSettings'), {
-          userId,
-          ...settings,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
+  static async createSampleNotifications(userId: string): Promise<void> {
+    const sampleNotifications = [
+      {
+        userId,
+        title: 'Chào mừng đến với hệ thống KPI!',
+        message: 'Bạn đã đăng nhập thành công vào hệ thống quản lý KPI. Hãy bắt đầu cập nhật các chỉ số của mình.',
+        type: 'success' as const,
+        category: 'general' as const,
+        isRead: false,
+        isImportant: true,
+        actionUrl: '/employee/self-update-metrics',
+        actionText: 'Cập nhật KPI'
+      },
+      {
+        userId,
+        title: 'KPI tháng này sắp hết hạn',
+        message: 'Bạn có 3 KPI cần hoàn thành trong tuần này. Hãy kiểm tra và cập nhật tiến độ.',
+        type: 'warning' as const,
+        category: 'kpi_deadline_reminder' as const,
+        isRead: false,
+        isImportant: false,
+        actionUrl: '/employee/reports',
+        actionText: 'Xem chi tiết'
+      },
+      {
+        userId,
+        title: 'Báo cáo đã được phê duyệt',
+        message: 'Báo cáo tháng 12/2024 của bạn đã được phê duyệt bởi quản lý.',
+        type: 'success' as const,
+        category: 'report_approved' as const,
+        isRead: true,
+        isImportant: false,
+        actionUrl: '/employee/reports',
+        actionText: 'Xem báo cáo'
+      },
+      {
+        userId,
+        title: 'Cập nhật hệ thống',
+        message: 'Hệ thống đã được cập nhật với các tính năng mới. Hãy khám phá các tính năng mới.',
+        type: 'info' as const,
+        category: 'system_update' as const,
+        isRead: false,
+        isImportant: false,
+        actionUrl: '/admin/system-settings',
+        actionText: 'Tìm hiểu thêm'
       }
-    } catch (error) {
-      console.error('Error updating notification settings:', error);
-      throw error;
-    }
+    ];
+
+    const batch = writeBatch(db);
+    const now = new Date().toISOString();
+
+    sampleNotifications.forEach(notification => {
+      const notificationRef = doc(collection(db, 'notifications'));
+      batch.set(notificationRef, {
+        ...notification,
+        createdAt: now
+      });
+    });
+
+    await batch.commit();
   }
 
   /**
-   * Send email notification (placeholder for email service integration)
+   * Interpolate template với data
    */
-  private async sendEmailNotification(
-    userId: string,
-    notification: Omit<Notification, 'id'>
-  ): Promise<void> {
-    try {
-      const settings = await this.getNotificationSettings(userId);
-      
-      if (!settings?.emailNotifications) {
-        return;
-      }
-
-      // Check if it's quiet hours
-      if (settings.quietHours.enabled) {
-        const now = new Date();
-        const currentTime = now.getHours() * 60 + now.getMinutes();
-        const startTime = this.parseTime(settings.quietHours.start);
-        const endTime = this.parseTime(settings.quietHours.end);
-        
-        if (currentTime >= startTime && currentTime <= endTime) {
-          return;
-        }
-      }
-
-      // Here you would integrate with your email service (SendGrid, AWS SES, etc.)
-      console.log(`Sending email notification to user ${userId}:`, notification.title);
-      
-      // Placeholder for actual email sending
-      // await emailService.send({
-      //   to: userEmail,
-      //   subject: notification.title,
-      //   body: notification.message,
-      //   template: 'notification',
-      //   data: notification
-      // });
-    } catch (error) {
-      console.error('Error sending email notification:', error);
-    }
-  }
-
-  /**
-   * Get user IDs in a department (placeholder)
-   */
-  private async getDepartmentUserIds(departmentId: string): Promise<string[]> {
-    // This would query the employees collection
-    // For now, return empty array
-    return [];
-  }
-
-  /**
-   * Parse time string to minutes
-   */
-  private parseTime(timeString: string): number {
-    const [hours, minutes] = timeString.split(':').map(Number);
-    return hours * 60 + minutes;
-  }
-
-  /**
-   * Cleanup listeners
-   */
-  cleanup(): void {
-    this.listeners.forEach(unsubscribe => unsubscribe());
-    this.listeners.clear();
+  private static interpolateTemplate(template: string, data?: Record<string, any>): string {
+    if (!data) return template;
+    
+    return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+      return data[key] || match;
+    });
   }
 }
-
-export const notificationService = NotificationService.getInstance();
-
-// Helper functions for common notification types
-export const NotificationHelpers = {
-  /**
-   * Send KPI deadline reminder
-   */
-  async sendKpiDeadlineReminder(
-    userId: string,
-    kpiName: string,
-    deadline: string,
-    daysLeft: number
-  ): Promise<string> {
-    return notificationService.sendNotification(
-      userId,
-      'KPI Deadline Reminder',
-      `KPI "${kpiName}" deadline is approaching. ${daysLeft} days left until ${deadline}`,
-      'warning',
-      'kpi',
-      daysLeft <= 1 ? 'urgent' : 'medium',
-      '/employee',
-      { kpiName, deadline, daysLeft }
-    );
-  },
-
-  /**
-   * Send reward calculation notification
-   */
-  async sendRewardCalculationNotification(
-    userId: string,
-    period: string,
-    amount: number
-  ): Promise<string> {
-    return notificationService.sendNotification(
-      userId,
-      'Reward Calculation Ready',
-      `Your reward calculation for ${period} is ready. Amount: ${amount.toLocaleString()} VND`,
-      'success',
-      'reward',
-      'medium',
-      '/employee/rewards',
-      { period, amount }
-    );
-  },
-
-  /**
-   * Send approval request notification
-   */
-  async sendApprovalRequestNotification(
-    managerId: string,
-    employeeName: string,
-    requestType: string
-  ): Promise<string> {
-    return notificationService.sendNotification(
-      managerId,
-      'Approval Request',
-      `${employeeName} has submitted a ${requestType} for your approval`,
-      'info',
-      'approval',
-      'medium',
-      '/admin/approval',
-      { employeeName, requestType }
-    );
-  },
-
-  /**
-   * Send system alert
-   */
-  async sendSystemAlert(
-    userId: string,
-    title: string,
-    message: string,
-    priority: Notification['priority'] = 'high'
-  ): Promise<string> {
-    return notificationService.sendNotification(
-      userId,
-      title,
-      message,
-      'error',
-      'system',
-      priority,
-      undefined,
-      { isSystemAlert: true }
-    );
-  }
-};

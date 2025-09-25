@@ -52,6 +52,7 @@ export const en = {
     personalReports: 'Personal Reports',
     notifications: 'Notification Management',
     calendar: 'KPI Calendar',
+    notificationBell: 'Notifications',
   },
 
   // Auth
@@ -145,6 +146,9 @@ export const en = {
     employeesEligible: 'employees eligible for evaluation',
     startEvaluation: 'Start Evaluation',
     noPriorityTasks: 'No priority tasks need attention',
+    // KPI Status mới
+    notStarted: 'Not Started',
+    submitted: 'Submitted',
     // Recent Activities
     recentActivities: 'Recent Activities',
     latestSystemActivities: 'Latest system activities and updates',

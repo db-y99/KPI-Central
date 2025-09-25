@@ -52,6 +52,7 @@ export const vi = {
     personalReports: 'Báo cáo cá nhân',
     notifications: 'Quản lý Thông báo',
     calendar: 'Lịch KPI',
+    notificationBell: 'Thông báo',
   },
 
   // Auth
@@ -145,6 +146,9 @@ export const vi = {
     employeesEligible: 'nhân viên đủ điều kiện đánh giá',
     startEvaluation: 'Bắt đầu đánh giá',
     noPriorityTasks: 'Không có công việc ưu tiên nào cần xử lý',
+    // KPI Status mới
+    notStarted: 'Chưa bắt đầu',
+    submitted: 'Đã nộp',
     // Recent Activities
     recentActivities: 'Hoạt động gần đây',
     latestSystemActivities: 'Các hoạt động và cập nhật gần nhất của hệ thống',

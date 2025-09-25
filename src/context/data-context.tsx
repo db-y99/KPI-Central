@@ -15,6 +15,8 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { SystemNotificationService } from '@/lib/system-notification-service';
+import { KpiStatusService, KpiStatus } from '@/lib/kpi-status-service';
 import type { 
   Department, 
   Employee, 
@@ -45,7 +47,10 @@ import type {
   PerformanceBreakdown,
   PerformancePrediction,
   SelfServiceSettings,
-  PerformanceInsight
+  PerformanceInsight,
+  EmployeeRanking,
+  PerformanceComparison,
+  PerformanceHistory
 } from '@/types';
 import { AuthContext } from './auth-context';
 
@@ -75,6 +80,9 @@ interface DataContextType {
   performancePredictions: PerformancePrediction[];
   selfServiceSettings: SelfServiceSettings[];
   performanceInsights: PerformanceInsight[];
+  employeeRankings: EmployeeRanking[];
+  performanceComparisons: PerformanceComparison[];
+  performanceHistories: PerformanceHistory[];
   loading: boolean;
   addEmployee: () => Promise<void>; // Simplified, form now calls server action
   updateEmployee: (employeeId: string, updates: Partial<Employee>) => Promise<void>;
@@ -177,6 +185,22 @@ interface DataContextType {
   getEmployeePoints: (employeeId: string) => EmployeePoint[];
   getPositionMetrics: (position: string) => PositionConfig | undefined;
   initializeRewardPrograms: () => Promise<void>; // Initialize default reward programs
+  
+  // Employee Ranking Functions
+  calculateEmployeeRankings: (period: string) => Promise<void>;
+  getEmployeeRanking: (employeeId: string, period: string) => EmployeeRanking | undefined;
+  getDepartmentRankings: (departmentId: string, period: string) => EmployeeRanking[];
+  getTopPerformers: (period: string, limit?: number) => EmployeeRanking[];
+  
+  // Performance Comparison Functions
+  calculatePerformanceComparisons: (period: string) => Promise<void>;
+  getPerformanceComparison: (employeeId: string, period: string) => PerformanceComparison | undefined;
+  
+  // Performance History Functions
+  updatePerformanceHistory: (employeeId: string, period: string) => Promise<void>;
+  getPerformanceHistory: (employeeId: string) => PerformanceHistory | undefined;
+  getPerformanceTrend: (employeeId: string, months?: number) => PerformanceHistory | undefined;
+  
   view: ViewType;
   setView: (view: ViewType) => void;
 }
@@ -204,6 +228,9 @@ export const DataContext = createContext<DataContextType>({
   performancePredictions: [],
   selfServiceSettings: [],
   performanceInsights: [],
+  employeeRankings: [],
+  performanceComparisons: [],
+  performanceHistories: [],
   loading: true,
   addEmployee: async () => {},
   updateEmployee: async () => {},
@@ -295,6 +322,22 @@ export const DataContext = createContext<DataContextType>({
   getEmployeePoints: () => [],
   getPositionMetrics: () => undefined,
   initializeRewardPrograms: async () => {},
+  
+  // Employee Ranking Functions
+  calculateEmployeeRankings: async () => {},
+  getEmployeeRanking: () => undefined,
+  getDepartmentRankings: () => [],
+  getTopPerformers: () => [],
+  
+  // Performance Comparison Functions
+  calculatePerformanceComparisons: async () => {},
+  getPerformanceComparison: () => undefined,
+  
+  // Performance History Functions
+  updatePerformanceHistory: async () => {},
+  getPerformanceHistory: () => undefined,
+  getPerformanceTrend: () => undefined,
+  
   view: 'grid',
   setView: () => {},
 });
@@ -323,6 +366,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [performancePredictions, setPerformancePredictions] = useState<PerformancePrediction[]>([]);
   const [selfServiceSettings, setSelfServiceSettings] = useState<SelfServiceSettings[]>([]);
   const [performanceInsights, setPerformanceInsights] = useState<PerformanceInsight[]>([]);
+  const [employeeRankings, setEmployeeRankings] = useState<EmployeeRanking[]>([]);
+  const [performanceComparisons, setPerformanceComparisons] = useState<PerformanceComparison[]>([]);
+  const [performanceHistories, setPerformanceHistories] = useState<PerformanceHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<ViewType>('grid');
 
@@ -349,7 +395,10 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
           performanceBreakdownsSnap,
           performancePredictionsSnap,
           selfServiceSettingsSnap,
-          performanceInsightsSnap
+          performanceInsightsSnap,
+          employeeRankingsSnap,
+          performanceComparisonsSnap,
+          performanceHistoriesSnap
         ] = await Promise.all([
             getDocs(collection(db, 'departments')),
             getDocs(collection(db, 'employees')),
@@ -371,6 +420,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
             getDocs(collection(db, 'performancePredictions')),
             getDocs(collection(db, 'selfServiceSettings')),
             getDocs(collection(db, 'performanceInsights')),
+            getDocs(collection(db, 'employeeRankings')),
+            getDocs(collection(db, 'performanceComparisons')),
+            getDocs(collection(db, 'performanceHistories')),
         ]);
         
         const depts = deptsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Department));
@@ -395,6 +447,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         const performancePredictionsData = performancePredictionsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as PerformancePrediction));
         const selfServiceSettingsData = selfServiceSettingsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as SelfServiceSettings));
         const performanceInsightsData = performanceInsightsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as PerformanceInsight));
+        const employeeRankingsData = employeeRankingsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as EmployeeRanking));
+        const performanceComparisonsData = performanceComparisonsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as PerformanceComparison));
+        const performanceHistoriesData = performanceHistoriesSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as PerformanceHistory));
 
         setDepartments(depts);
         setEmployees(emps);
@@ -416,6 +471,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         setPerformancePredictions(performancePredictionsData);
         setSelfServiceSettings(selfServiceSettingsData);
         setPerformanceInsights(performanceInsightsData);
+        setEmployeeRankings(employeeRankingsData);
+        setPerformanceComparisons(performanceComparisonsData);
+        setPerformanceHistories(performanceHistoriesData);
     } catch (error) {
         console.error("Error fetching initial data: ", error);
     } finally {
@@ -429,7 +487,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     if (user) {
       fetchData();
     } else {
-      // If no user, clear data and stop loading
+      // If no user, clear data and stop loading immediately
       setLoading(false);
       setDepartments([]);
       setEmployees([]);
@@ -453,6 +511,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       setPerformancePredictions([]);
       setSelfServiceSettings([]);
       setPerformanceInsights([]);
+      setEmployeeRankings([]);
+      setPerformanceComparisons([]);
+      setPerformanceHistories([]);
     }
   }, [user]);
 
@@ -585,9 +646,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const newRecord = {
         ...assignment,
         actual: 0,
-        status: 'pending',
+        status: 'not_started' as KpiStatus, // Sử dụng trạng thái mới
         submittedReport: '',
-        approvalComment: ''
+        approvalComment: '',
+        statusHistory: [{
+          status: 'not_started' as KpiStatus,
+          changedAt: new Date().toISOString(),
+          changedBy: user?.uid || 'system',
+          comment: 'KPI được giao'
+        }],
+        lastStatusChange: new Date().toISOString(),
+        lastStatusChangedBy: user?.uid || 'system'
     } as const;
     
     console.log('Saving KPI record to Firestore:', newRecord);
@@ -605,23 +674,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const employee = employees.find(e => e.uid === assignment.employeeId);
     
     if (employee && kpi) {
-      await createNotification({
-        userId: assignment.employeeId,
-        title: 'KPI mới được giao',
-        message: `Bạn đã được giao KPI "${kpi.name}" với chỉ tiêu ${assignment.target} ${kpi.unit}. Hạn chót: ${new Date(assignment.endDate).toLocaleDateString('vi-VN')}`,
-        type: 'kpi',
-        category: 'kpi_assigned',
-        data: {
-          kpiRecordId: savedRecord.id,
-          kpiId: assignment.kpiId,
-          target: assignment.target,
-          endDate: assignment.endDate
-        },
-        isRead: false,
-        isImportant: true,
-        actionUrl: '/employee',
-        actionText: 'Xem KPI'
-      });
+      await SystemNotificationService.notifyKpiAssigned(savedRecord, employee, kpi.name);
     }
   }
 
@@ -629,6 +682,44 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     recordId: string,
     updates: Partial<KpiRecord>
   ) => {
+    // Tìm record hiện tại
+    const currentRecord = kpiRecords.find(r => r.id === recordId);
+    if (!currentRecord) {
+      throw new Error('KPI record not found');
+    }
+
+    // Validate status transition nếu có thay đổi status
+    if (updates.status && updates.status !== currentRecord.status) {
+      const validation = KpiStatusService.validateTransition(
+        currentRecord,
+        updates.status as KpiStatus,
+        user?.role || '',
+        {
+          actual: updates.actual,
+          submittedReport: updates.submittedReport
+        }
+      );
+
+      if (!validation.isValid) {
+        throw new Error(validation.error || 'Invalid status transition');
+      }
+
+      // Thêm vào status history
+      const statusHistoryEntry = {
+        status: updates.status as KpiStatus,
+        changedAt: new Date().toISOString(),
+        changedBy: user?.uid || 'system',
+        comment: updates.approvalComment || ''
+      };
+
+      updates.statusHistory = [
+        ...(currentRecord.statusHistory || []),
+        statusHistoryEntry
+      ];
+      updates.lastStatusChange = new Date().toISOString();
+      updates.lastStatusChangedBy = user?.uid || 'system';
+    }
+
     const recordRef = doc(db, 'kpiRecords', recordId);
     await updateDoc(recordRef, updates);
     setKpiRecords(prev =>
@@ -637,15 +728,24 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const submitReport = async (recordId: string, reportName: string) => {
-    await updateKpiRecord(recordId, { submittedReport: reportName, status: 'awaiting_approval' });
+    await updateKpiRecord(recordId, { 
+      submittedReport: reportName, 
+      status: 'submitted' as KpiStatus 
+    });
   };
 
   const approveKpi = async (recordId: string) => {
-    await updateKpiRecord(recordId, { status: 'approved', approvalComment: '' });
+    await updateKpiRecord(recordId, { 
+      status: 'approved' as KpiStatus, 
+      approvalComment: '' 
+    });
   };
 
   const rejectKpi = async (recordId: string, comment: string) => {
-     await updateKpiRecord(recordId, { status: 'rejected', approvalComment: comment });
+     await updateKpiRecord(recordId, { 
+       status: 'rejected' as KpiStatus, 
+       approvalComment: comment 
+     });
   };
 
   // Reward System Functions
@@ -980,6 +1080,296 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Employee Ranking Functions
+  const calculateEmployeeRankings = async (period: string) => {
+    try {
+      // Get all employees (non-admin)
+      const nonAdminEmployees = employees.filter(emp => emp.role !== 'admin');
+      
+      // Calculate scores for each employee
+      const employeeScores = nonAdminEmployees.map(employee => {
+        const employeeKpis = kpiRecords.filter(record => 
+          record.employeeId === employee.uid && record.period === period
+        );
+        
+        // Calculate total score based on KPI completion
+        const totalScore = employeeKpis.reduce((sum, record) => {
+          if (record.status === 'approved' && record.target > 0) {
+            const completionRate = (record.actual / record.target) * 100;
+            return sum + Math.min(100, completionRate);
+          }
+          return sum;
+        }, 0);
+        
+        const averageScore = employeeKpis.length > 0 ? totalScore / employeeKpis.length : 0;
+        
+        return {
+          employeeId: employee.uid!,
+          departmentId: employee.departmentId,
+          position: employee.position,
+          totalScore: Math.round(averageScore),
+          kpiScore: Math.round(averageScore),
+          reportScore: 0, // Placeholder
+          behaviorScore: 0, // Placeholder
+        };
+      });
+      
+      // Sort by total score (descending)
+      employeeScores.sort((a, b) => b.totalScore - a.totalScore);
+      
+      // Calculate rankings
+      const rankings: Omit<EmployeeRanking, 'id'>[] = employeeScores.map((score, index) => {
+        const overallRank = index + 1;
+        const departmentRank = employeeScores
+          .filter(s => s.departmentId === score.departmentId)
+          .findIndex(s => s.employeeId === score.employeeId) + 1;
+        const positionRank = employeeScores
+          .filter(s => s.position === score.position)
+          .findIndex(s => s.employeeId === score.employeeId) + 1;
+        
+        // Calculate percentile
+        const percentile = Math.round(((employeeScores.length - index) / employeeScores.length) * 100);
+        
+        // Determine quartile
+        let quartile: 'Q1' | 'Q2' | 'Q3' | 'Q4';
+        if (percentile >= 75) quartile = 'Q1';
+        else if (percentile >= 50) quartile = 'Q2';
+        else if (percentile >= 25) quartile = 'Q3';
+        else quartile = 'Q4';
+        
+        return {
+          employeeId: score.employeeId,
+          period,
+          departmentId: score.departmentId,
+          position: score.position,
+          overallRank,
+          departmentRank,
+          positionRank,
+          totalScore: score.totalScore,
+          kpiScore: score.kpiScore,
+          reportScore: score.reportScore,
+          behaviorScore: score.behaviorScore,
+          percentile,
+          quartile,
+          previousRank: 0, // Placeholder
+          rankChange: 0, // Placeholder
+          trend: 'stable' as const,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+      });
+      
+      // Save rankings to database
+      const batch = writeBatch(db);
+      rankings.forEach(ranking => {
+        const docRef = doc(collection(db, 'employeeRankings'));
+        batch.set(docRef, ranking);
+      });
+      
+      await batch.commit();
+      
+      // Update local state
+      const rankingsWithIds = rankings.map((ranking, index) => ({
+        ...ranking,
+        id: `ranking_${period}_${index}`,
+      })) as EmployeeRanking[];
+      
+      setEmployeeRankings(prev => [
+        ...prev.filter(r => r.period !== period),
+        ...rankingsWithIds
+      ]);
+      
+    } catch (error) {
+      console.error('Error calculating employee rankings:', error);
+    }
+  };
+
+  const getEmployeeRanking = (employeeId: string, period: string): EmployeeRanking | undefined => {
+    return employeeRankings.find(r => r.employeeId === employeeId && r.period === period);
+  };
+
+  const getDepartmentRankings = (departmentId: string, period: string): EmployeeRanking[] => {
+    return employeeRankings
+      .filter(r => r.departmentId === departmentId && r.period === period)
+      .sort((a, b) => a.departmentRank - b.departmentRank);
+  };
+
+  const getTopPerformers = (period: string, limit: number = 10): EmployeeRanking[] => {
+    return employeeRankings
+      .filter(r => r.period === period)
+      .sort((a, b) => a.overallRank - b.overallRank)
+      .slice(0, limit);
+  };
+
+  // Performance Comparison Functions
+  const calculatePerformanceComparisons = async (period: string) => {
+    try {
+      const rankings = employeeRankings.filter(r => r.period === period);
+      
+      if (rankings.length === 0) return;
+      
+      // Calculate averages
+      const totalScores = rankings.map(r => r.totalScore);
+      const departmentAverages = departments.map(dept => {
+        const deptRankings = rankings.filter(r => r.departmentId === dept.id);
+        const avgScore = deptRankings.length > 0 
+          ? deptRankings.reduce((sum, r) => sum + r.totalScore, 0) / deptRankings.length 
+          : 0;
+        return { departmentId: dept.id, average: avgScore };
+      });
+      
+      const companyAverage = totalScores.reduce((sum, score) => sum + score, 0) / totalScores.length;
+      const topPerformerScore = Math.max(...totalScores);
+      
+      // Create comparisons for each employee
+      const comparisons: Omit<PerformanceComparison, 'id'>[] = rankings.map(ranking => {
+        const deptAvg = departmentAverages.find(d => d.departmentId === ranking.departmentId)?.average || 0;
+        
+        return {
+          employeeId: ranking.employeeId,
+          period,
+          vsDepartmentAverage: {
+            score: ranking.totalScore,
+            percentage: deptAvg > 0 ? Math.round((ranking.totalScore / deptAvg) * 100) : 0,
+            status: ranking.totalScore > deptAvg ? 'above' : ranking.totalScore < deptAvg ? 'below' : 'equal',
+          },
+          vsCompanyAverage: {
+            score: ranking.totalScore,
+            percentage: Math.round((ranking.totalScore / companyAverage) * 100),
+            status: ranking.totalScore > companyAverage ? 'above' : ranking.totalScore < companyAverage ? 'below' : 'equal',
+          },
+          vsPreviousPeriod: {
+            score: ranking.totalScore,
+            percentage: 100, // Placeholder
+            trend: 'stable' as const,
+          },
+          vsTopPerformer: {
+            score: ranking.totalScore,
+            percentage: Math.round((ranking.totalScore / topPerformerScore) * 100),
+            gap: topPerformerScore - ranking.totalScore,
+          },
+          createdAt: new Date().toISOString(),
+        };
+      });
+      
+      // Save comparisons to database
+      const batch = writeBatch(db);
+      comparisons.forEach(comparison => {
+        const docRef = doc(collection(db, 'performanceComparisons'));
+        batch.set(docRef, comparison);
+      });
+      
+      await batch.commit();
+      
+      // Update local state
+      const comparisonsWithIds = comparisons.map((comparison, index) => ({
+        ...comparison,
+        id: `comparison_${period}_${index}`,
+      })) as PerformanceComparison[];
+      
+      setPerformanceComparisons(prev => [
+        ...prev.filter(c => c.period !== period),
+        ...comparisonsWithIds
+      ]);
+      
+    } catch (error) {
+      console.error('Error calculating performance comparisons:', error);
+    }
+  };
+
+  const getPerformanceComparison = (employeeId: string, period: string): PerformanceComparison | undefined => {
+    return performanceComparisons.find(c => c.employeeId === employeeId && c.period === period);
+  };
+
+  // Performance History Functions
+  const updatePerformanceHistory = async (employeeId: string, period: string) => {
+    try {
+      const employeeRankingsData = employeeRankings.filter(r => r.employeeId === employeeId);
+      
+      if (employeeRankingsData.length === 0) return;
+      
+      // Group by month
+      const monthlyScores = employeeRankingsData.map(ranking => ({
+        month: ranking.period,
+        score: ranking.totalScore,
+        rank: ranking.overallRank,
+        percentile: ranking.percentile,
+      }));
+      
+      // Calculate quarterly trends
+      const quarterlyTrends = [];
+      const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+      quarters.forEach(quarter => {
+        const quarterRankings = employeeRankingsData.filter(r => r.period.includes(quarter));
+        if (quarterRankings.length > 0) {
+          const avgScore = quarterRankings.reduce((sum, r) => sum + r.totalScore, 0) / quarterRankings.length;
+          quarterlyTrends.push({
+            quarter,
+            averageScore: Math.round(avgScore),
+            trend: 'stable' as const,
+            improvement: 0,
+          });
+        }
+      });
+      
+      // Calculate yearly summary
+      const year = period.split('-')[0];
+      const yearRankings = employeeRankingsData.filter(r => r.period.startsWith(year));
+      const yearlySummary = yearRankings.length > 0 ? [{
+        year,
+        averageScore: Math.round(yearRankings.reduce((sum, r) => sum + r.totalScore, 0) / yearRankings.length),
+        bestMonth: yearRankings.reduce((best, r) => r.totalScore > best.totalScore ? r : best).period,
+        worstMonth: yearRankings.reduce((worst, r) => r.totalScore < worst.totalScore ? r : worst).period,
+        totalImprovement: 0,
+      }] : [];
+      
+      const history: Omit<PerformanceHistory, 'id'> = {
+        employeeId,
+        period,
+        monthlyScores,
+        quarterlyTrends,
+        yearlySummary,
+        achievements: [], // Placeholder
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      // Save to database
+      const docRef = await addDoc(collection(db, 'performanceHistories'), history);
+      const savedHistory = { ...history, id: docRef.id } as PerformanceHistory;
+      
+      setPerformanceHistories(prev => [
+        ...prev.filter(h => h.employeeId !== employeeId || h.period !== period),
+        savedHistory
+      ]);
+      
+    } catch (error) {
+      console.error('Error updating performance history:', error);
+    }
+  };
+
+  const getPerformanceHistory = (employeeId: string): PerformanceHistory | undefined => {
+    return performanceHistories.find(h => h.employeeId === employeeId);
+  };
+
+  const getPerformanceTrend = (employeeId: string, months: number = 12): PerformanceHistory | undefined => {
+    const history = getPerformanceHistory(employeeId);
+    if (!history) return undefined;
+    
+    // Filter to last N months
+    const cutoffDate = new Date();
+    cutoffDate.setMonth(cutoffDate.getMonth() - months);
+    
+    const filteredHistory = {
+      ...history,
+      monthlyScores: history.monthlyScores.filter(score => 
+        new Date(score.month) >= cutoffDate
+      ),
+    };
+    
+    return filteredHistory;
+  };
+
   // Report System Functions
   const createReport = async (report: Omit<Report, 'id' | 'createdAt' | 'updatedAt' | 'version'>): Promise<string> => {
     const now = new Date().toISOString();
@@ -1027,29 +1417,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const report = reports.find(r => r.id === reportId);
     if (report) {
       const employee = employees.find(e => e.uid === report.employeeId);
-      const kpi = kpis.find(k => k.id === report.kpiId);
       
-      // Get all admin users
-      const adminUsers = employees.filter(e => e.role === 'admin');
-      
-      // Create notifications for all admins
-      for (const admin of adminUsers) {
-        await createNotification({
-          userId: admin.uid || '',
-          title: 'Báo cáo mới cần duyệt',
-          message: `${employee?.name || 'Employee'} đã nộp báo cáo "${report.title}" cho KPI "${kpi?.name || 'Unknown'}"`,
-          type: 'report',
-          category: 'report_submitted',
-          data: {
-            reportId: report.id,
-            employeeId: report.employeeId,
-            kpiId: report.kpiId
-          },
-          isRead: false,
-          isImportant: true,
-          actionUrl: `/admin/approval`,
-          actionText: 'Xem báo cáo'
-        });
+      if (employee) {
+        await SystemNotificationService.notifyReportSubmitted(report, employee);
       }
     }
   };
@@ -1097,24 +1467,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // Create notification for employee
     const report = reports.find(r => r.id === reportId);
     if (report) {
-      const kpi = kpis.find(k => k.id === report.kpiId);
+      const employee = employees.find(e => e.uid === report.employeeId);
       
-      await createNotification({
-        userId: report.employeeId,
-        title: 'Báo cáo bị từ chối',
-        message: `Báo cáo "${report.title}" cho KPI "${kpi?.name || 'Unknown'}" đã bị từ chối. Lý do: ${feedback}`,
-        type: 'error',
-        category: 'report_rejected',
-        data: {
-          reportId: report.id,
-          kpiId: report.kpiId,
-          feedback
-        },
-        isRead: false,
-        isImportant: true,
-        actionUrl: `/employee/reports`,
-        actionText: 'Xem báo cáo'
-      });
+      if (employee) {
+        await SystemNotificationService.notifyReportRejected(report, employee, feedback);
+      }
     }
   };
 
@@ -1129,24 +1486,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // Create notification for employee
     const report = reports.find(r => r.id === reportId);
     if (report) {
-      const kpi = kpis.find(k => k.id === report.kpiId);
+      const employee = employees.find(e => e.uid === report.employeeId);
       
-      await createNotification({
-        userId: report.employeeId,
-        title: 'Báo cáo cần sửa đổi',
-        message: `Báo cáo "${report.title}" cho KPI "${kpi?.name || 'Unknown'}" cần được sửa đổi. Yêu cầu: ${feedback}`,
-        type: 'warning',
-        category: 'report_revision_requested',
-        data: {
-          reportId: report.id,
-          kpiId: report.kpiId,
-          feedback
-        },
-        isRead: false,
-        isImportant: true,
-        actionUrl: `/employee/reports`,
-        actionText: 'Sửa báo cáo'
-      });
+      if (employee) {
+        await SystemNotificationService.notifyReportRejected(report, employee, feedback);
+      }
     }
   };
 
@@ -2092,6 +2436,22 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     getEmployeePoints,
     getPositionMetrics,
     initializeRewardPrograms,
+    
+    // Employee Ranking Functions
+    calculateEmployeeRankings,
+    getEmployeeRanking,
+    getDepartmentRankings,
+    getTopPerformers,
+    
+    // Performance Comparison Functions
+    calculatePerformanceComparisons,
+    getPerformanceComparison,
+    
+    // Performance History Functions
+    updatePerformanceHistory,
+    getPerformanceHistory,
+    getPerformanceTrend,
+    
     view,
     setView,
   };

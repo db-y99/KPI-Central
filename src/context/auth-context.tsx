@@ -62,20 +62,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setFirebaseUser(fbUser);
       if (fbUser) {
         setLoading(true);
-        // User is signed in, get their profile from Firestore
-        const userDocRef = doc(db, 'employees', fbUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          // IMPORTANT: Add the uid to the user object from firestore data
-          const userData = { ...userDoc.data(), uid: fbUser.uid } as Employee;
-          console.log('📖 User found in Firestore via onAuthStateChanged:', userData);
-          setUser(userData);
-        } else {
-          // This case might happen if a user exists in Auth but not Firestore.
-          // For this app, we treat them as not logged in.
-          console.log('❌ User not found in Firestore, signing out...');
+        try {
+          // User is signed in, get their profile from Firestore
+          const userDocRef = doc(db, 'employees', fbUser.uid);
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists()) {
+            // IMPORTANT: Add the uid to the user object from firestore data
+            const userData = { ...userDoc.data(), uid: fbUser.uid } as Employee;
+            console.log('📖 User found in Firestore via onAuthStateChanged:', userData);
+            setUser(userData);
+          } else {
+            // This case might happen if a user exists in Auth but not Firestore.
+            // For this app, we treat them as not logged in.
+            console.log('❌ User not found in Firestore, signing out...');
+            setUser(null);
+            await signOut(firebaseAuth); // Sign out the invalid user
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
           setUser(null);
-          await signOut(firebaseAuth); // Sign out the invalid user
         }
       } else {
         // User is signed out

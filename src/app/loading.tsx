@@ -14,6 +14,9 @@ export default function Loading() {
           <p className="text-gray-600">Đang tải...</p>
         </div>
         <Loader2 className="h-8 w-8 animate-spin text-black mx-auto" />
+        <div className="text-sm text-gray-500">
+          Vui lòng chờ trong giây lát...
+        </div>
       </div>
     </div>
   );

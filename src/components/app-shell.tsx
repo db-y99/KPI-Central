@@ -21,7 +21,6 @@ import {
   FileText,
   TrendingUp,
   Building2,
-  Bell,
   Calendar,
   UserPlus,
   Database,
@@ -42,9 +41,9 @@ import DashboardHeader from './dashboard-header';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Separator } from './ui/separator';
 import { LanguageSwitcher } from './language-switcher';
-import NotificationSystem from './notification-system';
 import { ThemeToggle } from './theme-toggle';
 import Logo from './logo';
+import { useNotificationScheduler } from '@/hooks/use-notification-scheduler';
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -53,6 +52,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(true);
   const isMobile = useIsMobile();
+
+  // Chạy notification scheduler
+  useNotificationScheduler();
 
   const handleLogout = () => {
     logout();
@@ -127,8 +129,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 pathname.startsWith('/admin/google-drive-config') ||
                 pathname.startsWith('/admin/payroll-integration') ||
                 pathname.startsWith('/admin/policies-overview') ||
-                pathname.startsWith('/admin/init-policies') ||
-                pathname.startsWith('/admin/seed-data'),
+                pathname.startsWith('/admin/init-policies'),
       key: 'system-settings',
     }] : []),
     // Profile (Employee only)
@@ -289,7 +290,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
          <DashboardHeader />
          <div className="flex items-center gap-2">
            <ThemeToggle />
-           <NotificationSystem />
            <LanguageSwitcher />
          </div>
        </header>
@@ -313,8 +313,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
             </SheetContent>
           </Sheet>
           <Logo size="md" showText={true} />
-           {/* We need to render a slimmed down header for mobile */}
-           <DashboardHeader />
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <ThemeToggle />
+            <LanguageSwitcher />
+          </div>
         </header>
         <div className="flex flex-1 flex-col overflow-hidden">
           <main className="flex-1 overflow-y-auto bg-background">

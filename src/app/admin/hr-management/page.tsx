@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Building2, UserCheck } from 'lucide-react';
@@ -9,29 +10,48 @@ import { useLanguage } from '@/context/language-context';
 import dynamic from 'next/dynamic';
 
 // Lazy load components for better performance
-const EmployeesPage = dynamic(() => import('../employees/page'), { 
+const EmployeesComponent = dynamic(() => import('@/components/employees-component'), { 
   loading: () => <div className="p-4">Loading Employees...</div>
 });
-const DepartmentsPage = dynamic(() => import('../departments/page'), { 
+const DepartmentsComponent = dynamic(() => import('@/components/departments-component'), { 
   loading: () => <div className="p-4">Loading Departments...</div>
 });
 
 export default function HrManagementPage() {
   const { t } = useLanguage();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('employees');
+
+  // Handle query parameter for tab
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['employees', 'departments'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
+
+  // Handle tab change and update URL
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Update URL without causing a page reload
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', value);
+    router.replace(url.pathname + url.search, { scroll: false });
+  };
 
   const tabs = [
     {
       id: 'employees',
       label: t.nav.allEmployees,
       icon: Users,
-      component: EmployeesPage
+      component: EmployeesComponent
     },
     {
       id: 'departments',
       label: t.departments.title,
       icon: Building2,
-      component: DepartmentsPage
+      component: DepartmentsComponent
     }
   ];
 
@@ -39,7 +59,7 @@ export default function HrManagementPage() {
     <div className="h-full p-4 md:p-6 lg:p-8 space-y-6">
 
       {/* Tabs Section */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
         <TabsList className="grid w-full grid-cols-2 gap-0 p-1 h-12 bg-gray-100 rounded-lg">
           {tabs.map((tab) => (
             <TabsTrigger 

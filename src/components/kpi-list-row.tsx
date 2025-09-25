@@ -13,20 +13,23 @@ import { AuthContext } from '@/context/auth-context';
 import { DataContext } from '@/context/data-context';
 import { useLanguage } from '@/context/language-context';
 import { useToast } from '@/hooks/use-toast';
-import { PenSquare, Upload, ThumbsUp, ThumbsDown, Info, AlertCircle } from 'lucide-react';
+import { PenSquare, Upload, ThumbsUp, ThumbsDown, Info, AlertCircle, Clock, Play, CheckCircle, XCircle } from 'lucide-react';
 import type { Kpi, KpiRecord } from '@/types';
+import { KpiStatusService, KpiStatus } from '@/lib/kpi-status-service';
 
 interface KpiListRowProps {
   record: Kpi & KpiRecord & { employeeName?: string };
   isEmployeeView?: boolean;
 }
 
-const getStatusConfig = (t: any) => ({
-    pending: { label: 'Đang làm', color: 'bg-gray-500', icon: Info },
-    awaiting_approval: { label: t.reports.submitted, color: 'bg-yellow-500', icon: AlertCircle },
-    approved: { label: t.reports.approved, color: 'bg-green-500', icon: ThumbsUp },
-    rejected: { label: 'Làm lại', color: 'bg-red-500', icon: ThumbsDown },
-});
+// Icon mapping cho các trạng thái
+const StatusIcons = {
+  Clock,
+  Play,
+  AlertCircle,
+  CheckCircle,
+  XCircle
+};
 
 export default function KpiListRow({ record, isEmployeeView = false }: KpiListRowProps) {
   const { user } = useContext(AuthContext);
@@ -45,29 +48,42 @@ export default function KpiListRow({ record, isEmployeeView = false }: KpiListRo
 
   const isAdmin = user?.role === 'admin';
   
-  const statusConfig = getStatusConfig(t);
-  const currentStatus = statusConfig[record.status];
-  const StatusIcon = currentStatus.icon;
+  // Sử dụng KPI Status Service để lấy cấu hình trạng thái
+  const statusConfig = KpiStatusService.getStatusConfig(record.status as KpiStatus);
+  const StatusIcon = StatusIcons[statusConfig.icon as keyof typeof StatusIcons] || Info;
 
-  const canUpdate = isEmployeeView && (record.status === 'pending' || record.status === 'rejected');
-  const canSubmit = isEmployeeView && record.status === 'pending' && record.actual > 0;
-  const canApprove = isAdmin && record.status === 'awaiting_approval';
+  // Sử dụng KPI Status Service để kiểm tra quyền hạn
+  const canUpdate = isEmployeeView && KpiStatusService.isEditableStatus(record.status as KpiStatus);
+  const canSubmit = isEmployeeView && KpiStatusService.canSubmitStatus(record.status as KpiStatus) && record.actual > 0;
+  const canApprove = isAdmin && KpiStatusService.canApproveStatus(record.status as KpiStatus);
 
   const completionPercentage =
     record.target > 0 ? Math.round((record.actual / record.target) * 100) : 0;
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     const newActual = parseFloat(inputValue);
     if (!isNaN(newActual)) {
-      const updates: Partial<KpiRecord> = { actual: newActual };
-      if (newActual > 0 && record.status === 'pending') {
-        updates.status = 'awaiting_approval';
+      try {
+        const updates: Partial<KpiRecord> = { actual: newActual };
+        
+        // Sử dụng KPI Status Service để xác định trạng thái tiếp theo
+        const nextStatus = KpiStatusService.getNextStatusByAction(record.status as KpiStatus, 'start');
+        if (nextStatus && newActual > 0) {
+          updates.status = nextStatus;
+        }
+        
+        await updateKpiRecord(record.id, updates);
+        toast({
+          title: "Thành công!",
+          description: `Đã cập nhật kết quả cho KPI "${record.name}".`
+        });
+      } catch (error) {
+        toast({
+          title: "Lỗi!",
+          description: error instanceof Error ? error.message : "Không thể cập nhật KPI",
+          variant: 'destructive'
+        });
       }
-      updateKpiRecord(record.id, updates);
-      toast({
-        title: "Thành công!",
-        description: `Đã cập nhật kết quả cho KPI "${record.name}".`
-      });
     }
     setUpdateDialogOpen(false);
   };
@@ -115,8 +131,8 @@ export default function KpiListRow({ record, isEmployeeView = false }: KpiListRo
       <TableCell>
         <div className="flex items-center gap-2">
           <StatusIcon className="w-4 h-4" />
-          <Badge variant="secondary" className={currentStatus.color}>
-            {currentStatus.label}
+          <Badge variant="secondary" className={statusConfig.color}>
+            {statusConfig.label}
           </Badge>
         </div>
       </TableCell>

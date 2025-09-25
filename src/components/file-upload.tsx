@@ -25,7 +25,7 @@ import {
   type UploadedFile,
   type UploadProgress,
   type StorageProvider
-} from '@/lib/file-upload-service';
+} from '@/lib/unified-file-service';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 

@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PenSquare, User, Upload, FileCheck, ThumbsUp, ThumbsDown, AlertCircle, Info } from 'lucide-react';
+import { PenSquare, User, Upload, FileCheck, ThumbsUp, ThumbsDown, AlertCircle, Info, Clock, Play, CheckCircle, XCircle } from 'lucide-react';
 import type { Kpi, KpiRecord } from '@/types';
 import { cn } from '@/lib/utils';
 import { Badge } from './ui/badge';
@@ -32,6 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import { Textarea } from './ui/textarea';
 import { AuthContext } from '@/context/auth-context';
+import { KpiStatusService, KpiStatus } from '@/lib/kpi-status-service';
 import {
   Tooltip,
   TooltipContent,
@@ -44,13 +45,14 @@ interface KpiCardProps {
   showEmployee?: boolean;
 }
 
-const getStatusConfig = (t: any) => ({
-    pending: { label: 'Đang làm', color: 'bg-gray-500', icon: Info },
-    awaiting_approval: { label: t.reports.submitted as string, color: 'bg-yellow-500', icon: AlertCircle },
-    approved: { label: t.reports.approved as string, color: 'bg-green-500', icon: ThumbsUp },
-    rejected: { label: 'Làm lại', color: 'bg-red-500', icon: ThumbsDown },
-});
-
+// Icon mapping cho các trạng thái
+const StatusIcons = {
+  Clock,
+  Play,
+  AlertCircle,
+  CheckCircle,
+  XCircle
+};
 
 export default function KpiCard({
   record,
@@ -73,27 +75,43 @@ export default function KpiCard({
   const isAdmin = user?.role === 'admin';
   const isEmployee = !isAdmin;
 
-  const canUpdate = isEmployee && (record.status === 'pending' || record.status === 'rejected');
-  const canSubmit = isEmployee && record.status === 'pending' && record.actual > 0;
-  const canApprove = isAdmin && record.status === 'awaiting_approval';
+  // Sử dụng KPI Status Service để lấy cấu hình trạng thái
+  const statusConfig = KpiStatusService.getStatusConfig(record.status as KpiStatus);
+  const StatusIcon = StatusIcons[statusConfig.icon as keyof typeof StatusIcons] || Info;
+
+  // Sử dụng KPI Status Service để kiểm tra quyền hạn
+  const canUpdate = isEmployee && KpiStatusService.isEditableStatus(record.status as KpiStatus);
+  const canSubmit = isEmployee && KpiStatusService.canSubmitStatus(record.status as KpiStatus) && record.actual > 0;
+  const canApprove = isAdmin && KpiStatusService.canApproveStatus(record.status as KpiStatus);
 
 
   const completionPercentage =
     record.target > 0 ? Math.round((record.actual / record.target) * 100) : 0;
   
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     const newActual = parseFloat(inputValue);
     if (!isNaN(newActual)) {
-      // Update actual value and change status to awaiting_approval if actual > 0
-      const updates: Partial<KpiRecord> = { actual: newActual };
-      if (newActual > 0 && record.status === 'pending') {
-        updates.status = 'awaiting_approval';
+      try {
+        const updates: Partial<KpiRecord> = { actual: newActual };
+        
+        // Sử dụng KPI Status Service để xác định trạng thái tiếp theo
+        const nextStatus = KpiStatusService.getNextStatusByAction(record.status as KpiStatus, 'start');
+        if (nextStatus && newActual > 0) {
+          updates.status = nextStatus;
+        }
+        
+        await updateKpiRecord(record.id, updates);
+        toast({
+          title: "Thành công!",
+          description: `Đã cập nhật kết quả cho KPI "${record.name}".`
+        });
+      } catch (error) {
+        toast({
+          title: "Lỗi!",
+          description: error instanceof Error ? error.message : "Không thể cập nhật KPI",
+          variant: 'destructive'
+        });
       }
-      updateKpiRecord(record.id, updates);
-      toast({
-        title: "Thành công!",
-        description: `Đã cập nhật kết quả cho KPI "${record.name}".`
-      })
     }
     setUpdateDialogOpen(false);
   };
@@ -143,9 +161,8 @@ export default function KpiCard({
     setRejectionComment('');
   }
 
-  const statusConfig = getStatusConfig(t);
-  const currentStatus = statusConfig[record.status];
-  const StatusIcon = currentStatus.icon;
+  const statusConfig = KpiStatusService.getStatusConfig(record.status as KpiStatus);
+  const StatusIcon = StatusIcons[statusConfig.icon as keyof typeof StatusIcons] || Info;
 
   return (
     <Card className="relative flex flex-col transition-all">
@@ -153,14 +170,14 @@ export default function KpiCard({
           <Tooltip>
               <TooltipTrigger asChild>
                   <div className="absolute top-3 right-3">
-                      <Badge variant="secondary" className={cn("border-0 text-white", currentStatus.color)}>
+                      <Badge variant="secondary" className={cn("border-0 text-white", statusConfig.color)}>
                            <StatusIcon className="mr-1.5 h-3 w-3" />
-                           <span className="text-xs">{currentStatus.label}</span>
+                           <span className="text-xs">{statusConfig.label}</span>
                       </Badge>
                   </div>
               </TooltipTrigger>
               <TooltipContent>
-                  <p>{currentStatus.label}</p>
+                  <p>{statusConfig.description}</p>
                   {record.status === 'rejected' && record.approvalComment && (
                       <p className="text-xs text-muted-foreground italic">Lý do: {record.approvalComment}</p>
                   )}

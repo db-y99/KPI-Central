@@ -19,7 +19,7 @@ import {
   Building2
 } from 'lucide-react';
 import FileUpload from '@/components/file-upload';
-import { type UploadedFile } from '@/lib/file-upload-service';
+import { type UploadedFile } from '@/lib/unified-file-service';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,7 @@ import { DataContext } from '@/context/data-context';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import { format } from 'date-fns';
+import { usePDFExport } from '@/lib/pdf-export';
 
 interface EmployeeReport {
   id: string;
@@ -60,6 +61,7 @@ export default function EmployeeReportsPage() {
   const { kpis, kpiRecords, reports, createReport, updateReport, deleteReport, submitReportForApproval } = useContext(DataContext);
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { exportComprehensiveReport, exportToPDF } = usePDFExport();
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<EmployeeReport | null>(null);
@@ -205,6 +207,150 @@ export default function EmployeeReportsPage() {
     }
   };
 
+  const handleExportReportPDF = async (report: EmployeeReport) => {
+    try {
+      const reportData = {
+        title: `${report.title} - ${report.kpiName}`,
+        subtitle: `Kỳ: ${report.period} | Ngày tạo: ${new Date().toLocaleDateString('vi-VN')}`,
+        summary: {
+          text: `Báo cáo chi tiết về KPI "${report.kpiName}" trong kỳ ${report.period}. ${report.description}`,
+          metrics: [
+            { label: 'KPI', value: report.kpiName },
+            { label: 'Kỳ báo cáo', value: report.period },
+            { label: 'Mục tiêu', value: `${formatValue(report.targetValue, report.unit)}` },
+            { label: 'Thực tế', value: `${formatValue(report.actualValue, report.unit)}` },
+            { label: 'Tỷ lệ đạt', value: `${((report.actualValue / report.targetValue) * 100).toFixed(1)}%` },
+            { label: 'Trạng thái', value: getStatusLabel(report.status) }
+          ]
+        },
+        tables: [
+          {
+            title: 'Chi tiết báo cáo',
+            data: [{
+              kpi: report.kpiName,
+              period: report.period,
+              target: formatValue(report.targetValue, report.unit),
+              actual: formatValue(report.actualValue, report.unit),
+              completion: `${((report.actualValue / report.targetValue) * 100).toFixed(1)}%`,
+              status: getStatusLabel(report.status),
+              submittedAt: report.submittedAt ? report.submittedAt.toLocaleDateString('vi-VN') : 'Chưa nộp',
+              score: report.score ? `${report.score}/10` : 'Chưa chấm điểm'
+            }],
+            columns: [
+              { key: 'kpi', label: 'KPI', align: 'left' },
+              { key: 'period', label: 'Kỳ', align: 'center' },
+              { key: 'target', label: 'Mục tiêu', align: 'right' },
+              { key: 'actual', label: 'Thực tế', align: 'right' },
+              { key: 'completion', label: 'Tỷ lệ đạt', align: 'right' },
+              { key: 'status', label: 'Trạng thái', align: 'center' },
+              { key: 'submittedAt', label: 'Ngày nộp', align: 'center' },
+              { key: 'score', label: 'Điểm', align: 'center' }
+            ]
+          }
+        ]
+      };
+
+      if (report.feedback) {
+        reportData.summary.text += `\n\nPhản hồi từ quản lý: ${report.feedback}`;
+      }
+
+      await exportComprehensiveReport(
+        reportData,
+        `bao-cao-${report.kpiName.toLowerCase().replace(/\s+/g, '-')}-${report.period}.pdf`,
+        {
+          includeHeader: true,
+          includeFooter: true,
+          includePageNumbers: true,
+          includeCharts: false,
+          orientation: 'portrait',
+          watermark: 'KPI Central System'
+        }
+      );
+
+      toast({
+        title: "Xuất PDF thành công",
+        description: "Báo cáo đã được xuất thành file PDF",
+      });
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast({
+        title: "Lỗi xuất PDF",
+        description: "Không thể xuất báo cáo ra PDF. Vui lòng thử lại.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleExportAllReportsPDF = async () => {
+    try {
+      const reportData = {
+        title: `Báo cáo tổng hợp KPI - ${user?.displayName || 'Nhân viên'}`,
+        subtitle: `Từ ${employeeReports.length > 0 ? employeeReports[0].period : 'N/A'} đến ${employeeReports.length > 0 ? employeeReports[employeeReports.length - 1].period : 'N/A'}`,
+        summary: {
+          text: `Báo cáo tổng hợp tất cả các KPI của nhân viên ${user?.displayName || 'N/A'} trong các kỳ báo cáo.`,
+          metrics: [
+            { label: 'Tổng số báo cáo', value: employeeReports.length },
+            { label: 'Đã duyệt', value: approvedReports },
+            { label: 'Chờ duyệt', value: pendingReports },
+            { label: 'Cần chỉnh sửa', value: needsRevisionReports },
+            { label: 'Tỷ lệ đạt TB', value: employeeReports.length > 0 ? 
+              `${(employeeReports.reduce((sum, r) => sum + (r.actualValue / r.targetValue) * 100, 0) / employeeReports.length).toFixed(1)}%` : '0%' }
+          ]
+        },
+        tables: [
+          {
+            title: 'Danh sách báo cáo',
+            data: employeeReports.map(report => ({
+              kpi: report.kpiName,
+              period: report.period,
+              target: formatValue(report.targetValue, report.unit),
+              actual: formatValue(report.actualValue, report.unit),
+              completion: `${((report.actualValue / report.targetValue) * 100).toFixed(1)}%`,
+              status: getStatusLabel(report.status),
+              submittedAt: report.submittedAt ? report.submittedAt.toLocaleDateString('vi-VN') : 'Chưa nộp',
+              score: report.score ? `${report.score}/10` : 'Chưa chấm điểm'
+            })),
+            columns: [
+              { key: 'kpi', label: 'KPI', align: 'left' },
+              { key: 'period', label: 'Kỳ', align: 'center' },
+              { key: 'target', label: 'Mục tiêu', align: 'right' },
+              { key: 'actual', label: 'Thực tế', align: 'right' },
+              { key: 'completion', label: 'Tỷ lệ đạt', align: 'right' },
+              { key: 'status', label: 'Trạng thái', align: 'center' },
+              { key: 'submittedAt', label: 'Ngày nộp', align: 'center' },
+              { key: 'score', label: 'Điểm', align: 'center' }
+            ]
+          }
+        ]
+      };
+
+      await exportComprehensiveReport(
+        reportData,
+        `bao-cao-tong-hop-kpi-${user?.displayName?.toLowerCase().replace(/\s+/g, '-') || 'nhan-vien'}-${new Date().toISOString().split('T')[0]}.pdf`,
+        {
+          includeHeader: true,
+          includeFooter: true,
+          includePageNumbers: true,
+          includeCharts: false,
+          orientation: 'portrait',
+          watermark: 'KPI Central System'
+        }
+      );
+
+      toast({
+        title: "Xuất PDF thành công",
+        description: "Tất cả báo cáo đã được xuất thành file PDF",
+      });
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast({
+        title: "Lỗi xuất PDF",
+        description: "Không thể xuất báo cáo ra PDF. Vui lòng thử lại.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const getStatusBadge = (status: EmployeeReport['status']) => {
     switch (status) {
       case 'approved':
@@ -217,6 +363,21 @@ export default function EmployeeReportsPage() {
         return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />{t.common.rejected}</Badge>;
       default:
         return <Badge variant="outline">{t.common.draft}</Badge>;
+    }
+  };
+
+  const getStatusLabel = (status: EmployeeReport['status']) => {
+    switch (status) {
+      case 'approved':
+        return t.employeeReports.approved as string;
+      case 'submitted':
+        return t.employeeReports.pendingApproval as string;
+      case 'needs_revision':
+        return t.employeeReports.needsRevision as string;
+      case 'rejected':
+        return t.common.rejected as string;
+      default:
+        return t.common.draft as string;
     }
   };
 
@@ -259,13 +420,20 @@ export default function EmployeeReportsPage() {
             {t.employeeReports.subtitle}
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              {t.employeeReports.createNew}
+        <div className="flex gap-2">
+          {employeeReports.length > 0 && (
+            <Button onClick={handleExportAllReportsPDF} variant="outline" className="flex items-center gap-2">
+              <Download className="w-4 h-4" />
+              Xuất tất cả PDF
             </Button>
-          </DialogTrigger>
+          )}
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                {t.employeeReports.createNew}
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{t.employeeReports.createNewTitle}</DialogTitle>
@@ -523,6 +691,10 @@ export default function EmployeeReportsPage() {
                   </div>
 
                   <div className="flex flex-col gap-2">
+                    <Button variant="outline" size="sm" onClick={() => handleExportReportPDF(report)}>
+                      <Download className="w-4 h-4 mr-1" />
+                      Xuất PDF
+                    </Button>
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button variant="outline" size="sm" onClick={() => setSelectedReport(report)}>
@@ -668,6 +840,7 @@ export default function EmployeeReportsPage() {
           </CardContent>
         </Card>
       )}
+    </div>
     </div>
   );
 }
