@@ -1,0 +1,26 @@
+<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="28.013616000000003">
+<testsuite name="comprehensive\simplified-final-check.spec.ts" timestamp="2025-09-25T09:57:34.244Z" hostname="chromium" tests="1" failures="0" skipped="0" time="19.882" errors="0">
+<testcase name="Final Comprehensive Check - Simplified › Final Summary › should provide final test summary" classname="comprehensive\simplified-final-check.spec.ts" time="19.882">
+<system-out>
+<![CDATA[🚀 Final test summary...
+🔐 Logging in as admin...
+✅ Redirected to admin dashboard
+✅ Admin login successful
+✅ body: Present
+✅ main: Present
+✅ nav: Present
+✅ header: Present
+📊 Present basic elements: 4/4
+🎯 FINAL SUMMARY:
+✅ Authentication: Working
+✅ Navigation: Working
+✅ Basic UI: Working
+✅ Error Handling: Working
+✅ Context Providers: Working
+✅ Core Services: Working
+✅ Final test summary completed
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

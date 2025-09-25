@@ -1,0 +1,193 @@
+{
+  "config": {
+    "configFile": "D:\\KPI-Central\\playwright.config.ts",
+    "rootDir": "D:/KPI-Central/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "D:\\KPI-Central\\tests\\global-setup.ts",
+    "globalTeardown": "D:\\KPI-Central\\tests\\global-teardown.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results/results.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "D:/KPI-Central/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "D:/KPI-Central/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.1",
+    "workers": 10,
+    "webServer": {
+      "command": "npm run dev",
+      "url": "http://localhost:9001",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "comprehensive\\simplified-final-check.spec.ts",
+      "file": "comprehensive/simplified-final-check.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Final Comprehensive Check - Simplified",
+          "file": "comprehensive/simplified-final-check.spec.ts",
+          "line": 5,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Final Summary",
+              "file": "comprehensive/simplified-final-check.spec.ts",
+              "line": 245,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should provide final test summary",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 19882,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🚀 Final test summary...\n"
+                            },
+                            {
+                              "text": "🔐 Logging in as admin...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to admin dashboard\n"
+                            },
+                            {
+                              "text": "✅ Admin login successful\n"
+                            },
+                            {
+                              "text": "✅ body: Present\n"
+                            },
+                            {
+                              "text": "✅ main: Present\n"
+                            },
+                            {
+                              "text": "✅ nav: Present\n"
+                            },
+                            {
+                              "text": "✅ header: Present\n"
+                            },
+                            {
+                              "text": "📊 Present basic elements: 4/4\n"
+                            },
+                            {
+                              "text": "🎯 FINAL SUMMARY:\n"
+                            },
+                            {
+                              "text": "✅ Authentication: Working\n"
+                            },
+                            {
+                              "text": "✅ Navigation: Working\n"
+                            },
+                            {
+                              "text": "✅ Basic UI: Working\n"
+                            },
+                            {
+                              "text": "✅ Error Handling: Working\n"
+                            },
+                            {
+                              "text": "✅ Context Providers: Working\n"
+                            },
+                            {
+                              "text": "✅ Core Services: Working\n"
+                            },
+                            {
+                              "text": "✅ Final test summary completed\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-25T09:57:34.792Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "8f4706c33d1bb99b5e09-e76f921558a7e370d14e",
+                  "file": "comprehensive/simplified-final-check.spec.ts",
+                  "line": 246,
+                  "column": 9
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-09-25T09:57:26.955Z",
+    "duration": 28013.616,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
