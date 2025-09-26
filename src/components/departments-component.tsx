@@ -75,8 +75,8 @@ export default function DepartmentsComponent() {
   const handleSaveDepartment = () => {
     if (!formData.name) {
       toast({
-        title: "Error",
-        description: "Please enter department name",
+        title: t.common.error,
+        description: t.departments.nameRequired,
         variant: "destructive",
       });
       return;
@@ -85,14 +85,14 @@ export default function DepartmentsComponent() {
     if (editingDepartment) {
       updateDepartment(editingDepartment.id, formData);
       toast({
-        title: "Success",
-        description: "Department updated successfully",
+        title: t.common.success,
+        description: t.departments.updateSuccess,
       });
     } else {
       addDepartment(formData);
       toast({
-        title: "Success",
-        description: "Department added successfully",
+        title: t.common.success,
+        description: t.departments.createSuccess,
       });
     }
 
@@ -119,15 +119,15 @@ export default function DepartmentsComponent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Department Management
+            {t.departments.title}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Manage your organization's departments
+            {t.departments.subtitle}
           </p>
         </div>
         <Button onClick={handleAddDepartment} className="flex items-center gap-2">
           <PlusCircle className="w-4 h-4" />
-          Add Department
+          {t.departments.addDepartment}
         </Button>
       </div>
 
@@ -135,49 +135,49 @@ export default function DepartmentsComponent() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Departments</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.departments.totalDepartments}</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{departments.length}</div>
-            <p className="text-xs text-muted-foreground">Active departments</p>
+            <p className="text-xs text-muted-foreground">{t.departments.activeDepartments}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.employees.totalEmployees}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{employees.length}</div>
-            <p className="text-xs text-muted-foreground">All employees</p>
+            <p className="text-xs text-muted-foreground">{t.employees.allEmployees}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Managers</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.employees.managers}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {employees.filter(emp => emp.role === 'manager').length}
             </div>
-            <p className="text-xs text-muted-foreground">Department managers</p>
+            <p className="text-xs text-muted-foreground">{t.employees.departmentManagers}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Employees</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.employees.avgEmployees}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {departments.length > 0 ? Math.round(employees.length / departments.length) : 0}
             </div>
-            <p className="text-xs text-muted-foreground">Per department</p>
+            <p className="text-xs text-muted-foreground">{t.employees.perDepartment}</p>
           </CardContent>
         </Card>
       </div>
@@ -200,17 +200,17 @@ export default function DepartmentsComponent() {
       {/* Department Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Department List ({filteredDepartments.length})</CardTitle>
+          <CardTitle>{t.departments.departmentList} ({filteredDepartments.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Department</TableHead>
-                <TableHead>Manager</TableHead>
-                <TableHead>Employees</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t.departments.department}</TableHead>
+                <TableHead>{t.departments.manager}</TableHead>
+                <TableHead>{t.departments.employees}</TableHead>
+                <TableHead>{t.employees.contact}</TableHead>
+                <TableHead>{t.common.actions}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -298,7 +298,7 @@ export default function DepartmentsComponent() {
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                placeholder="Enter department name"
+                placeholder={t.departments.enterDepartmentName}
               />
             </div>
 
@@ -308,7 +308,7 @@ export default function DepartmentsComponent() {
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="Enter department description"
+                placeholder={t.departments.enterDescription}
                 rows={3}
               />
             </div>
@@ -337,7 +337,7 @@ export default function DepartmentsComponent() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
-                placeholder="Enter department email"
+                placeholder={t.departments.enterEmail}
               />
             </div>
 
@@ -347,7 +347,7 @@ export default function DepartmentsComponent() {
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                placeholder="Enter department phone"
+                placeholder={t.departments.enterPhone}
               />
             </div>
 

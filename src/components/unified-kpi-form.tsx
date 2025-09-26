@@ -31,35 +31,57 @@ import { useToast } from '@/hooks/use-toast';
 import { DataContext } from '@/context/data-context';
 
 const createKpiSchema = (t: any) => z.object({
-  name: z.string().min(1, 'Tên KPI không được để trống.'),
-  description: z.string().min(1, 'Mô tả không được để trống.'),
-  department: z.string().min(1, 'Vui lòng chọn phòng ban.'),
-  unit: z.string().min(1, 'Đơn vị không được để trống.'),
+  name: z.string().min(1, t.kpis.nameRequired),
+  description: z.string().min(1, t.kpis.descriptionRequired),
+  department: z.string().min(1, t.kpis.departmentRequired),
+  unit: z.string().min(1, t.kpis.unitRequired),
   frequency: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'annually'], {
-    errorMap: () => ({ message: 'Vui lòng chọn tần suất hợp lệ.' }),
+    errorMap: () => ({ message: t.kpis.frequencyRequired }),
   }),
   formula: z.string().optional(),
   type: z.string().optional(),
+  category: z.string().optional(),
   target: z.number().optional(),
-  weight: z.number().min(0, 'Trọng số phải lớn hơn hoặc bằng 0').max(100, 'Trọng số không được vượt quá 100').optional(),
+  weight: z.number().min(0, t.kpis.weightMin || 'Trọng số phải lớn hơn hoặc bằng 0').max(100, t.kpis.weightMax || 'Trọng số không được vượt quá 100').optional(),
   reward: z.number().optional(),
   penalty: z.number().optional(),
+  startDate: z.string().min(1, t.kpis.startDateRequired),
+  endDate: z.string().min(1, t.kpis.endDateRequired),
+}).refine((data) => {
+  if (data.startDate && data.endDate) {
+    return new Date(data.endDate) > new Date(data.startDate);
+  }
+  return true;
+}, {
+  message: t.kpis.endDateMustBeAfterStartDate,
+  path: ['endDate'],
 });
 
 const editKpiSchema = (t: any) => z.object({
-  name: z.string().min(1, t.kpis.nameRequired || 'Tên KPI không được để trống.'),
-  description: z.string().min(1, t.kpis.descriptionRequired || 'Mô tả không được để trống.'),
-  department: z.string().min(1, t.kpis.departmentRequired || 'Vui lòng chọn phòng ban.'),
-  unit: z.string().min(1, t.kpis.unitRequired || 'Đơn vị không được để trống.'),
+  name: z.string().min(1, t.kpis.nameRequired),
+  description: z.string().min(1, t.kpis.descriptionRequired),
+  department: z.string().min(1, t.kpis.departmentRequired),
+  unit: z.string().min(1, t.kpis.unitRequired),
   frequency: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'annually'], {
-    errorMap: () => ({ message: t.kpis.frequencyRequired as string || 'Vui lòng chọn tần suất hợp lệ.' }),
+    errorMap: () => ({ message: t.kpis.frequencyRequired }),
   }),
   formula: z.string().optional(),
   type: z.string().optional(),
+  category: z.string().optional(),
   target: z.number().optional(),
-  weight: z.number().min(0, 'Trọng số phải lớn hơn hoặc bằng 0').max(100, 'Trọng số không được vượt quá 100').optional(),
+  weight: z.number().min(0, t.kpis.weightMin || 'Trọng số phải lớn hơn hoặc bằng 0').max(100, t.kpis.weightMax || 'Trọng số không được vượt quá 100').optional(),
   reward: z.number().optional(),
   penalty: z.number().optional(),
+  startDate: z.string().min(1, t.kpis.startDateRequired),
+  endDate: z.string().min(1, t.kpis.endDateRequired),
+}).refine((data) => {
+  if (data.startDate && data.endDate) {
+    return new Date(data.endDate) > new Date(data.startDate);
+  }
+  return true;
+}, {
+  message: t.kpis.endDateMustBeAfterStartDate,
+  path: ['endDate'],
 });
 
 type CreateKpiFormValues = z.infer<typeof createKpiSchema>;
@@ -93,10 +115,13 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
       frequency: kpi?.frequency || 'monthly',
       formula: kpi?.formula || '',
       type: kpi?.type || '',
+      category: kpi?.category || '',
       target: kpi?.target || 0,
       weight: kpi?.weight || 1,
       reward: kpi?.reward || 0,
       penalty: kpi?.penalty || 0,
+      startDate: kpi?.startDate || '',
+      endDate: kpi?.endDate || '',
     } : {
       name: '',
       description: '',
@@ -105,10 +130,13 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
       frequency: 'monthly',
       formula: '',
       type: '',
+      category: '',
       target: 0,
       weight: 1,
       reward: 0,
       penalty: 0,
+      startDate: '',
+      endDate: '',
     },
   });
 
@@ -158,10 +186,13 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
           frequency: editData.frequency,
           formula: editData.formula || '',
           type: editData.type || '',
+          category: editData.category || '',
           target: editData.target || 0,
           weight: editData.weight || 1,
           reward: editData.reward || 0,
           penalty: editData.penalty || 0,
+          startDate: editData.startDate,
+          endDate: editData.endDate,
           updatedAt: new Date().toISOString(),
         });
 
@@ -188,11 +219,13 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
           frequency: createData.frequency,
           formula: createData.formula || '',
           type: createData.type || '',
+          category: createData.category || '',
           target: createData.target || 0,
           weight: createData.weight || 1,
           reward: createData.reward || 0,
           penalty: createData.penalty || 0,
-          isActive: true,
+          startDate: createData.startDate,
+          endDate: createData.endDate,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
@@ -237,19 +270,19 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Thông tin cơ bản */}
+        {/* Basic Information */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-primary">Thông tin cơ bản</h3>
+          <h3 className="text-lg font-semibold text-primary">{t.kpis.basicInformation}</h3>
           
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tên KPI <span className="text-red-500">*</span></FormLabel>
+                <FormLabel>{t.kpis.name} <span className="text-red-500">*</span></FormLabel>
                 <FormControl>
                   <Input 
-                    placeholder="Nhập tên KPI" 
+                    placeholder={t.kpis.enterKpiName} 
                     {...field} 
                     disabled={isSubmitting}
                   />
@@ -264,10 +297,10 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Mô tả <span className="text-red-500">*</span></FormLabel>
+                <FormLabel>{t.kpis.description} <span className="text-red-500">*</span></FormLabel>
                 <FormControl>
                   <Textarea 
-                    placeholder="Nhập mô tả chi tiết về KPI" 
+                    placeholder={t.kpis.enterDescription} 
                     {...field} 
                     disabled={isSubmitting}
                     rows={3}
@@ -284,11 +317,11 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
               name="department"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phòng ban <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel>{t.kpis.department} <span className="text-red-500">*</span></FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn phòng ban" />
+                        <SelectValue placeholder={t.kpis.selectDepartment} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -309,10 +342,10 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
               name="unit"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Đơn vị <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel>{t.kpis.unit} <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Ví dụ: %, số lượng, VND..." 
+                      placeholder={t.kpis.enterUnit} 
                       {...field} 
                       disabled={isSubmitting}
                     />
@@ -329,19 +362,19 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
               name="frequency"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tần suất <span className="text-red-500">*</span></FormLabel>
+                  <FormLabel>{t.kpis.frequency} <span className="text-red-500">*</span></FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn tần suất" />
+                        <SelectValue placeholder={t.kpis.selectFrequency} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="daily">Hàng ngày</SelectItem>
-                      <SelectItem value="weekly">Hàng tuần</SelectItem>
-                      <SelectItem value="monthly">Hàng tháng</SelectItem>
-                      <SelectItem value="quarterly">Hàng quý</SelectItem>
-                      <SelectItem value="annually">Hàng năm</SelectItem>
+                      <SelectItem value="daily">{t.kpis.daily}</SelectItem>
+                      <SelectItem value="weekly">{t.kpis.weekly}</SelectItem>
+                      <SelectItem value="monthly">{t.kpis.monthly}</SelectItem>
+                      <SelectItem value="quarterly">{t.kpis.quarterly}</SelectItem>
+                      <SelectItem value="annually">{t.kpis.annually}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -354,10 +387,66 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Loại KPI</FormLabel>
+                  <FormLabel>{t.kpis.type || 'Loại KPI'}</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Ví dụ: Sales, Marketing, Support..." 
+                      placeholder={t.kpis.enterCategory} 
+                      {...field} 
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t.kpis.category}</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder={t.kpis.enterCategory} 
+                    {...field} 
+                    disabled={isSubmitting}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="startDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t.kpis.startDate} <span className="text-red-500">*</span></FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="date"
+                      {...field} 
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="endDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t.kpis.endDate} <span className="text-red-500">*</span></FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="date"
                       {...field} 
                       disabled={isSubmitting}
                     />
@@ -369,9 +458,9 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
           </div>
         </div>
 
-        {/* Thông tin mục tiêu và trọng số */}
+        {/* Target and Weight Information */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-primary">Mục tiêu và trọng số</h3>
+          <h3 className="text-lg font-semibold text-primary">{t.kpis.targetAndWeight || 'Mục tiêu và trọng số'}</h3>
           
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <FormField
@@ -379,11 +468,11 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
               name="target"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mục tiêu</FormLabel>
+                  <FormLabel>{t.kpis.target}</FormLabel>
                   <FormControl>
                     <Input 
                       type="number"
-                      placeholder="0" 
+                      placeholder={t.kpis.enterTarget || "0"} 
                       {...field} 
                       disabled={isSubmitting}
                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
@@ -399,13 +488,13 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
               name="weight"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Trọng số (%)</FormLabel>
+                  <FormLabel>{t.kpis.weight} (%)</FormLabel>
                   <FormControl>
                     <Input 
                       type="number"
                       min="0"
                       max="100"
-                      placeholder="1" 
+                      placeholder={t.kpis.enterWeight || "1"} 
                       {...field} 
                       disabled={isSubmitting}
                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 1)}
@@ -421,10 +510,10 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
               name="formula"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Công thức tính</FormLabel>
+                  <FormLabel>{t.kpis.formula || 'Công thức tính'}</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Ví dụ: (actual/target)*100" 
+                      placeholder={t.kpis.enterFormula || "Ví dụ: (actual/target)*100"} 
                       {...field} 
                       disabled={isSubmitting}
                     />
@@ -436,9 +525,9 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
           </div>
         </div>
 
-        {/* Thông tin thưởng phạt */}
+        {/* Reward and Penalty Information */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-primary">Thưởng và phạt</h3>
+          <h3 className="text-lg font-semibold text-primary">{t.kpis.rewardPenaltySystem || 'Thưởng và phạt'}</h3>
           
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
@@ -446,11 +535,11 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
               name="reward"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Thưởng (VND)</FormLabel>
+                  <FormLabel>{t.kpis.reward} (VND)</FormLabel>
                   <FormControl>
                     <Input 
                       type="number"
-                      placeholder="0" 
+                      placeholder={t.kpis.enterReward || "0"} 
                       {...field} 
                       disabled={isSubmitting}
                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
@@ -466,11 +555,11 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
               name="penalty"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phạt (VND)</FormLabel>
+                  <FormLabel>{t.kpis.penalty} (VND)</FormLabel>
                   <FormControl>
                     <Input 
                       type="number"
-                      placeholder="0" 
+                      placeholder={t.kpis.enterPenalty || "0"} 
                       {...field} 
                       disabled={isSubmitting}
                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
@@ -491,7 +580,7 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
             onClick={onClose}
             disabled={isSubmitting}
           >
-            Hủy
+            {t.common.cancel}
           </Button>
           <Button 
             type="submit" 
@@ -501,10 +590,10 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {isEditMode ? 'Đang cập nhật...' : 'Đang tạo...'}
+                {isEditMode ? t.common.updating || 'Đang cập nhật...' : t.common.creating || 'Đang tạo...'}
               </>
             ) : (
-              isEditMode ? 'Cập nhật KPI' : 'Tạo KPI'
+              isEditMode ? t.kpis.updateKpi : t.kpis.saveKpi
             )}
           </Button>
         </div>

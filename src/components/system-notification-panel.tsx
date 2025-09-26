@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { DataContext } from '@/context/data-context';
 import { AuthContext } from '@/context/auth-context';
+import { useLanguage } from '@/context/language-context';
 import { Notification } from '@/types';
 
 interface SystemNotificationPanelProps {
@@ -37,6 +38,7 @@ export default function SystemNotificationPanel({
   maxNotifications = 8,
   className = ''
 }: SystemNotificationPanelProps) {
+  const { t } = useLanguage();
   const { user } = useContext(AuthContext);
   const { notifications, kpiRecords, employees } = useContext(DataContext);
 
@@ -130,16 +132,16 @@ export default function SystemNotificationPanel({
           <div className="mb-6 p-4 bg-muted/50 rounded-lg">
             <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
               <Activity className="w-4 h-4 text-primary" />
-              Chức năng nhanh
+              {t.dashboard.quickActions}
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <Link href="/admin/kpi-management">
                 <div className="p-3 bg-background rounded-lg border hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-center gap-2 mb-1">
                     <Target className="w-4 h-4 text-purple-600" />
-                    <span className="text-sm font-medium">Quản lý KPI</span>
+                    <span className="text-sm font-medium">{t.dashboard.kpiManagement}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Tạo và gán KPI</p>
+                  <p className="text-xs text-muted-foreground">{t.dashboard.kpiManagementDescription}</p>
                 </div>
               </Link>
               
@@ -147,19 +149,19 @@ export default function SystemNotificationPanel({
                 <div className="p-3 bg-background rounded-lg border hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-center gap-2 mb-1">
                     <Users className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium">Quản lý HR</span>
+                    <span className="text-sm font-medium">{t.dashboard.hrManagement}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Nhân viên & phòng ban</p>
+                  <p className="text-xs text-muted-foreground">{t.dashboard.hrManagementDescription}</p>
                 </div>
               </Link>
               
-              <Link href="/admin/evaluation-reports">
+              <Link href="/admin/kpi-management?tab=evaluation">
                 <div className="p-3 bg-background rounded-lg border hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-center gap-2 mb-1">
                     <BarChart3 className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium">Báo cáo</span>
+                    <span className="text-sm font-medium">{t.nav.reports}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Đánh giá & báo cáo</p>
+                  <p className="text-xs text-muted-foreground">{t.nav.evaluateReward}</p>
                 </div>
               </Link>
               
@@ -167,9 +169,9 @@ export default function SystemNotificationPanel({
                 <div className="p-3 bg-background rounded-lg border hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-center gap-2 mb-1">
                     <Gift className="w-4 h-4 text-orange-600" />
-                    <span className="text-sm font-medium">Thưởng</span>
+                    <span className="text-sm font-medium">{t.nav.rewardPenalty}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">Hệ thống thưởng</p>
+                  <p className="text-xs text-muted-foreground">{t.evaluation.rewardsAndPenalties}</p>
                 </div>
               </Link>
             </div>

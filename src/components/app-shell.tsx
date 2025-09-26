@@ -2,7 +2,7 @@
 import type { ReactNode } from 'react';
 import { useState, useContext } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   Home,
   BarChart2,
@@ -47,6 +47,7 @@ import { useNotificationScheduler } from '@/hooks/use-notification-scheduler';
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user, logout } = useContext(AuthContext);
   const { t } = useLanguage();
   const router = useRouter();
@@ -75,7 +76,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
     // Quản lý KPI (Admin only) - Gộp các chức năng KPI
     ...(isAdmin ? [{
       href: '/admin/kpi-management',
-      label: 'KPI Management',
+      label: t.nav.kpis,
       icon: Target,
       isActive: pathname.startsWith('/admin/kpi-management') || 
                 pathname.startsWith('/admin/kpi-definitions') ||
@@ -87,7 +88,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
     // Quản lý Nhân sự (Admin only) - Gộp các chức năng HR
     ...(isAdmin ? [{
       href: '/admin/hr-management',
-      label: 'HR Management',
+      label: t.dashboard.hrManagement,
       icon: Users,
       isActive: pathname.startsWith('/admin/hr-management') ||
                 pathname.startsWith('/admin/employees') ||
@@ -97,31 +98,22 @@ export default function AppShell({ children }: { children: ReactNode }) {
     }] : []),
     // Đánh giá & Báo cáo (Admin only) - Gộp các chức năng đánh giá
     ...(isAdmin ? [{
-      href: '/admin/evaluation-reports',
-      label: 'Evaluation & Reports',
+      href: '/admin/kpi-management?tab=evaluation',
+      label: t.dashboard.evaluationReports,
       icon: BarChart3,
       isActive: pathname.startsWith('/admin/evaluation-reports') ||
                 pathname.startsWith('/admin/approval') ||
                 pathname.startsWith('/admin/evaluation') ||
                 pathname.startsWith('/admin/reports') ||
-                pathname.startsWith('/admin/reports-analytics'),
+                pathname.startsWith('/admin/reports-analytics') ||
+                (pathname.startsWith('/admin/kpi-management') && searchParams.get('tab') === 'evaluation') ||
+                (pathname.startsWith('/admin/kpi-management') && searchParams.get('tab') === 'reports'),
       key: 'evaluation-reports',
-    }] : []),
-    // Hệ thống Thưởng (Admin only) - Gộp các chức năng thưởng
-    ...(isAdmin ? [{
-      href: '/admin/reward-system',
-      label: 'Reward System',
-      icon: Gift,
-      isActive: pathname.startsWith('/admin/reward-system') ||
-                pathname.startsWith('/admin/reward-programs') ||
-                pathname.startsWith('/admin/reward-calculations') ||
-                pathname.startsWith('/admin/evaluation-rewards'),
-      key: 'reward-system',
     }] : []),
     // Cài đặt & Hệ thống (Admin only) - Gộp các chức năng cài đặt
     ...(isAdmin ? [{
       href: '/admin/system-settings',
-      label: 'System Settings',
+      label: t.dashboard.systemSettings,
       icon: Settings,
       isActive: pathname.startsWith('/admin/system-settings') ||
                 pathname.startsWith('/admin/settings') ||
@@ -280,6 +272,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             {isCollapsed && <TooltipContent side="right" className="sidebar-tooltip">{t.nav.logout}</TooltipContent>}
           </Tooltip>
         </TooltipProvider>
+
       </div>
     </div>
   );
@@ -314,7 +307,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </Sheet>
           <Logo size="md" showText={true} />
           <div className="flex items-center gap-2">
-            <NotificationBell />
             <ThemeToggle />
             <LanguageSwitcher />
           </div>
@@ -329,16 +321,27 @@ export default function AppShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen bg-background relative">
+    <div className="relative h-screen bg-background">
+      {/* Backdrop overlay when sidebar is expanded */}
+      {!isCollapsed && (
+        <div 
+          className="fixed inset-0 bg-transparent z-40 transition-all duration-300 ease-in-out"
+          onClick={() => setIsCollapsed(true)}
+        />
+      )}
+      
+      {/* Sidebar */}
       <aside
         className={cn(
-          'hidden h-full border-r transition-all duration-300 ease-in-out md:flex md:flex-col absolute left-0 top-0 z-50 bg-white dark:bg-gray-900 shadow-lg',
+          'hidden h-full border-r transition-all duration-300 ease-in-out md:flex md:flex-col bg-white dark:bg-gray-900 shadow-lg fixed left-0 top-0 z-50',
           isCollapsed ? 'w-16' : 'w-64'
         )}
       >
         {sidebarContent}
       </aside>
-      <div className="flex-1 ml-16">
+      
+      {/* Main content */}
+      <div className="flex-1 h-full ml-16">
         {mainContent}
       </div>
     </div>

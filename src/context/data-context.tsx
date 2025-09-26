@@ -553,6 +553,44 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, [user]);
 
+  // Real-time listener for KPI records
+  useEffect(() => {
+    if (!user) return;
+
+    const kpiRecordsQuery = query(collection(db, 'kpiRecords'));
+    const unsubscribe = onSnapshot(kpiRecordsQuery, (snapshot) => {
+      const kpiRecordsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as KpiRecord[];
+      console.log('Real-time KPI records update:', kpiRecordsData);
+      setKpiRecords(kpiRecordsData);
+    }, (error) => {
+      console.error('Error listening to KPI records:', error);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  // Real-time listener for KPIs
+  useEffect(() => {
+    if (!user) return;
+
+    const kpisQuery = query(collection(db, 'kpis'));
+    const unsubscribe = onSnapshot(kpisQuery, (snapshot) => {
+      const kpisData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Kpi[];
+      console.log('Real-time KPIs update:', kpisData);
+      setKpis(kpisData);
+    }, (error) => {
+      console.error('Error listening to KPIs:', error);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
   // The form now calls a server action, so we just need a way to refresh the list
   const addEmployee = async () => {
     await fetchData(); // Just refetch all data for simplicity
@@ -642,7 +680,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     setDepartments(prev => prev.filter(d => d.id !== departmentId));
   };
   
-  const assignKpi = async (assignment: Omit<KpiRecord, 'id' | 'actual' | 'status' | 'submittedReport' | 'approvalComment'>) => {
+  const assignKpi = async (assignment: Omit<KpiRecord, 'id' | 'actual' | 'status' | 'submittedReport' | 'approvalComment' | 'statusHistory' | 'lastStatusChange' | 'lastStatusChangedBy'>) => {
     const newRecord = {
         ...assignment,
         actual: 0,
@@ -656,7 +694,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
           comment: 'KPI được giao'
         }],
         lastStatusChange: new Date().toISOString(),
-        lastStatusChangedBy: user?.uid || 'system'
+        lastStatusChangedBy: user?.uid || 'system',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
     } as const;
     
     console.log('Saving KPI record to Firestore:', newRecord);
@@ -674,7 +714,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     const employee = employees.find(e => e.uid === assignment.employeeId);
     
     if (employee && kpi) {
-      await SystemNotificationService.notifyKpiAssigned(savedRecord, employee, kpi.name);
+      await SystemNotificationService.notifyKpiAssigned(savedRecord, employee, kpi.name, kpi.unit);
     }
   }
 

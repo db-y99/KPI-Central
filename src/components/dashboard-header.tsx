@@ -18,7 +18,9 @@ export default function DashboardHeader() {
     title = 'KPI Management';
   } else if (pathname.startsWith('/admin/hr-management')) {
     title = 'HR Management';
-  } else if (pathname.startsWith('/admin/evaluation-reports')) {
+  } else if (pathname.startsWith('/admin/evaluation-reports') || 
+             (pathname.startsWith('/admin/kpi-management') && searchParams.get('tab') === 'evaluation') ||
+             (pathname.startsWith('/admin/kpi-management') && searchParams.get('tab') === 'reports')) {
     title = 'Evaluation & Reports';
   } else if (pathname.startsWith('/admin/reward-system')) {
     title = 'Reward System';

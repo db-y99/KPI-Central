@@ -43,9 +43,11 @@ import {
 import { DataContext } from '@/context/data-context';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
+import { AuthContext } from '@/context/auth-context';
 
 export default function ApprovalComponent() {
-  const { employees, kpis, kpiRecords, departments } = useContext(DataContext);
+  const { employees, kpis, kpiRecords, departments, updateKpiRecord } = useContext(DataContext);
+  const { user } = useContext(AuthContext);
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -94,15 +96,15 @@ export default function ApprovalComponent() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />Approved</Badge>;
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />{t.admin.approved}</Badge>;
       case 'awaiting_approval':
-        return <Badge className="bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" />Awaiting Approval</Badge>;
+        return <Badge className="bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" />{t.admin.awaitingApproval}</Badge>;
       case 'pending':
-        return <Badge className="bg-orange-100 text-orange-800"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+        return <Badge className="bg-orange-100 text-orange-800"><Clock className="w-3 h-3 mr-1" />{t.admin.pending}</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
+        return <Badge className="bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" />{t.admin.rejected}</Badge>;
       default:
-        return <Badge variant="outline">Not Started</Badge>;
+        return <Badge variant="outline">{t.dashboard.notStarted}</Badge>;
     }
   };
 
@@ -115,33 +117,59 @@ export default function ApprovalComponent() {
     setIsDialogOpen(true);
   };
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
     if (selectedRecord) {
-      // Here you would typically update the record in your data store
-      console.log('Approving record:', selectedRecord.id, approvalForm);
-      
-      toast({
-        title: "Success",
-        description: "KPI record approved successfully",
-      });
-      
-      setIsDialogOpen(false);
-      setSelectedRecord(null);
+      try {
+        await updateKpiRecord(selectedRecord.id, {
+          status: 'approved',
+          approvalComment: approvalForm.comments,
+          approvedAt: new Date().toISOString(),
+          approvedBy: user?.name || 'Admin'
+        });
+        
+        toast({
+          title: t.common.success,
+          description: t.admin.successApproved,
+        });
+        
+        setIsDialogOpen(false);
+        setSelectedRecord(null);
+      } catch (error) {
+        console.error('Error approving KPI record:', error);
+        toast({
+          title: t.common.error,
+          description: t.admin.cannotApproveReport,
+          variant: "destructive",
+        });
+      }
     }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (selectedRecord) {
-      // Here you would typically update the record in your data store
-      console.log('Rejecting record:', selectedRecord.id, approvalForm);
-      
-      toast({
-        title: "Success",
-        description: "KPI record rejected",
-      });
-      
-      setIsDialogOpen(false);
-      setSelectedRecord(null);
+      try {
+        await updateKpiRecord(selectedRecord.id, {
+          status: 'rejected',
+          approvalComment: approvalForm.comments,
+          approvedAt: new Date().toISOString(),
+          approvedBy: user?.name || 'Admin'
+        });
+        
+        toast({
+          title: t.common.success,
+          description: t.admin.successRejected,
+        });
+        
+        setIsDialogOpen(false);
+        setSelectedRecord(null);
+      } catch (error) {
+        console.error('Error rejecting KPI record:', error);
+        toast({
+          title: t.common.error,
+          description: t.admin.cannotRejectReport,
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -156,10 +184,10 @@ export default function ApprovalComponent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            KPI Approval
+            {t.admin.reportApprovalTitle}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Review and approve KPI submissions from employees
+            {t.admin.approvalPageSubtitle}
           </p>
         </div>
       </div>
@@ -168,51 +196,51 @@ export default function ApprovalComponent() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Submissions</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.admin.totalReports}</CardTitle>
             <FileCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{enrichedRecords.length}</div>
-            <p className="text-xs text-muted-foreground">All KPI records</p>
+            <p className="text-xs text-muted-foreground">{t.admin.allReports}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Awaiting Approval</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.admin.awaitingApproval}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
               {enrichedRecords.filter(r => r.status === 'awaiting_approval').length}
             </div>
-            <p className="text-xs text-muted-foreground">Pending review</p>
+            <p className="text-xs text-muted-foreground">{t.admin.pending}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Approved</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.admin.approved}</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
               {enrichedRecords.filter(r => r.status === 'approved').length}
             </div>
-            <p className="text-xs text-muted-foreground">Completed</p>
+            <p className="text-xs text-muted-foreground">{t.dashboard.completed}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Rejected</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.admin.rejected}</CardTitle>
             <XCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
               {enrichedRecords.filter(r => r.status === 'rejected').length}
             </div>
-            <p className="text-xs text-muted-foreground">Need revision</p>
+            <p className="text-xs text-muted-foreground">{t.admin.needsRevision}</p>
           </CardContent>
         </Card>
       </div>
@@ -224,7 +252,7 @@ export default function ApprovalComponent() {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search employees or KPIs..."
+                placeholder={t.admin.searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-8"
@@ -232,14 +260,14 @@ export default function ApprovalComponent() {
             </div>
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Select Status" />
+                <SelectValue placeholder={t.admin.status} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="awaiting_approval">Awaiting Approval</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="all">{t.admin.allStatuses}</SelectItem>
+                <SelectItem value="awaiting_approval">{t.admin.awaitingApproval}</SelectItem>
+                <SelectItem value="approved">{t.admin.approved}</SelectItem>
+                <SelectItem value="rejected">{t.admin.rejected}</SelectItem>
+                <SelectItem value="pending">{t.admin.pending}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -249,29 +277,29 @@ export default function ApprovalComponent() {
       {/* Approval Table */}
       <Card>
         <CardHeader>
-          <CardTitle>KPI Submissions ({filteredRecords.length})</CardTitle>
+          <CardTitle>{t.admin.reportsList} ({filteredRecords.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {filteredRecords.length === 0 ? (
             <div className="text-center py-8">
               <FileCheck className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No submissions found</h3>
+              <h3 className="text-lg font-semibold mb-2">{t.admin.noReportsFound}</h3>
               <p className="text-muted-foreground">
                 {searchTerm || selectedStatus !== 'all' 
-                  ? 'No submissions match your search criteria.' 
-                  : 'No KPI submissions are available for review.'}
+                  ? t.admin.noReportsMatchFilter
+                  : t.admin.noReportsMessage}
               </p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee</TableHead>
+                  <TableHead>{t.admin.employee}</TableHead>
                   <TableHead>KPI</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Submitted</TableHead>
+                  <TableHead>{t.admin.department}</TableHead>
+                  <TableHead>{t.dashboard.progress}</TableHead>
+                  <TableHead>{t.admin.status}</TableHead>
+                  <TableHead>{t.admin.submittedAt}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -346,10 +374,10 @@ export default function ApprovalComponent() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileCheck className="w-5 h-5" />
-              Review KPI Submission - {selectedRecord?.employeeName}
+              {t.admin.reportDetails} - {selectedRecord?.employeeName}
             </DialogTitle>
             <DialogDescription>
-              Review and approve or reject this KPI submission
+              {t.admin.approvalPageSubtitle}
             </DialogDescription>
           </DialogHeader>
           
@@ -378,19 +406,19 @@ export default function ApprovalComponent() {
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                     <Target className="w-4 h-4" />
-                    KPI Information
+                    {t.admin.kpiInfo}
                   </h4>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm text-muted-foreground">KPI Name</label>
+                      <label className="text-sm text-muted-foreground">{t.kpis.kpiName}</label>
                       <p className="font-medium">{selectedRecord.kpiName}</p>
                     </div>
                     <div>
-                      <label className="text-sm text-muted-foreground">Description</label>
-                      <p className="text-sm">{selectedRecord.kpiDescription || 'No description'}</p>
+                      <label className="text-sm text-muted-foreground">{t.kpis.description}</label>
+                      <p className="text-sm">{selectedRecord.kpiDescription || t.kpis.noDescription}</p>
                     </div>
                     <div>
-                      <label className="text-sm text-muted-foreground">Unit</label>
+                      <label className="text-sm text-muted-foreground">{t.kpis.unit}</label>
                       <p className="font-medium">{selectedRecord.kpiUnit}</p>
                     </div>
                   </div>
@@ -399,19 +427,19 @@ export default function ApprovalComponent() {
                 <div className="p-4 border rounded-lg">
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4" />
-                    Performance Data
+                    {t.dashboard.performance}
                   </h4>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm text-muted-foreground">Target</label>
+                      <label className="text-sm text-muted-foreground">{t.kpis.target}</label>
                       <p className="font-medium text-lg">{selectedRecord.target} {selectedRecord.kpiUnit}</p>
                     </div>
                     <div>
-                      <label className="text-sm text-muted-foreground">Achieved</label>
+                      <label className="text-sm text-muted-foreground">{t.kpis.actual}</label>
                       <p className="font-medium text-lg text-blue-600">{selectedRecord.actual || 0} {selectedRecord.kpiUnit}</p>
                     </div>
                     <div>
-                      <label className="text-sm text-muted-foreground">Completion Rate</label>
+                      <label className="text-sm text-muted-foreground">{t.dashboard.completionRate}</label>
                       <div className="flex items-center gap-2">
                         <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
                           <div 
@@ -430,15 +458,15 @@ export default function ApprovalComponent() {
               <div className="p-4 border rounded-lg">
                 <h4 className="font-semibold mb-3 flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
-                  Timeline
+                  {t.kpis.implementationPeriod}
                 </h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <label className="text-muted-foreground">Start Date</label>
+                    <label className="text-muted-foreground">{t.kpis.startDate}</label>
                     <p className="font-medium">{new Date(selectedRecord.startDate).toLocaleDateString('vi-VN')}</p>
                   </div>
                   <div>
-                    <label className="text-muted-foreground">End Date</label>
+                    <label className="text-muted-foreground">{t.kpis.endDate}</label>
                     <p className="font-medium">{new Date(selectedRecord.endDate).toLocaleDateString('vi-VN')}</p>
                   </div>
                 </div>
@@ -447,7 +475,7 @@ export default function ApprovalComponent() {
               {/* Approval Form */}
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="status">Approval Status</Label>
+                  <Label htmlFor="status">{t.admin.status}</Label>
                   <Select 
                     value={approvalForm.status} 
                     onValueChange={(value) => setApprovalForm(prev => ({ ...prev, status: value }))}
@@ -456,20 +484,20 @@ export default function ApprovalComponent() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="awaiting_approval">Awaiting Approval</SelectItem>
-                      <SelectItem value="approved">Approve</SelectItem>
-                      <SelectItem value="rejected">Reject</SelectItem>
+                      <SelectItem value="awaiting_approval">{t.admin.awaitingApproval}</SelectItem>
+                      <SelectItem value="approved">{t.admin.approve}</SelectItem>
+                      <SelectItem value="rejected">{t.admin.reject}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="comments">Comments</Label>
+                  <Label htmlFor="comments">{t.admin.feedbackOptional}</Label>
                   <Textarea
                     id="comments"
                     value={approvalForm.comments}
                     onChange={(e) => setApprovalForm(prev => ({ ...prev, comments: e.target.value }))}
-                    placeholder="Enter your comments about this submission..."
+                    placeholder={t.admin.feedbackPlaceholder}
                     rows={4}
                   />
                 </div>
@@ -483,20 +511,20 @@ export default function ApprovalComponent() {
                   className="flex-1"
                 >
                   <XCircle className="w-4 h-4 mr-2" />
-                  Reject
+                  {t.admin.reject}
                 </Button>
                 <Button
                   onClick={handleApprove}
                   className="flex-1"
                 >
                   <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Approve
+                  {t.admin.approve}
                 </Button>
                 <Button
                   onClick={closeDialog}
                   variant="ghost"
                 >
-                  Close
+                  {t.common.close}
                 </Button>
               </div>
             </div>

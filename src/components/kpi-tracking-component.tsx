@@ -45,11 +45,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { DataContext } from '@/context/data-context';
 import { useLanguage } from '@/context/language-context';
+import { useToast } from '@/hooks/use-toast';
 import { KpiStatusService, KpiStatus } from '@/lib/kpi-status-service';
 
 export default function KpiTrackingComponent() {
-  const { employees, kpis, kpiRecords, departments } = useContext(DataContext);
+  const { employees, kpis, kpiRecords, departments, updateKpiRecord } = useContext(DataContext);
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
@@ -169,19 +171,38 @@ export default function KpiTrackingComponent() {
     }
   };
 
-  const handleSaveUpdate = () => {
+  const handleSaveUpdate = async () => {
     if (selectedRecord && updateForm.actual) {
-      console.log('Saving update:', {
-        recordId: selectedRecord.id,
-        actual: parseFloat(updateForm.actual),
-        notes: updateForm.notes,
-        status: updateForm.status
-      });
-      
-      alert('Cập nhật tiến độ thành công!');
-      setIsUpdateDialogOpen(false);
-      setIsDialogOpen(false);
-      setSelectedRecord(null);
+      try {
+        console.log('Saving update:', {
+          recordId: selectedRecord.id,
+          actual: parseFloat(updateForm.actual),
+          notes: updateForm.notes,
+          status: updateForm.status
+        });
+        
+        await updateKpiRecord(selectedRecord.id, {
+          actual: parseFloat(updateForm.actual),
+          notes: updateForm.notes,
+          status: updateForm.status as KpiStatus
+        });
+        
+        toast({
+          title: "Thành công!",
+          description: "Đã cập nhật tiến độ KPI thành công."
+        });
+        
+        setIsUpdateDialogOpen(false);
+        setIsDialogOpen(false);
+        setSelectedRecord(null);
+      } catch (error) {
+        console.error('Error updating KPI record:', error);
+        toast({
+          variant: 'destructive',
+          title: "Lỗi!",
+          description: "Không thể cập nhật tiến độ KPI."
+        });
+      }
     }
   };
 
@@ -206,14 +227,14 @@ export default function KpiTrackingComponent() {
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold">{nonAdminEmployees.length}</div>
-            <p className="text-xs text-muted-foreground">Total Employees</p>
+            <p className="text-xs text-muted-foreground">{t.kpiTracking.totalEmployees}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-4">
             <div className="text-2xl font-bold">{enrichedRecords.length}</div>
-            <p className="text-xs text-muted-foreground">Total KPIs</p>
+            <p className="text-xs text-muted-foreground">{t.kpiTracking.totalKpis}</p>
           </CardContent>
         </Card>
 
@@ -222,7 +243,7 @@ export default function KpiTrackingComponent() {
             <div className="text-2xl font-bold text-green-600">
               {enrichedRecords.filter(r => r.status === 'approved').length}
             </div>
-            <p className="text-xs text-muted-foreground">Completed KPIs</p>
+            <p className="text-xs text-muted-foreground">{t.kpiTracking.completedKpis}</p>
           </CardContent>
         </Card>
 
@@ -235,7 +256,7 @@ export default function KpiTrackingComponent() {
                 return endDate < today && r.status !== 'approved';
               }).length}
             </div>
-            <p className="text-xs text-muted-foreground">Overdue KPIs</p>
+            <p className="text-xs text-muted-foreground">{t.kpiTracking.overdueKpis}</p>
           </CardContent>
         </Card>
       </div>
@@ -246,12 +267,12 @@ export default function KpiTrackingComponent() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Target className="w-5 h-5" />
-              KPI Tracking ({filteredRecords.length})
+              {t.kpiTracking.tracking} ({filteredRecords.length})
             </CardTitle>
             <div className="flex items-center gap-4">
               <div className="w-64">
                 <Input
-                  placeholder="Search employees or KPIs..."
+                  placeholder={t.kpiTracking.searchPlaceholder}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full"
@@ -259,10 +280,10 @@ export default function KpiTrackingComponent() {
               </div>
               <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Select Department" />
+                  <SelectValue placeholder={t.kpiTracking.selectDepartment} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
+                  <SelectItem value="all">{t.kpiTracking.allDepartments}</SelectItem>
                   {departments.map(dept => (
                     <SelectItem key={dept.id} value={dept.id}>
                       {dept.name}
@@ -272,7 +293,7 @@ export default function KpiTrackingComponent() {
               </Select>
               <Button onClick={handleRefreshData} variant="outline">
                 <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh
+                {t.kpiTracking.refresh}
               </Button>
             </div>
           </div>
@@ -281,25 +302,25 @@ export default function KpiTrackingComponent() {
           {filteredRecords.length === 0 ? (
             <div className="text-center py-8">
               <Target className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No KPIs Assigned</h3>
+              <h3 className="text-lg font-semibold mb-2">{t.kpiTracking.noKpisAssigned}</h3>
               <p className="text-muted-foreground mb-4">
-                No KPIs have been assigned to employees yet.
+                {t.kpiTracking.noKpisDescription}
               </p>
               <div className="space-y-2 text-sm text-muted-foreground">
-                <p>• Create KPIs at <a href="/admin/kpi-management?tab=definitions" className="text-blue-600 hover:underline">KPI Definitions</a></p>
-                <p>• Assign KPIs at <a href="/admin/kpi-management?tab=assignment" className="text-blue-600 hover:underline">KPI Assignment</a></p>
+                <p>• {t.kpiTracking.createKpiAt} <a href="/admin/kpi-management?tab=definitions" className="text-blue-600 hover:underline">{t.kpiTracking.defineKpiLink}</a></p>
+                <p>• {t.kpiTracking.assignKpiAt} <a href="/admin/kpi-management?tab=assignment" className="text-blue-600 hover:underline">{t.kpiTracking.assignKpiLink}</a></p>
               </div>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>KPI</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Deadline</TableHead>
+                  <TableHead>{t.kpiTracking.employeeColumn}</TableHead>
+                  <TableHead>{t.kpiTracking.kpiColumn}</TableHead>
+                  <TableHead>{t.kpiTracking.departmentColumn}</TableHead>
+                  <TableHead>{t.kpiTracking.progressColumn}</TableHead>
+                  <TableHead>{t.kpiTracking.statusColumn}</TableHead>
+                  <TableHead>{t.kpiTracking.deadlineColumn}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

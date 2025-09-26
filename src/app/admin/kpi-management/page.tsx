@@ -2,11 +2,10 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Target, UserPlus, TrendingUp, BarChart3 } from 'lucide-react';
+import { Target, UserPlus, TrendingUp, FileCheck, Award, AlertTriangle, Gift, BarChart3 } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
 
-// Import existing components
+// Import existing components with lazy loading
 import dynamic from 'next/dynamic';
 
 // Lazy load components for better performance
@@ -19,8 +18,14 @@ const KpiAssignmentComponent = dynamic(() => import('@/components/kpi-assignment
 const KpiTrackingComponent = dynamic(() => import('@/components/kpi-tracking-component'), { 
   loading: () => <div className="p-4">Loading KPI Tracking...</div>
 });
-const MetricsComponent = dynamic(() => import('@/components/metrics-component'), { 
-  loading: () => <div className="p-4">Loading Metrics...</div>
+const ApprovalComponent = dynamic(() => import('@/components/approval-component'), { 
+  loading: () => <div className="p-4">Loading Approval...</div>
+});
+const RewardPenaltyComponent = dynamic(() => import('@/components/reward-penalty-component'), { 
+  loading: () => <div className="p-4">Loading Reward & Penalty...</div>
+});
+const EvaluationReportsComponent = dynamic(() => import('@/components/evaluation-reports-component'), { 
+  loading: () => <div className="p-4">Loading Evaluation & Reports...</div>
 });
 
 export default function KpiManagementPage() {
@@ -32,7 +37,7 @@ export default function KpiManagementPage() {
   // Handle query parameter for tab
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['definitions', 'assignment', 'tracking', 'metrics'].includes(tab)) {
+    if (tab && ['definitions', 'assignment', 'tracking', 'approval', 'reward-penalty', 'evaluation-reports'].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -49,43 +54,56 @@ export default function KpiManagementPage() {
   const tabs = [
     {
       id: 'definitions',
-      label: t.nav.defineKpi,
+      label: t.nav.kpiDefinitions,
       icon: Target,
       component: KpiDefinitionsComponent
     },
     {
       id: 'assignment',
-      label: t.nav.assignKpi,
+      label: t.nav.kpiAssignment,
       icon: UserPlus,
       component: KpiAssignmentComponent
     },
     {
       id: 'tracking',
-      label: t.nav.trackKpi,
+      label: t.nav.kpiTracking,
       icon: TrendingUp,
       component: KpiTrackingComponent
     },
     {
-      id: 'metrics',
-      label: 'Metrics',
+      id: 'approval',
+      label: t.nav.approveReports,
+      icon: FileCheck,
+      component: ApprovalComponent
+    },
+    {
+      id: 'reward-penalty',
+      label: t.nav.rewardPenalty,
+      icon: Award,
+      component: RewardPenaltyComponent
+    },
+    {
+      id: 'evaluation-reports',
+      label: t.nav.evaluateReward,
       icon: BarChart3,
-      component: MetricsComponent
+      component: EvaluationReportsComponent
     }
   ];
 
   return (
     <div className="h-full p-4 md:p-6 lg:p-8 space-y-6">
+
       {/* Tabs Section */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 gap-0 p-1 h-12 bg-gray-100 rounded-lg">
+        <TabsList className="grid w-full grid-cols-6 gap-0 p-1 h-12 bg-gray-100 rounded-lg">
           {tabs.map((tab) => (
             <TabsTrigger 
               key={tab.id} 
               value={tab.id} 
-              className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=inactive]:text-gray-600 hover:text-gray-900"
+              className="flex items-center justify-center gap-2 px-2 lg:px-3 py-2 text-xs lg:text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 data-[state=inactive]:text-gray-600 hover:text-gray-900"
             >
-              <tab.icon className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">{tab.label}</span>
+              <tab.icon className="h-3 w-3 lg:h-4 lg:w-4 flex-shrink-0" />
+              <span className="hidden lg:inline truncate">{tab.label}</span>
             </TabsTrigger>
           ))}
         </TabsList>

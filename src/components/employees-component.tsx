@@ -92,8 +92,8 @@ export default function EmployeesComponent() {
   const handleSaveEmployee = () => {
     if (!formData.name || !formData.email || !formData.position || !formData.departmentId) {
       toast({
-        title: "Error",
-        description: "Please fill in all required fields",
+        title: t.common.error,
+        description: t.employees.fillRequiredFields,
         variant: "destructive",
       });
       return;
@@ -102,14 +102,14 @@ export default function EmployeesComponent() {
     if (editingEmployee) {
       updateEmployee(editingEmployee.uid, formData);
       toast({
-        title: "Success",
-        description: "Employee updated successfully",
+        title: t.common.success,
+        description: t.employees.updateSuccess,
       });
     } else {
       addEmployee(formData);
       toast({
-        title: "Success",
-        description: "Employee added successfully",
+        title: t.common.success,
+        description: t.employees.addSuccess,
       });
     }
 
@@ -139,15 +139,15 @@ export default function EmployeesComponent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Employee Management
+            {t.employees.title}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Manage your organization's employees
+            {t.employees.subtitle}
           </p>
         </div>
         <Button onClick={handleAddEmployee} className="flex items-center gap-2">
           <PlusCircle className="w-4 h-4" />
-          Add Employee
+          {t.employees.addEmployee}
         </Button>
       </div>
 
@@ -155,49 +155,49 @@ export default function EmployeesComponent() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.employees.totalEmployees}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{nonAdminEmployees.length}</div>
-            <p className="text-xs text-muted-foreground">Active employees</p>
+            <p className="text-xs text-muted-foreground">{t.employees.activeEmployees}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Departments</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.departments.totalDepartments}</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{departments.length}</div>
-            <p className="text-xs text-muted-foreground">Active departments</p>
+            <p className="text-xs text-muted-foreground">{t.departments.activeDepartments}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Managers</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.employees.managers}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {nonAdminEmployees.filter(emp => emp.role === 'manager').length}
             </div>
-            <p className="text-xs text-muted-foreground">Team managers</p>
+            <p className="text-xs text-muted-foreground">{t.employees.teamManagers}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Regular Employees</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.employees.regularEmployees}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {nonAdminEmployees.filter(emp => emp.role === 'employee').length}
             </div>
-            <p className="text-xs text-muted-foreground">Regular staff</p>
+            <p className="text-xs text-muted-foreground">{t.employees.regularStaff}</p>
           </CardContent>
         </Card>
       </div>
@@ -217,10 +217,10 @@ export default function EmployeesComponent() {
             </div>
             <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Select Department" />
+                <SelectValue placeholder={t.employees.selectDepartment} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
+                <SelectItem value="all">{t.employees.allDepartments}</SelectItem>
                 {departments.map(dept => (
                   <SelectItem key={dept.id} value={dept.id}>
                     {dept.name}
@@ -235,18 +235,18 @@ export default function EmployeesComponent() {
       {/* Employee Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Employee List ({filteredEmployees.length})</CardTitle>
+          <CardTitle>{t.employees.employeeList} ({filteredEmployees.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Employee</TableHead>
-                <TableHead>Position</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t.employees.employee}</TableHead>
+                <TableHead>{t.employees.position}</TableHead>
+                <TableHead>{t.employees.department}</TableHead>
+                <TableHead>{t.employees.role}</TableHead>
+                <TableHead>{t.employees.contact}</TableHead>
+                <TableHead>{t.common.actions}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -336,7 +336,7 @@ export default function EmployeesComponent() {
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                placeholder="Enter full name"
+                placeholder={t.employees.enterFullName}
               />
             </div>
 
@@ -347,7 +347,7 @@ export default function EmployeesComponent() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
-                placeholder="Enter email address"
+                placeholder={t.employees.enterEmail}
               />
             </div>
 
@@ -357,7 +357,7 @@ export default function EmployeesComponent() {
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                placeholder="Enter phone number"
+                placeholder={t.employees.enterPhone}
               />
             </div>
 
@@ -367,7 +367,7 @@ export default function EmployeesComponent() {
                 id="position"
                 value={formData.position}
                 onChange={(e) => setFormData({...formData, position: e.target.value})}
-                placeholder="Enter job position"
+                placeholder={t.employees.enterPosition}
               />
             </div>
 
@@ -375,7 +375,7 @@ export default function EmployeesComponent() {
               <Label htmlFor="department">Department *</Label>
               <Select value={formData.departmentId} onValueChange={(value) => setFormData({...formData, departmentId: value})}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select department" />
+                  <SelectValue placeholder={t.employees.selectDepartment} />
                 </SelectTrigger>
                 <SelectContent>
                   {departments.map(dept => (

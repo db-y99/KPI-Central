@@ -6,11 +6,12 @@ export class SystemNotificationService {
   /**
    * Tạo thông báo khi KPI được giao cho nhân viên
    */
-  static async notifyKpiAssigned(kpiRecord: KpiRecord, employee: Employee, kpiName: string): Promise<void> {
+  static async notifyKpiAssigned(kpiRecord: KpiRecord, employee: Employee, kpiName: string, kpiUnit?: string): Promise<void> {
+    const unit = kpiUnit || 'đơn vị'; // Default unit if not provided
     const notification: Omit<Notification, 'id' | 'createdAt' | 'readAt'> = {
       userId: employee.uid,
       title: 'KPI mới được giao',
-      message: `Bạn đã được giao KPI "${kpiName}" với chỉ tiêu ${kpiRecord.target} ${kpiRecord.unit}. Hạn hoàn thành: ${new Date(kpiRecord.endDate).toLocaleDateString('vi-VN')}`,
+      message: `Bạn đã được giao KPI "${kpiName}" với chỉ tiêu ${kpiRecord.target} ${unit}. Hạn hoàn thành: ${new Date(kpiRecord.endDate).toLocaleDateString('vi-VN')}`,
       type: 'kpi',
       category: 'kpi_assigned',
       isRead: false,
@@ -21,7 +22,7 @@ export class SystemNotificationService {
         kpiRecordId: kpiRecord.id,
         kpiName,
         target: kpiRecord.target,
-        unit: kpiRecord.unit,
+        unit: unit,
         endDate: kpiRecord.endDate
       }
     };

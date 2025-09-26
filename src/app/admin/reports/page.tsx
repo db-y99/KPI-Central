@@ -6,8 +6,8 @@ export default function ReportsRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to Evaluation & Reports tab with reports tab active
-    router.replace('/admin/evaluation-reports?tab=reports');
+    // Redirect to KPI Management tab with reports tab active
+    router.replace('/admin/kpi-management?tab=reports');
   }, [router]);
 
   return (
