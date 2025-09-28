@@ -49,7 +49,7 @@ export default function EnhancedEmployeeProfilePage() {
   const performanceData = useMemo(() => {
     const totalKpis = userKpiRecords.length;
     const completedKpis = userKpiRecords.filter(r => r.status === 'approved').length;
-    const pendingKpis = userKpiRecords.filter(r => r.status === 'pending').length;
+    const pendingKpis = userKpiRecords.filter(r => r.status === 'not_started').length;
     const overdueKpis = 1; // Mock
     
     const completionRate = totalKpis > 0 ? (completedKpis / totalKpis) * 100 : 0;
@@ -116,10 +116,21 @@ export default function EnhancedEmployeeProfilePage() {
     switch (status) {
       case 'approved':
         return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />Hoàn thành</Badge>;
-      case 'pending':
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Chờ duyệt</Badge>;
+      case 'not_started':
+        return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />Chưa bắt đầu</Badge>;
+      case 'in_progress':
+        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Đang thực hiện</Badge>;
+      case 'submitted':
+        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Chờ duyệt</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Từ chối</Badge>;
       case 'overdue':
         return <Badge variant="destructive"><AlertTriangle className="w-3 h-3 mr-1" />Quá hạn</Badge>;
+      // Fallback cho trạng thái cũ
+      case 'pending':
+        return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />Chưa bắt đầu</Badge>;
+      case 'awaiting_approval':
+        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />Chờ duyệt</Badge>;
       default:
         return <Badge variant="outline">Đang thực hiện</Badge>;
     }

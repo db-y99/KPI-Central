@@ -1,227 +1,212 @@
-# 📁 Hướng Dẫn Tích Hợp Google Drive vào KPI Central
+# HƯỚNG DẪN TÍCH HỢP GOOGLE DRIVE API
 
-## 🎯 **Tổng Quan**
+## 📋 TỔNG QUAN
 
-Hệ thống KPI Central hiện đã hỗ trợ tích hợp Google Drive để lưu trữ file thay vì Firebase Storage. Điều này mang lại nhiều lợi ích:
+Hệ thống KPI Central đã được tích hợp với Google Drive API để lưu trữ file. Hướng dẫn này sẽ giúp bạn cấu hình Google Drive API để sử dụng chức năng upload file.
 
-- ✅ **Lưu trữ miễn phí**: 15GB miễn phí từ Google
-- ✅ **Dễ chia sẻ**: Link chia sẻ trực tiếp từ Google Drive
-- ✅ **Tích hợp tốt**: Hoạt động với Google Workspace
-- ✅ **Backup tự động**: Google tự động backup
-- ✅ **Tìm kiếm mạnh**: Tìm kiếm file bằng Google Search
+## 🔧 CÁC BƯỚC CẤU HÌNH
 
-## 🔧 **Bước 1: Cài Đặt Google Cloud Project**
+### Bước 1: Tạo Google Cloud Project
 
-### **1.1 Tạo Google Cloud Project**
 1. Truy cập [Google Cloud Console](https://console.cloud.google.com/)
-2. Click "Select a project" → "New Project"
-3. Đặt tên project: `KPI-Central-Drive`
-4. Click "Create"
+2. Tạo một project mới hoặc chọn project hiện có
+3. Ghi nhớ Project ID
 
-### **1.2 Enable Google Drive API**
-1. Trong Google Cloud Console, chọn project vừa tạo
-2. Vào "APIs & Services" → "Library"
-3. Tìm kiếm "Google Drive API"
-4. Click "Enable"
+### Bước 2: Kích hoạt Google Drive API
 
-### **1.3 Tạo OAuth 2.0 Credentials**
-1. Vào "APIs & Services" → "Credentials"
-2. Click "Create Credentials" → "OAuth client ID"
-3. Chọn "Web application"
-4. Đặt tên: `KPI Central Web Client`
-5. Thêm Authorized redirect URIs:
-   ```
-   http://localhost:3000/api/google-drive
-   https://yourdomain.com/api/google-drive
-   ```
-6. Click "Create"
-7. **Lưu lại Client ID và Client Secret**
+1. Trong Google Cloud Console, vào **APIs & Services** > **Library**
+2. Tìm kiếm "Google Drive API"
+3. Click **Enable** để kích hoạt API
 
-## 🔑 **Bước 2: Cấu Hình Environment Variables**
+### Bước 3: Tạo OAuth 2.0 Credentials
 
-### **2.1 Tạo file `.env.local`**
+1. Vào **APIs & Services** > **Credentials**
+2. Click **Create Credentials** > **OAuth 2.0 Client IDs**
+3. Chọn **Web application**
+4. Đặt tên: "KPI Central Drive Integration"
+5. Thêm **Authorized redirect URIs**:
+   - `http://localhost:3000/api/google-drive/callback` (development)
+   - `https://yourdomain.com/api/google-drive/callback` (production)
+6. Click **Create**
+7. Lưu **Client ID** và **Client Secret**
+
+### Bước 4: Lấy Refresh Token
+
+#### Cách 1: Sử dụng OAuth Playground (Khuyến nghị)
+
+1. Truy cập [OAuth 2.0 Playground](https://developers.google.com/oauthplayground/)
+2. Click **Settings** (gear icon) ở góc phải
+3. Check **Use your own OAuth credentials**
+4. Nhập **Client ID** và **Client Secret** từ bước 3
+5. Trong **Select & authorize APIs**, tìm và chọn:
+   - `https://www.googleapis.com/auth/drive`
+6. Click **Authorize APIs**
+7. Đăng nhập với Google account của bạn
+8. Click **Exchange authorization code for tokens**
+9. Copy **Refresh token** từ response
+
+#### Cách 2: Sử dụng Script tự động
+
+```bash
+# Cài đặt dependencies
+npm install googleapis
+
+# Chạy script để lấy refresh token
+node scripts/get-google-drive-token.js
+```
+
+### Bước 5: Tạo Folder trên Google Drive
+
+1. Truy cập [Google Drive](https://drive.google.com/)
+2. Tạo folder mới: "KPI-Central-Files"
+3. Click chuột phải vào folder > **Get link**
+4. Copy **Folder ID** từ URL (phần sau `/folders/`)
+
+### Bước 6: Cấu hình Environment Variables
+
+Tạo file `.env.local` trong thư mục gốc của project:
+
 ```env
-# Google Drive API Configuration
+# Google Drive Configuration
 GOOGLE_DRIVE_CLIENT_ID=your_client_id_here
 GOOGLE_DRIVE_CLIENT_SECRET=your_client_secret_here
-GOOGLE_DRIVE_REDIRECT_URI=http://localhost:3000/api/google-drive
-GOOGLE_DRIVE_REFRESH_TOKEN=
-
-# Optional: Specific folder ID (leave empty to use root)
-GOOGLE_DRIVE_FOLDER_ID=
-
-# Service Account (for server-side operations)
-GOOGLE_SERVICE_ACCOUNT_EMAIL=
-GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY=
+GOOGLE_DRIVE_REDIRECT_URI=http://localhost:3000/api/google-drive/callback
+GOOGLE_DRIVE_REFRESH_TOKEN=your_refresh_token_here
+GOOGLE_DRIVE_FOLDER_ID=your_folder_id_here
 ```
 
-### **2.2 Lấy Refresh Token**
-1. Chạy ứng dụng: `npm run dev`
-2. Truy cập: `http://localhost:3000/api/google-drive`
-3. Copy URL authorization và mở trong browser
-4. Đăng nhập Google account và cấp quyền
-5. Copy refresh token từ response
-6. Thêm vào `.env.local`
+### Bước 7: Test Integration
 
-## 📁 **Bước 3: Cấu Hình Folder Structure**
-
-### **3.1 Tạo Folder KPI Central**
-1. Truy cập [Google Drive](https://drive.google.com/)
-2. Tạo folder mới: `KPI-Central-Reports`
-3. Copy Folder ID từ URL
-4. Thêm vào `GOOGLE_DRIVE_FOLDER_ID` trong `.env.local`
-
-### **3.2 Cấu Hình Permissions**
-1. Right-click folder → "Share"
-2. Thêm email admin: `admin@yourcompany.com`
-3. Set permission: "Editor"
-4. Click "Send"
-
-## 🚀 **Bước 4: Test Integration**
-
-### **4.1 Test API Connection**
 ```bash
-# Test Google Drive API
-curl -X GET "http://localhost:3000/api/google-drive"
+# Chạy script test
+node scripts/test-google-drive-integration.js
 ```
 
-### **4.2 Test File Upload**
-1. Đăng nhập vào ứng dụng
-2. Vào "Employee" → "Reports"
-3. Tạo báo cáo mới
-4. Upload file và kiểm tra:
-   - File được lưu vào Google Drive
-   - Link chia sẻ hoạt động
-   - Thumbnail hiển thị đúng
+## 🔍 KIỂM TRA CẤU HÌNH
 
-## ⚙️ **Bước 5: Cấu Hình Production**
+### Kiểm tra Environment Variables
 
-### **5.1 Update Redirect URIs**
-1. Vào Google Cloud Console
-2. Edit OAuth client
-3. Thêm production domain:
-   ```
-   https://yourdomain.com/api/google-drive
-   ```
-
-### **5.2 Environment Variables Production**
-```env
-# Production Environment
-GOOGLE_DRIVE_CLIENT_ID=your_production_client_id
-GOOGLE_DRIVE_CLIENT_SECRET=your_production_client_secret
-GOOGLE_DRIVE_REDIRECT_URI=https://yourdomain.com/api/google-drive
-GOOGLE_DRIVE_REFRESH_TOKEN=your_production_refresh_token
-GOOGLE_DRIVE_FOLDER_ID=your_production_folder_id
-```
-
-## 🔄 **Bước 6: Migration từ Firebase Storage**
-
-### **6.1 Backup Existing Files**
 ```bash
-# Export Firebase Storage files
-gsutil -m cp -r gs://your-bucket/uploads ./backup/
+# Kiểm tra các biến môi trường
+echo $GOOGLE_DRIVE_CLIENT_ID
+echo $GOOGLE_DRIVE_CLIENT_SECRET
+echo $GOOGLE_DRIVE_REFRESH_TOKEN
+echo $GOOGLE_DRIVE_FOLDER_ID
 ```
 
-### **6.2 Upload to Google Drive**
-```javascript
-// Script để migrate files
-const migrateFiles = async () => {
-  const files = await listFirebaseFiles();
-  for (const file of files) {
-    await uploadToGoogleDrive(file);
-    await updateDatabaseRecord(file.id, {
-      storageType: 'google-drive',
-      driveFileId: driveFile.id
-    });
-  }
-};
-```
+### Test API Endpoint
 
-## 📊 **Bước 7: Monitoring & Analytics**
-
-### **7.1 Google Drive Usage**
-1. Truy cập [Google Drive Storage](https://drive.google.com/settings/storage)
-2. Monitor usage và quota
-3. Set up alerts khi gần hết quota
-
-### **7.2 Application Logs**
-```javascript
-// Log file operations
-console.log('File uploaded to Google Drive:', {
-  fileId: driveFile.id,
-  fileName: file.name,
-  storageType: 'google-drive',
-  timestamp: new Date().toISOString()
-});
-```
-
-## 🛠️ **Troubleshooting**
-
-### **Lỗi Authentication**
 ```bash
-# Check credentials
-curl -X POST "http://localhost:3000/api/google-drive" \
-  -H "Content-Type: application/json" \
-  -d '{"action": "test-connection", "tokens": {"refresh_token": "your_token"}}'
+# Test API endpoint
+curl http://localhost:3000/api/google-drive/status
 ```
 
-### **Lỗi Upload**
-1. Kiểm tra quota Google Drive
-2. Kiểm tra file size limits
-3. Kiểm tra network connection
-4. Check browser console for errors
+## 🚀 SỬ DỤNG
 
-### **Lỗi Permissions**
-1. Kiểm tra OAuth scopes
-2. Kiểm tra folder permissions
-3. Re-authenticate nếu cần
+### Upload File trong Application
 
-## 📈 **Performance Optimization**
+1. Khởi động development server: `npm run dev`
+2. Đăng nhập vào hệ thống
+3. Vào trang upload file (ví dụ: Employee > Self Update Metrics)
+4. Chọn file và upload
+5. File sẽ được lưu vào Google Drive folder đã cấu hình
 
-### **8.1 Batch Upload**
-```javascript
-// Upload multiple files efficiently
-const uploadBatch = async (files) => {
-  const batchSize = 5;
-  for (let i = 0; i < files.length; i += batchSize) {
-    const batch = files.slice(i, i + batchSize);
-    await Promise.all(batch.map(file => uploadFile(file)));
-  }
-};
+### Các Storage Provider
+
+Hệ thống hỗ trợ 3 chế độ lưu trữ:
+
+- **`auto`**: Tự động chọn (Google Drive nếu có cấu hình, Firebase nếu không)
+- **`google-drive`**: Luôn sử dụng Google Drive
+- **`firebase`**: Luôn sử dụng Firebase Storage
+
+## 🔧 TROUBLESHOOTING
+
+### Lỗi thường gặp
+
+#### 1. "Invalid refresh token"
+- **Nguyên nhân**: Refresh token đã hết hạn hoặc không đúng
+- **Giải pháp**: Lấy lại refresh token từ OAuth Playground
+
+#### 2. "Insufficient permissions"
+- **Nguyên nhân**: OAuth scope không đủ quyền
+- **Giải pháp**: Đảm bảo đã chọn `https://www.googleapis.com/auth/drive`
+
+#### 3. "Folder not found"
+- **Nguyên nhân**: Folder ID không đúng hoặc không có quyền truy cập
+- **Giải pháp**: Kiểm tra lại Folder ID và quyền truy cập
+
+#### 4. "API quota exceeded"
+- **Nguyên nhân**: Vượt quá giới hạn API calls
+- **Giải pháp**: Đợi reset quota hoặc nâng cấp plan
+
+### Debug Commands
+
+```bash
+# Kiểm tra cấu hình
+node scripts/test-google-drive-integration.js
+
+# Test upload file
+node scripts/test-file-upload.js
+
+# Kiểm tra logs
+tail -f logs/app.log
 ```
 
-### **8.2 Caching**
-```javascript
-// Cache file metadata
-const fileCache = new Map();
-const getCachedFile = (fileId) => {
-  if (fileCache.has(fileId)) {
-    return fileCache.get(fileId);
-  }
-  // Fetch from Google Drive
-};
+## 📊 MONITORING
+
+### Google Cloud Console
+
+1. Vào **APIs & Services** > **Dashboard**
+2. Xem **API usage** và **quotas**
+3. Monitor **errors** và **requests**
+
+### Application Logs
+
+```bash
+# Xem logs real-time
+npm run dev | grep -i "google\|drive\|upload"
 ```
 
-## 🔒 **Security Best Practices**
+## 🔒 BẢO MẬT
 
-### **9.1 Access Control**
-- Sử dụng Service Account cho server operations
-- Implement proper file permissions
-- Regular audit access logs
+### Best Practices
 
-### **9.2 Data Protection**
-- Encrypt sensitive files trước khi upload
-- Implement file retention policies
-- Regular backup important data
+1. **Không commit** `.env.local` vào Git
+2. **Rotate** refresh token định kỳ
+3. **Limit** API quotas để tránh abuse
+4. **Monitor** file access logs
+5. **Use** HTTPS trong production
 
-## 📞 **Support**
+### Permissions
 
-Nếu gặp vấn đề, hãy kiểm tra:
-1. Google Cloud Console logs
-2. Application logs
-3. Browser network tab
-4. Google Drive API documentation
+- **Read/Write**: Upload và download files
+- **Share**: Tạo public links cho files
+- **Delete**: Xóa files khi cần
+
+## 📈 OPTIMIZATION
+
+### Performance Tips
+
+1. **Batch uploads**: Upload nhiều files cùng lúc
+2. **Compress files**: Giảm kích thước trước khi upload
+3. **Cache URLs**: Lưu download URLs để tránh regenerate
+4. **Async processing**: Upload files trong background
+
+### Cost Optimization
+
+1. **Monitor quotas**: Theo dõi API usage
+2. **Optimize file sizes**: Giảm bandwidth usage
+3. **Use appropriate storage**: Chọn storage phù hợp với file type
+4. **Cleanup old files**: Xóa files không cần thiết
+
+## 📞 HỖ TRỢ
+
+Nếu gặp vấn đề, hãy:
+
+1. Kiểm tra logs trong console
+2. Chạy script test để debug
+3. Xem Google Cloud Console để kiểm tra quotas
+4. Liên hệ team phát triển với thông tin chi tiết
 
 ---
-
-**🎉 Chúc mừng! Bạn đã tích hợp thành công Google Drive vào KPI Central!**
+*Hướng dẫn được tạo tự động bởi hệ thống KPI Central*

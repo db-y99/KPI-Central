@@ -38,7 +38,15 @@ import {
   Eye,
   Users,
   Target,
-  Calendar
+  Calendar,
+  Upload,
+  Download,
+  File,
+  FileText,
+  Image,
+  FileSpreadsheet,
+  Trash2,
+  Paperclip
 } from 'lucide-react';
 import { DataContext } from '@/context/data-context';
 import { useToast } from '@/hooks/use-toast';
@@ -56,9 +64,9 @@ export default function ApprovalComponent() {
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [approvalForm, setApprovalForm] = useState({
-    status: 'pending',
     comments: ''
   });
+  const [isUploading, setIsUploading] = useState(false);
 
   // Filter non-admin employees
   const nonAdminEmployees = employees.filter(emp => emp.role !== 'admin');
@@ -108,74 +116,91 @@ export default function ApprovalComponent() {
     }
   };
 
+  const getFileIcon = (fileName: string) => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'pdf':
+        return <FileText className="w-4 h-4 text-red-500" />;
+      case 'doc':
+      case 'docx':
+        return <FileText className="w-4 h-4 text-blue-500" />;
+      case 'xls':
+      case 'xlsx':
+        return <FileSpreadsheet className="w-4 h-4 text-green-500" />;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+        return <Image className="w-4 h-4 text-purple-500" />;
+      default:
+        return <File className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
   const handleRowClick = (record: any) => {
     setSelectedRecord(record);
     setApprovalForm({
-      status: record.status,
       comments: record.approvalComments || ''
     });
     setIsDialogOpen(true);
   };
 
-  const handleApprove = async () => {
-    if (selectedRecord) {
-      try {
-        await updateKpiRecord(selectedRecord.id, {
-          status: 'approved',
-          approvalComment: approvalForm.comments,
-          approvedAt: new Date().toISOString(),
-          approvedBy: user?.name || 'Admin'
-        });
-        
-        toast({
-          title: t.common.success,
-          description: t.admin.successApproved,
-        });
-        
-        setIsDialogOpen(false);
-        setSelectedRecord(null);
-      } catch (error) {
-        console.error('Error approving KPI record:', error);
-        toast({
-          title: t.common.error,
-          description: t.admin.cannotApproveReport,
-          variant: "destructive",
-        });
+  const handleApprovalAction = async (action: 'approved' | 'rejected') => {
+    if (!selectedRecord) return;
+
+    try {
+      setIsUploading(true);
+
+      // Import KpiStatusService for migration
+      const { KpiStatusService } = await import('@/lib/kpi-status-service');
+      
+      // Migrate the record to new status system
+      const migratedRecord = KpiStatusService.migrateRecord(selectedRecord);
+      
+      const newStatus = action === 'approved' ? 'approved' : 'rejected';
+
+      const updates: any = {
+        status: newStatus,
+        approvalComment: approvalForm.comments,
+        approvedAt: new Date().toISOString(),
+        approvedBy: user?.name || 'Admin'
+      };
+
+      // If we're approving from not_started, add submission info
+      if (migratedRecord.status === 'not_started' && action === 'approved') {
+        updates.submittedAt = new Date().toISOString();
+        updates.submittedReport = `Báo cáo tự động từ ${selectedRecord.actual}/${selectedRecord.target} ${selectedRecord.kpiUnit}`;
       }
+
+      await updateKpiRecord(selectedRecord.id, updates);
+      
+      toast({
+        title: t.common.success,
+        description: action === 'approved' ? t.admin.successApproved : t.admin.successRejected,
+      });
+      
+      setIsDialogOpen(false);
+      setSelectedRecord(null);
+      setApprovalForm({ comments: '' });
+    } catch (error) {
+      console.error(`Error ${action} KPI record:`, error);
+      toast({
+        title: t.common.error,
+        description: action === 'approved' ? t.admin.cannotApproveReport : t.admin.cannotRejectReport,
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleReject = async () => {
-    if (selectedRecord) {
-      try {
-        await updateKpiRecord(selectedRecord.id, {
-          status: 'rejected',
-          approvalComment: approvalForm.comments,
-          approvedAt: new Date().toISOString(),
-          approvedBy: user?.name || 'Admin'
-        });
-        
-        toast({
-          title: t.common.success,
-          description: t.admin.successRejected,
-        });
-        
-        setIsDialogOpen(false);
-        setSelectedRecord(null);
-      } catch (error) {
-        console.error('Error rejecting KPI record:', error);
-        toast({
-          title: t.common.error,
-          description: t.admin.cannotRejectReport,
-          variant: "destructive",
-        });
-      }
-    }
-  };
+  const handleApprove = () => handleApprovalAction('approved');
+  const handleReject = () => handleApprovalAction('rejected');
 
   const closeDialog = () => {
     setIsDialogOpen(false);
     setSelectedRecord(null);
+    setApprovalForm({ comments: '' });
   };
 
   return (
@@ -298,6 +323,7 @@ export default function ApprovalComponent() {
                   <TableHead>KPI</TableHead>
                   <TableHead>{t.admin.department}</TableHead>
                   <TableHead>{t.dashboard.progress}</TableHead>
+                  <TableHead>Tài liệu</TableHead>
                   <TableHead>{t.admin.status}</TableHead>
                   <TableHead>{t.admin.submittedAt}</TableHead>
                 </TableRow>
@@ -350,6 +376,14 @@ export default function ApprovalComponent() {
                       </div>
                     </TableCell>
                     <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Paperclip className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm">
+                          {record.attachedFiles?.length || 0} file
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       {getStatusBadge(record.status)}
                     </TableCell>
                     <TableCell>
@@ -370,21 +404,21 @@ export default function ApprovalComponent() {
 
       {/* Approval Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileCheck className="w-5 h-5" />
-              {t.admin.reportDetails} - {selectedRecord?.employeeName}
+              Chi tiết báo cáo - {selectedRecord?.employeeName}
             </DialogTitle>
             <DialogDescription>
-              {t.admin.approvalPageSubtitle}
+              Xem xét và duyệt báo cáo từ nhân viên
             </DialogDescription>
           </DialogHeader>
           
           {selectedRecord && (
             <div className="space-y-6">
               {/* Employee Info Section */}
-              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border">
+              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
                 <Avatar className="w-16 h-16">
                   <AvatarImage src={employees.find(emp => emp.uid === selectedRecord.employeeId)?.avatar} />
                   <AvatarFallback className="text-lg">
@@ -404,127 +438,182 @@ export default function ApprovalComponent() {
               {/* KPI Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <Target className="w-4 h-4" />
-                    {t.admin.kpiInfo}
-                  </h4>
-                  <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Target className="w-4 h-4 text-green-600" />
+                    <h4 className="font-semibold">Thông tin KPI</h4>
+                  </div>
+                  <div className="space-y-2">
                     <div>
-                      <label className="text-sm text-muted-foreground">{t.kpis.kpiName}</label>
+                      <p className="text-sm text-muted-foreground">Tên KPI</p>
                       <p className="font-medium">{selectedRecord.kpiName}</p>
                     </div>
                     <div>
-                      <label className="text-sm text-muted-foreground">{t.kpis.description}</label>
-                      <p className="text-sm">{selectedRecord.kpiDescription || t.kpis.noDescription}</p>
+                      <p className="text-sm text-muted-foreground">Mô tả</p>
+                      <p className="text-sm">{selectedRecord.kpiDescription || 'Không có mô tả'}</p>
                     </div>
                     <div>
-                      <label className="text-sm text-muted-foreground">{t.kpis.unit}</label>
+                      <p className="text-sm text-muted-foreground">Đơn vị</p>
                       <p className="font-medium">{selectedRecord.kpiUnit}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="p-4 border rounded-lg">
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4" />
-                    {t.dashboard.performance}
-                  </h4>
+                  <div className="flex items-center gap-2 mb-3">
+                    <CheckCircle2 className="w-4 h-4 text-blue-600" />
+                    <h4 className="font-semibold">Hiệu suất</h4>
+                  </div>
                   <div className="space-y-3">
-                    <div>
-                      <label className="text-sm text-muted-foreground">{t.kpis.target}</label>
-                      <p className="font-medium text-lg">{selectedRecord.target} {selectedRecord.kpiUnit}</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="text-center p-3 bg-muted/50 rounded-lg">
+                        <p className="text-xs text-muted-foreground">Mục tiêu</p>
+                        <p className="text-lg font-bold">{selectedRecord.target}</p>
+                        <p className="text-xs text-muted-foreground">{selectedRecord.kpiUnit}</p>
+                      </div>
+                      <div className="text-center p-3 bg-primary/10 rounded-lg">
+                        <p className="text-xs text-muted-foreground">Thực tế</p>
+                        <p className="text-lg font-bold text-primary">{selectedRecord.actual || 0}</p>
+                        <p className="text-xs text-muted-foreground">{selectedRecord.kpiUnit}</p>
+                      </div>
                     </div>
                     <div>
-                      <label className="text-sm text-muted-foreground">{t.kpis.actual}</label>
-                      <p className="font-medium text-lg text-blue-600">{selectedRecord.actual || 0} {selectedRecord.kpiUnit}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm text-muted-foreground">{t.dashboard.completionRate}</label>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-blue-500 transition-all duration-300"
-                            style={{ width: `${Math.min(selectedRecord.progress, 100)}%` }}
-                          />
-                        </div>
-                        <span className="font-semibold text-lg">{selectedRecord.progress.toFixed(1)}%</span>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm text-muted-foreground">Tỷ lệ hoàn thành</p>
+                        <span className="text-sm font-semibold">{selectedRecord.progress.toFixed(1)}%</span>
+                      </div>
+                      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-blue-500 transition-all duration-300"
+                          style={{ width: `${Math.min(selectedRecord.progress, 100)}%` }}
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Timeline */}
-              <div className="p-4 border rounded-lg">
-                <h4 className="font-semibold mb-3 flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  {t.kpis.implementationPeriod}
-                </h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <label className="text-muted-foreground">{t.kpis.startDate}</label>
-                    <p className="font-medium">{new Date(selectedRecord.startDate).toLocaleDateString('vi-VN')}</p>
+              {/* Timeline & Files */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Calendar className="w-4 h-4 text-purple-600" />
+                    <h4 className="font-semibold">Thời gian thực hiện</h4>
                   </div>
-                  <div>
-                    <label className="text-muted-foreground">{t.kpis.endDate}</label>
-                    <p className="font-medium">{new Date(selectedRecord.endDate).toLocaleDateString('vi-VN')}</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                      <Calendar className="w-4 h-4 text-green-600" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Ngày bắt đầu</p>
+                        <p className="font-semibold">{new Date(selectedRecord.startDate).toLocaleDateString('vi-VN')}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
+                      <Calendar className="w-4 h-4 text-red-600" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Ngày kết thúc</p>
+                        <p className="font-semibold">{new Date(selectedRecord.endDate).toLocaleDateString('vi-VN')}</p>
+                      </div>
+                    </div>
                   </div>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Paperclip className="w-4 h-4 text-orange-600" />
+                    <h4 className="font-semibold">Tài liệu báo cáo</h4>
+                  </div>
+                  {selectedRecord?.attachedFiles && selectedRecord.attachedFiles.length > 0 ? (
+                    <div className="space-y-2">
+                      {selectedRecord.attachedFiles.map((file: any, index: number) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded bg-white flex items-center justify-center">
+                              {getFileIcon(file.name)}
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">{file.name}</p>
+                              <p className="text-xs text-gray-500">{file.size}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => window.open(file.url, '_blank')}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => window.open(file.url, '_blank')}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-gray-500">
+                      <Paperclip className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Nhân viên chưa nộp tài liệu nào</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Approval Form */}
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="status">{t.admin.status}</Label>
-                  <Select 
-                    value={approvalForm.status} 
-                    onValueChange={(value) => setApprovalForm(prev => ({ ...prev, status: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="awaiting_approval">{t.admin.awaitingApproval}</SelectItem>
-                      <SelectItem value="approved">{t.admin.approve}</SelectItem>
-                      <SelectItem value="rejected">{t.admin.reject}</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center gap-2 mb-3">
+                  <FileCheck className="w-4 h-4 text-gray-600" />
+                  <h4 className="font-semibold">Quyết định duyệt</h4>
                 </div>
-
-                <div>
-                  <Label htmlFor="comments">{t.admin.feedbackOptional}</Label>
-                  <Textarea
-                    id="comments"
-                    value={approvalForm.comments}
-                    onChange={(e) => setApprovalForm(prev => ({ ...prev, comments: e.target.value }))}
-                    placeholder={t.admin.feedbackPlaceholder}
-                    rows={4}
-                  />
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="comments" className="text-sm font-medium">
+                      Phản hồi cho nhân viên
+                    </Label>
+                    <Textarea
+                      id="comments"
+                      value={approvalForm.comments}
+                      onChange={(e) => setApprovalForm(prev => ({ ...prev, comments: e.target.value }))}
+                      placeholder="Nhập phản hồi, góp ý hoặc hướng dẫn cho nhân viên..."
+                      rows={4}
+                      className="mt-2"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-4 border-t">
+              <div className="flex gap-2 pt-3 border-t">
                 <Button
                   onClick={handleReject}
                   variant="destructive"
                   className="flex-1"
+                  disabled={isUploading}
                 >
                   <XCircle className="w-4 h-4 mr-2" />
-                  {t.admin.reject}
+                  {isUploading ? 'Đang xử lý...' : 'Từ chối'}
                 </Button>
                 <Button
                   onClick={handleApprove}
-                  className="flex-1"
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  disabled={isUploading}
                 >
                   <CheckCircle2 className="w-4 h-4 mr-2" />
-                  {t.admin.approve}
+                  {isUploading ? 'Đang xử lý...' : 'Phê duyệt'}
                 </Button>
                 <Button
                   onClick={closeDialog}
-                  variant="ghost"
+                  variant="outline"
+                  className="px-4"
+                  disabled={isUploading}
                 >
-                  {t.common.close}
+                  Đóng
                 </Button>
               </div>
             </div>

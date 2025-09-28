@@ -44,13 +44,19 @@ export default function KpiDefinitionsComponent() {
   const [isKpiDetailsDialogOpen, setIsKpiDetailsDialogOpen] = useState(false);
   const [selectedKpi, setSelectedKpi] = useState<Kpi | null>(null);
 
-  // Filter KPIs based on search
+  // Filter KPIs based on search and ensure uniqueness
   const filteredKpis = kpis.filter(kpi => {
     const matchesSearch = kpi.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          kpi.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          kpi.category?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
-  });
+  }).reduce((acc, kpi) => {
+    // Additional safety check to prevent duplicates
+    if (!acc.find(existingKpi => existingKpi.id === kpi.id)) {
+      acc.push(kpi);
+    }
+    return acc;
+  }, [] as Kpi[]);
 
   const handleCreateKpi = () => {
     setIsCreateDialogOpen(true);

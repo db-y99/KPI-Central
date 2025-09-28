@@ -9,7 +9,7 @@ import { KpiRecord } from '@/types';
  *                 rejected ← rejected
  */
 
-export type KpiStatus = 'not_started' | 'in_progress' | 'submitted' | 'approved' | 'rejected';
+export type KpiStatus = 'not_started' | 'in_progress' | 'submitted' | 'awaiting_approval' | 'approved' | 'rejected';
 
 export interface StatusTransition {
   from: KpiStatus;
@@ -27,9 +27,10 @@ export interface StatusConfig {
 export class KpiStatusService {
   // Định nghĩa các transition hợp lệ
   private static readonly VALID_TRANSITIONS: Record<KpiStatus, KpiStatus[]> = {
-    'not_started': ['in_progress'],
-    'in_progress': ['submitted', 'rejected'],
+    'not_started': ['in_progress', 'awaiting_approval'],
+    'in_progress': ['submitted', 'awaiting_approval', 'rejected'],
     'submitted': ['approved', 'rejected'],
+    'awaiting_approval': ['approved', 'rejected'],
     'approved': [], // Trạng thái cuối cùng
     'rejected': ['in_progress'] // Có thể thử lại
   };
@@ -53,6 +54,12 @@ export class KpiStatusService {
       color: 'bg-yellow-500',
       icon: 'AlertCircle',
       description: 'KPI đã được nộp và chờ duyệt'
+    },
+    'awaiting_approval': {
+      label: 'Chờ duyệt',
+      color: 'bg-orange-500',
+      icon: 'Clock',
+      description: 'KPI đang chờ admin duyệt'
     },
     'approved': {
       label: 'Đã duyệt',
@@ -85,19 +92,36 @@ export class KpiStatusService {
     additionalData?: { actual?: number; submittedReport?: string }
   ): { isValid: boolean; error?: string } {
     
-    // Kiểm tra transition hợp lệ
-    if (!this.canTransition(record.status as KpiStatus, newStatus)) {
+    // Kiểm tra trạng thái hiện tại hợp lệ
+    if (!record.status || !this.STATUS_CONFIGS[record.status as KpiStatus]) {
+      console.warn(`Invalid current KPI status: ${record.status}`);
       return {
         isValid: false,
-        error: `Không thể chuyển từ "${this.getStatusLabel(record.status as KpiStatus)}" sang "${this.getStatusLabel(newStatus)}"`
+        error: `Trạng thái hiện tại không hợp lệ: ${record.status}`
       };
     }
 
-    // Kiểm tra quyền hạn
+    // Kiểm tra trạng thái mới hợp lệ
+    if (!newStatus || !this.STATUS_CONFIGS[newStatus]) {
+      console.warn(`Invalid new KPI status: ${newStatus}`);
+      return {
+        isValid: false,
+        error: `Trạng thái mới không hợp lệ: ${newStatus}`
+      };
+    }
+    
+    // Kiểm tra quyền hạn trước
     if (newStatus === 'submitted' && userRole !== 'employee') {
       return {
         isValid: false,
         error: 'Chỉ nhân viên mới có thể nộp KPI'
+      };
+    }
+
+    if (newStatus === 'awaiting_approval' && userRole !== 'employee') {
+      return {
+        isValid: false,
+        error: 'Chỉ nhân viên mới có thể nộp KPI chờ duyệt'
       };
     }
 
@@ -108,12 +132,58 @@ export class KpiStatusService {
       };
     }
 
+    // Admin có thể duyệt trực tiếp từ not_started nếu có actual value
+    if (userRole === 'admin' && record.status === 'not_started' && newStatus === 'approved') {
+      if (record.actual > 0) {
+        return { isValid: true };
+      } else {
+        return {
+          isValid: false,
+          error: 'Phải có giá trị thực tế > 0 để duyệt KPI'
+        };
+      }
+    }
+
+    // Employee có thể submit trực tiếp từ not_started sang awaiting_approval nếu có actual value
+    if (userRole === 'employee' && record.status === 'not_started' && newStatus === 'awaiting_approval') {
+      if (additionalData?.actual && additionalData.actual > 0) {
+        return { isValid: true };
+      } else {
+        return {
+          isValid: false,
+          error: 'Phải có giá trị thực tế > 0 để nộp KPI'
+        };
+      }
+    }
+
+    // Admin có thể từ chối từ bất kỳ trạng thái nào
+    if (userRole === 'admin' && newStatus === 'rejected') {
+      return { isValid: true };
+    }
+    
+    // Kiểm tra transition hợp lệ cho các trường hợp khác
+    if (!this.canTransition(record.status as KpiStatus, newStatus)) {
+      return {
+        isValid: false,
+        error: `Không thể chuyển từ "${this.getStatusLabel(record.status as KpiStatus)}" sang "${this.getStatusLabel(newStatus)}"`
+      };
+    }
+
     // Kiểm tra business rules cụ thể
     if (newStatus === 'submitted') {
       if (!additionalData?.actual || additionalData.actual <= 0) {
         return {
           isValid: false,
           error: 'Phải có giá trị thực tế > 0 để nộp KPI'
+        };
+      }
+    }
+
+    if (newStatus === 'awaiting_approval') {
+      if (!additionalData?.actual || additionalData.actual <= 0) {
+        return {
+          isValid: false,
+          error: 'Phải có giá trị thực tế > 0 để nộp KPI chờ duyệt'
         };
       }
     }
@@ -134,6 +204,15 @@ export class KpiStatusService {
    * Lấy cấu hình hiển thị cho trạng thái
    */
   static getStatusConfig(status: KpiStatus): StatusConfig {
+    if (!status || !this.STATUS_CONFIGS[status]) {
+      console.warn(`Invalid KPI status: ${status}`);
+      return {
+        label: 'Trạng thái không xác định',
+        color: 'bg-gray-500',
+        icon: 'HelpCircle',
+        description: 'Trạng thái không hợp lệ'
+      };
+    }
     return this.STATUS_CONFIGS[status];
   }
 
@@ -141,6 +220,10 @@ export class KpiStatusService {
    * Lấy label cho trạng thái
    */
   static getStatusLabel(status: KpiStatus): string {
+    if (!status || !this.STATUS_CONFIGS[status]) {
+      console.warn(`Invalid KPI status: ${status}`);
+      return 'Trạng thái không xác định';
+    }
     return this.STATUS_CONFIGS[status].label;
   }
 
@@ -148,6 +231,10 @@ export class KpiStatusService {
    * Lấy màu sắc cho trạng thái
    */
   static getStatusColor(status: KpiStatus): string {
+    if (!status || !this.STATUS_CONFIGS[status]) {
+      console.warn(`Invalid KPI status: ${status}`);
+      return 'bg-gray-500';
+    }
     return this.STATUS_CONFIGS[status].color;
   }
 
@@ -155,6 +242,10 @@ export class KpiStatusService {
    * Lấy icon cho trạng thái
    */
   static getStatusIcon(status: KpiStatus): string {
+    if (!status || !this.STATUS_CONFIGS[status]) {
+      console.warn(`Invalid KPI status: ${status}`);
+      return 'HelpCircle';
+    }
     return this.STATUS_CONFIGS[status].icon;
   }
 
@@ -162,6 +253,10 @@ export class KpiStatusService {
    * Lấy mô tả cho trạng thái
    */
   static getStatusDescription(status: KpiStatus): string {
+    if (!status || !this.STATUS_CONFIGS[status]) {
+      console.warn(`Invalid KPI status: ${status}`);
+      return 'Trạng thái không hợp lệ';
+    }
     return this.STATUS_CONFIGS[status].description;
   }
 

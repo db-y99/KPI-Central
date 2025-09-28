@@ -11,7 +11,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 1
+      "actualWorkers": 10
     },
     "preserveOutput": "always",
     "reporter": [
@@ -43,7 +43,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 1
+          "actualWorkers": 10
         },
         "id": "chromium",
         "name": "chromium",
@@ -69,27 +69,27 @@
   },
   "suites": [
     {
-      "title": "comprehensive\\simplified-final-check.spec.ts",
-      "file": "comprehensive/simplified-final-check.spec.ts",
+      "title": "employee\\dashboard.spec.ts",
+      "file": "employee/dashboard.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "Final Comprehensive Check - Simplified",
-          "file": "comprehensive/simplified-final-check.spec.ts",
+          "title": "Employee Dashboard",
+          "file": "employee/dashboard.spec.ts",
           "line": 5,
           "column": 6,
           "specs": [],
           "suites": [
             {
-              "title": "Final Summary",
-              "file": "comprehensive/simplified-final-check.spec.ts",
-              "line": 245,
+              "title": "Dashboard Overview",
+              "file": "employee/dashboard.spec.ts",
+              "line": 17,
               "column": 8,
               "specs": [
                 {
-                  "title": "should provide final test summary",
+                  "title": "should display employee dashboard correctly",
                   "ok": true,
                   "tags": [],
                   "tests": [
@@ -104,64 +104,22 @@
                           "workerIndex": 0,
                           "parallelIndex": 0,
                           "status": "passed",
-                          "duration": 19882,
+                          "duration": 6616,
                           "errors": [],
                           "stdout": [
                             {
-                              "text": "🚀 Final test summary...\n"
+                              "text": "🔐 Logging in as employee...\n"
                             },
                             {
-                              "text": "🔐 Logging in as admin...\n"
+                              "text": "✅ Redirected to employee dashboard\n"
                             },
                             {
-                              "text": "✅ Redirected to admin dashboard\n"
-                            },
-                            {
-                              "text": "✅ Admin login successful\n"
-                            },
-                            {
-                              "text": "✅ body: Present\n"
-                            },
-                            {
-                              "text": "✅ main: Present\n"
-                            },
-                            {
-                              "text": "✅ nav: Present\n"
-                            },
-                            {
-                              "text": "✅ header: Present\n"
-                            },
-                            {
-                              "text": "📊 Present basic elements: 4/4\n"
-                            },
-                            {
-                              "text": "🎯 FINAL SUMMARY:\n"
-                            },
-                            {
-                              "text": "✅ Authentication: Working\n"
-                            },
-                            {
-                              "text": "✅ Navigation: Working\n"
-                            },
-                            {
-                              "text": "✅ Basic UI: Working\n"
-                            },
-                            {
-                              "text": "✅ Error Handling: Working\n"
-                            },
-                            {
-                              "text": "✅ Context Providers: Working\n"
-                            },
-                            {
-                              "text": "✅ Core Services: Working\n"
-                            },
-                            {
-                              "text": "✅ Final test summary completed\n"
+                              "text": "✅ Employee login successful\n"
                             }
                           ],
                           "stderr": [],
                           "retry": 0,
-                          "startTime": "2025-09-25T09:57:34.792Z",
+                          "startTime": "2025-09-28T02:41:14.418Z",
                           "annotations": [],
                           "attachments": []
                         }
@@ -169,9 +127,1706 @@
                       "status": "expected"
                     }
                   ],
-                  "id": "8f4706c33d1bb99b5e09-e76f921558a7e370d14e",
-                  "file": "comprehensive/simplified-final-check.spec.ts",
-                  "line": 246,
+                  "id": "c60758cf77a3f34fedf7-56632e45684492d2b786",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 18,
+                  "column": 9
+                },
+                {
+                  "title": "should display employee statistics",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "passed",
+                          "duration": 7223,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:14.391Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-84903cea530483b79ef1",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 25,
+                  "column": 9
+                },
+                {
+                  "title": "should display KPI progress cards",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "passed",
+                          "duration": 6937,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:14.422Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-e7e4e64137c6fd078fb7",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 33,
+                  "column": 9
+                },
+                {
+                  "title": "should show completion rate progress bar",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "passed",
+                          "duration": 3870,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:14.410Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-c1771a707cfea03e14b1",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 47,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "KPI Management",
+              "file": "employee/dashboard.spec.ts",
+              "line": 56,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should display assigned KPIs",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 7904,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:14.464Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-8b36c26b94c3a8a42b2a",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 57,
+                  "column": 9
+                },
+                {
+                  "title": "should show KPI status badges",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 4519,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:14.419Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-a70b0851c4289a42c225",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 68,
+                  "column": 9
+                },
+                {
+                  "title": "should display KPI progress information",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 6,
+                          "status": "passed",
+                          "duration": 6851,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:14.454Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-ef05176408d5a91f75c3",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 83,
+                  "column": 9
+                },
+                {
+                  "title": "should show upcoming deadlines",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 7,
+                          "status": "passed",
+                          "duration": 6423,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:14.425Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-26d228f670f4677b1129",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 93,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "KPI Updates",
+              "file": "employee/dashboard.spec.ts",
+              "line": 104,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should navigate to KPI update page",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 8,
+                          "status": "passed",
+                          "duration": 9152,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            },
+                            {
+                              "text": "Current URL after clicking update button: http://localhost:9001/employee\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:14.449Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-339700e76c0652cfa24c",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 105,
+                  "column": 9
+                },
+                {
+                  "title": "should update KPI progress",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 9,
+                          "parallelIndex": 9,
+                          "status": "passed",
+                          "duration": 25556,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:14.499Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-6188f78cac82b2769a52",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 118,
+                  "column": 9
+                },
+                {
+                  "title": "should validate KPI update form",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 3,
+                          "status": "failed",
+                          "duration": 53899,
+                          "error": {
+                            "message": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"]') to be visible\u001b[22m\n",
+                            "stack": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"]') to be visible\u001b[22m\n\n    at TestUtils.waitForElement (D:\\KPI-Central\\tests\\utils\\test-utils.ts:114:21)\n    at TestUtils.clickButton (D:\\KPI-Central\\tests\\utils\\test-utils.ts:180:20)\n    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:150:7",
+                            "location": {
+                              "file": "D:\\KPI-Central\\tests\\utils\\test-utils.ts",
+                              "column": 21,
+                              "line": 114
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mutils\\test-utils.ts:114\n\n\u001b[0m \u001b[90m 112 |\u001b[39m \u001b[90m   */\u001b[39m\n \u001b[90m 113 |\u001b[39m   \u001b[36masync\u001b[39m waitForElement(selector\u001b[33m:\u001b[39m string\u001b[33m,\u001b[39m timeout \u001b[33m=\u001b[39m \u001b[35m10000\u001b[39m) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 114 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForSelector(selector\u001b[33m,\u001b[39m { \n \u001b[90m     |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 115 |\u001b[39m       state\u001b[33m:\u001b[39m \u001b[32m'visible'\u001b[39m\u001b[33m,\u001b[39m \n \u001b[90m 116 |\u001b[39m       timeout \n \u001b[90m 117 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "D:\\KPI-Central\\tests\\utils\\test-utils.ts",
+                                "column": 21,
+                                "line": 114
+                              },
+                              "message": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button[type=\"submit\"]') to be visible\u001b[22m\n\n\n\u001b[90m   at \u001b[39mutils\\test-utils.ts:114\n\n\u001b[0m \u001b[90m 112 |\u001b[39m \u001b[90m   */\u001b[39m\n \u001b[90m 113 |\u001b[39m   \u001b[36masync\u001b[39m waitForElement(selector\u001b[33m:\u001b[39m string\u001b[33m,\u001b[39m timeout \u001b[33m=\u001b[39m \u001b[35m10000\u001b[39m) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 114 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForSelector(selector\u001b[33m,\u001b[39m { \n \u001b[90m     |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 115 |\u001b[39m       state\u001b[33m:\u001b[39m \u001b[32m'visible'\u001b[39m\u001b[33m,\u001b[39m \n \u001b[90m 116 |\u001b[39m       timeout \n \u001b[90m 117 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at TestUtils.waitForElement (D:\\KPI-Central\\tests\\utils\\test-utils.ts:114:21)\u001b[22m\n\u001b[2m    at TestUtils.clickButton (D:\\KPI-Central\\tests\\utils\\test-utils.ts:180:20)\u001b[22m\n\u001b[2m    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:150:7\u001b[22m"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:18.420Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-621bf-ld-validate-KPI-update-form-chromium\\test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-621bf-ld-validate-KPI-update-form-chromium\\video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-621bf-ld-validate-KPI-update-form-chromium\\error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "D:\\KPI-Central\\tests\\utils\\test-utils.ts",
+                            "column": 21,
+                            "line": 114
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-8428929d3fa016146466",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 145,
+                  "column": 9
+                },
+                {
+                  "title": "should upload supporting documents",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 22964,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:19.091Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-edc4124758ed92ddb6f1",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 156,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Personal Information",
+              "file": "employee/dashboard.spec.ts",
+              "line": 175,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should navigate to personal info page",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 7,
+                          "status": "passed",
+                          "duration": 10294,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:21.002Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-4c7948588f36416b164f",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 176,
+                  "column": 9
+                },
+                {
+                  "title": "should display personal information form",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 32286,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('input[name=\"name\"]')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('input[name=\"name\"]')\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('input[name=\"name\"]')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('input[name=\"name\"]')\u001b[22m\n\n    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:186:56",
+                            "location": {
+                              "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                              "column": 56,
+                              "line": 186
+                            },
+                            "snippet": "\u001b[0m \u001b[90m 184 |\u001b[39m       \n \u001b[90m 185 |\u001b[39m       \u001b[90m// Check for personal info form elements\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 186 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'input[name=\"name\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 187 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'input[name=\"email\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 188 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'input[name=\"phone\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 189 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'textarea[name=\"address\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                                "column": 56,
+                                "line": 186
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('input[name=\"name\"]')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('input[name=\"name\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 184 |\u001b[39m       \n \u001b[90m 185 |\u001b[39m       \u001b[90m// Check for personal info form elements\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 186 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'input[name=\"name\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 187 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'input[name=\"email\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 188 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'input[name=\"phone\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 189 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'textarea[name=\"address\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:186:56\u001b[22m"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:21.187Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-fc668-y-personal-information-form-chromium\\test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-fc668-y-personal-information-form-chromium\\video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-fc668-y-personal-information-form-chromium\\error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                            "column": 56,
+                            "line": 186
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-661f2271422642a8cd65",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 181,
+                  "column": 9
+                },
+                {
+                  "title": "should update personal information",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 2,
+                          "status": "failed",
+                          "duration": 32401,
+                          "error": {
+                            "message": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"]') to be visible\u001b[22m\n",
+                            "stack": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"]') to be visible\u001b[22m\n\n    at TestUtils.waitForElement (D:\\KPI-Central\\tests\\utils\\test-utils.ts:114:21)\n    at TestUtils.fillFormField (D:\\KPI-Central\\tests\\utils\\test-utils.ts:166:16)\n    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:200:23",
+                            "location": {
+                              "file": "D:\\KPI-Central\\tests\\utils\\test-utils.ts",
+                              "column": 21,
+                              "line": 114
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mutils\\test-utils.ts:114\n\n\u001b[0m \u001b[90m 112 |\u001b[39m \u001b[90m   */\u001b[39m\n \u001b[90m 113 |\u001b[39m   \u001b[36masync\u001b[39m waitForElement(selector\u001b[33m:\u001b[39m string\u001b[33m,\u001b[39m timeout \u001b[33m=\u001b[39m \u001b[35m10000\u001b[39m) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 114 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForSelector(selector\u001b[33m,\u001b[39m { \n \u001b[90m     |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 115 |\u001b[39m       state\u001b[33m:\u001b[39m \u001b[32m'visible'\u001b[39m\u001b[33m,\u001b[39m \n \u001b[90m 116 |\u001b[39m       timeout \n \u001b[90m 117 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "D:\\KPI-Central\\tests\\utils\\test-utils.ts",
+                                "column": 21,
+                                "line": 114
+                              },
+                              "message": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"]') to be visible\u001b[22m\n\n\n\u001b[90m   at \u001b[39mutils\\test-utils.ts:114\n\n\u001b[0m \u001b[90m 112 |\u001b[39m \u001b[90m   */\u001b[39m\n \u001b[90m 113 |\u001b[39m   \u001b[36masync\u001b[39m waitForElement(selector\u001b[33m:\u001b[39m string\u001b[33m,\u001b[39m timeout \u001b[33m=\u001b[39m \u001b[35m10000\u001b[39m) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 114 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForSelector(selector\u001b[33m,\u001b[39m { \n \u001b[90m     |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 115 |\u001b[39m       state\u001b[33m:\u001b[39m \u001b[32m'visible'\u001b[39m\u001b[33m,\u001b[39m \n \u001b[90m 116 |\u001b[39m       timeout \n \u001b[90m 117 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at TestUtils.waitForElement (D:\\KPI-Central\\tests\\utils\\test-utils.ts:114:21)\u001b[22m\n\u001b[2m    at TestUtils.fillFormField (D:\\KPI-Central\\tests\\utils\\test-utils.ts:166:16)\u001b[22m\n\u001b[2m    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:200:23\u001b[22m"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:21.519Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-f182e-update-personal-information-chromium\\test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-f182e-update-personal-information-chromium\\video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-f182e-update-personal-information-chromium\\error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "D:\\KPI-Central\\tests\\utils\\test-utils.ts",
+                            "column": 21,
+                            "line": 114
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-4d58671bdfbfc8bb7c91",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 192,
+                  "column": 9
+                },
+                {
+                  "title": "should validate personal information form",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 6,
+                          "parallelIndex": 6,
+                          "status": "failed",
+                          "duration": 32662,
+                          "error": {
+                            "message": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"]') to be visible\u001b[22m\n",
+                            "stack": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"]') to be visible\u001b[22m\n\n    at TestUtils.waitForElement (D:\\KPI-Central\\tests\\utils\\test-utils.ts:114:21)\n    at TestUtils.fillFormField (D:\\KPI-Central\\tests\\utils\\test-utils.ts:166:16)\n    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:215:23",
+                            "location": {
+                              "file": "D:\\KPI-Central\\tests\\utils\\test-utils.ts",
+                              "column": 21,
+                              "line": 114
+                            },
+                            "snippet": "\u001b[90m   at \u001b[39mutils\\test-utils.ts:114\n\n\u001b[0m \u001b[90m 112 |\u001b[39m \u001b[90m   */\u001b[39m\n \u001b[90m 113 |\u001b[39m   \u001b[36masync\u001b[39m waitForElement(selector\u001b[33m:\u001b[39m string\u001b[33m,\u001b[39m timeout \u001b[33m=\u001b[39m \u001b[35m10000\u001b[39m) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 114 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForSelector(selector\u001b[33m,\u001b[39m { \n \u001b[90m     |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 115 |\u001b[39m       state\u001b[33m:\u001b[39m \u001b[32m'visible'\u001b[39m\u001b[33m,\u001b[39m \n \u001b[90m 116 |\u001b[39m       timeout \n \u001b[90m 117 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "D:\\KPI-Central\\tests\\utils\\test-utils.ts",
+                                "column": 21,
+                                "line": 114
+                              },
+                              "message": "TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"name\"]') to be visible\u001b[22m\n\n\n\u001b[90m   at \u001b[39mutils\\test-utils.ts:114\n\n\u001b[0m \u001b[90m 112 |\u001b[39m \u001b[90m   */\u001b[39m\n \u001b[90m 113 |\u001b[39m   \u001b[36masync\u001b[39m waitForElement(selector\u001b[33m:\u001b[39m string\u001b[33m,\u001b[39m timeout \u001b[33m=\u001b[39m \u001b[35m10000\u001b[39m) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 114 |\u001b[39m     \u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39mpage\u001b[33m.\u001b[39mwaitForSelector(selector\u001b[33m,\u001b[39m { \n \u001b[90m     |\u001b[39m                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 115 |\u001b[39m       state\u001b[33m:\u001b[39m \u001b[32m'visible'\u001b[39m\u001b[33m,\u001b[39m \n \u001b[90m 116 |\u001b[39m       timeout \n \u001b[90m 117 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at TestUtils.waitForElement (D:\\KPI-Central\\tests\\utils\\test-utils.ts:114:21)\u001b[22m\n\u001b[2m    at TestUtils.fillFormField (D:\\KPI-Central\\tests\\utils\\test-utils.ts:166:16)\u001b[22m\n\u001b[2m    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:215:23\u001b[22m"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:21.522Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-4d965-e-personal-information-form-chromium\\test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-4d965-e-personal-information-form-chromium\\video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-4d965-e-personal-information-form-chromium\\error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "D:\\KPI-Central\\tests\\utils\\test-utils.ts",
+                            "column": 21,
+                            "line": 114
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-c003fd1bec1e55819bc7",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 210,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Reports and History",
+              "file": "employee/dashboard.spec.ts",
+              "line": 227,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should navigate to reports page",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 1,
+                          "status": "failed",
+                          "duration": 32584,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('text=My Reports')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=My Reports')\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('text=My Reports')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=My Reports')\u001b[22m\n\n    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:233:53",
+                            "location": {
+                              "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                              "column": 53,
+                              "line": 233
+                            },
+                            "snippet": "\u001b[0m \u001b[90m 231 |\u001b[39m       \n \u001b[90m 232 |\u001b[39m       \u001b[90m// Check for reports page elements\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 233 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=My Reports'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 234 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 235 |\u001b[39m\n \u001b[90m 236 |\u001b[39m     test(\u001b[32m'should display KPI history'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                                "column": 53,
+                                "line": 233
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('text=My Reports')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=My Reports')\u001b[22m\n\n\n\u001b[0m \u001b[90m 231 |\u001b[39m       \n \u001b[90m 232 |\u001b[39m       \u001b[90m// Check for reports page elements\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 233 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=My Reports'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 234 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 235 |\u001b[39m\n \u001b[90m 236 |\u001b[39m     test(\u001b[32m'should display KPI history'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m\n\u001b[2m    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:233:53\u001b[22m"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:21.741Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-41023-ld-navigate-to-reports-page-chromium\\test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-41023-ld-navigate-to-reports-page-chromium\\video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-41023-ld-navigate-to-reports-page-chromium\\error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                            "column": 53,
+                            "line": 233
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-624c2ecb285e78f722cd",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 228,
+                  "column": 9
+                },
+                {
+                  "title": "should display KPI history",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "passed",
+                          "duration": 23406,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:22.571Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-316b7679cc80765327db",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 236,
+                  "column": 9
+                },
+                {
+                  "title": "should filter reports by date range",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 8,
+                          "status": "passed",
+                          "duration": 22874,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:23.822Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-42cf32afdfb5f7287988",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 247,
+                  "column": 9
+                },
+                {
+                  "title": "should export reports",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 7,
+                          "status": "passed",
+                          "duration": 20247,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:31.311Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-b977ae767558a1e1fa05",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 271,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Notifications and Alerts",
+              "file": "employee/dashboard.spec.ts",
+              "line": 288,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should display overdue KPI alerts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 9,
+                          "parallelIndex": 9,
+                          "status": "passed",
+                          "duration": 5082,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:40.330Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-fe18b35b64b294cfccab",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 289,
+                  "column": 9
+                },
+                {
+                  "title": "should display upcoming deadline alerts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "passed",
+                          "duration": 5627,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:42.073Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-52a86a4187077720364b",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 298,
+                  "column": 9
+                },
+                {
+                  "title": "should dismiss alerts",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 9,
+                          "parallelIndex": 9,
+                          "status": "passed",
+                          "duration": 4665,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:45.423Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-dcc9dac981269103e3bf",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 307,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Navigation and Layout",
+              "file": "employee/dashboard.spec.ts",
+              "line": 319,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should maintain navigation state across pages",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 4,
+                          "status": "failed",
+                          "duration": 13811,
+                          "error": {
+                            "message": "TimeoutError: page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Update Progress')\u001b[22m\n",
+                            "stack": "TimeoutError: page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Update Progress')\u001b[22m\n\n    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:322:18",
+                            "location": {
+                              "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                              "column": 18,
+                              "line": 322
+                            },
+                            "snippet": "\u001b[0m \u001b[90m 320 |\u001b[39m     test(\u001b[32m'should maintain navigation state across pages'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\n \u001b[90m 321 |\u001b[39m       \u001b[90m// Navigate to different employee pages\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'text=Update Progress'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveURL(\u001b[35m/.*\\/employee\\/profile/\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 324 |\u001b[39m       \n \u001b[90m 325 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'/employee/reports'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                                "column": 18,
+                                "line": 322
+                              },
+                              "message": "TimeoutError: page.click: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=Update Progress')\u001b[22m\n\n\n\u001b[0m \u001b[90m 320 |\u001b[39m     test(\u001b[32m'should maintain navigation state across pages'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\n \u001b[90m 321 |\u001b[39m       \u001b[90m// Navigate to different employee pages\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 322 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'text=Update Progress'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                  \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 323 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page)\u001b[33m.\u001b[39mtoHaveURL(\u001b[35m/.*\\/employee\\/profile/\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 324 |\u001b[39m       \n \u001b[90m 325 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'/employee/reports'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:322:18\u001b[22m"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:45.998Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-70af0-vigation-state-across-pages-chromium\\test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-70af0-vigation-state-across-pages-chromium\\video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-70af0-vigation-state-across-pages-chromium\\error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                            "column": 18,
+                            "line": 322
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-6db4abb4514d0834f50a",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 320,
+                  "column": 9
+                },
+                {
+                  "title": "should display employee layout correctly",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 8,
+                          "parallelIndex": 8,
+                          "status": "failed",
+                          "duration": 13689,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('[data-testid=\"employee-layout\"]')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"employee-layout\"]')\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('[data-testid=\"employee-layout\"]')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"employee-layout\"]')\u001b[22m\n\n    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:331:69",
+                            "location": {
+                              "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                              "column": 69,
+                              "line": 331
+                            },
+                            "snippet": "\u001b[0m \u001b[90m 329 |\u001b[39m     test(\u001b[32m'should display employee layout correctly'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\n \u001b[90m 330 |\u001b[39m       \u001b[90m// Check for employee layout elements\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 331 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"employee-layout\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 332 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"employee-sidebar\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 333 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"employee-header\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 334 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                                "column": 69,
+                                "line": 331
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('[data-testid=\"employee-layout\"]')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"employee-layout\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 329 |\u001b[39m     test(\u001b[32m'should display employee layout correctly'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\n \u001b[90m 330 |\u001b[39m       \u001b[90m// Check for employee layout elements\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 331 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"employee-layout\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 332 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"employee-sidebar\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 333 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"employee-header\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 334 |\u001b[39m     })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:331:69\u001b[22m"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:46.714Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-42f8e-y-employee-layout-correctly-chromium\\test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-42f8e-y-employee-layout-correctly-chromium\\video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-42f8e-y-employee-layout-correctly-chromium\\error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                            "column": 69,
+                            "line": 331
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-614731ad78bb079c127a",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 329,
+                  "column": 9
+                },
+                {
+                  "title": "should show user info in header",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 5,
+                          "parallelIndex": 5,
+                          "status": "failed",
+                          "duration": 13653,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('[data-testid=\"user-info\"]')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"user-info\"]')\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('[data-testid=\"user-info\"]')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"user-info\"]')\u001b[22m\n\n    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:338:63",
+                            "location": {
+                              "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                              "column": 63,
+                              "line": 338
+                            },
+                            "snippet": "\u001b[0m \u001b[90m 336 |\u001b[39m     test(\u001b[32m'should show user info in header'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\n \u001b[90m 337 |\u001b[39m       \u001b[90m// Check for user information in header\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 338 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"user-info\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 339 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Test Employee'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 340 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 341 |\u001b[39m\u001b[0m"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                                "column": 63,
+                                "line": 338
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('[data-testid=\"user-info\"]')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"user-info\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 336 |\u001b[39m     test(\u001b[32m'should show user info in header'\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\n \u001b[90m 337 |\u001b[39m       \u001b[90m// Check for user information in header\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 338 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"user-info\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 339 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'text=Test Employee'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m 340 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 341 |\u001b[39m\u001b[0m\n\u001b[2m    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:338:63\u001b[22m"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:47.712Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-2cd43-ld-show-user-info-in-header-chromium\\test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-2cd43-ld-show-user-info-in-header-chromium\\video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-2cd43-ld-show-user-info-in-header-chromium\\error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                            "column": 63,
+                            "line": 338
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-8d35d977344f7f8bf265",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 336,
+                  "column": 9
+                },
+                {
+                  "title": "should logout from employee dashboard",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 9,
+                          "parallelIndex": 9,
+                          "status": "passed",
+                          "duration": 4492,
+                          "errors": [],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            },
+                            {
+                              "text": "🚪 Logging out...\n"
+                            },
+                            {
+                              "text": "✅ Logout successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:50.101Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-ea8b9c1f6d992a850ae8",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 342,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Responsive Design",
+              "file": "employee/dashboard.spec.ts",
+              "line": 350,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should work on mobile devices",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 7,
+                          "parallelIndex": 7,
+                          "status": "failed",
+                          "duration": 14109,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('[data-testid=\"mobile-menu\"]')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"mobile-menu\"]')\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('[data-testid=\"mobile-menu\"]')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"mobile-menu\"]')\u001b[22m\n\n    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:356:65",
+                            "location": {
+                              "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                              "column": 65,
+                              "line": 356
+                            },
+                            "snippet": "\u001b[0m \u001b[90m 354 |\u001b[39m       \n \u001b[90m 355 |\u001b[39m       \u001b[90m// Check that mobile layout is displayed\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 356 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"mobile-menu\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                 \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 357 |\u001b[39m       \n \u001b[90m 358 |\u001b[39m       \u001b[90m// Test mobile navigation\u001b[39m\n \u001b[90m 359 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'[data-testid=\"mobile-menu-button\"]'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                                "column": 65,
+                                "line": 356
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('[data-testid=\"mobile-menu\"]')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"mobile-menu\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 354 |\u001b[39m       \n \u001b[90m 355 |\u001b[39m       \u001b[90m// Check that mobile layout is displayed\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 356 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"mobile-menu\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                 \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 357 |\u001b[39m       \n \u001b[90m 358 |\u001b[39m       \u001b[90m// Test mobile navigation\u001b[39m\n \u001b[90m 359 |\u001b[39m       \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mclick(\u001b[32m'[data-testid=\"mobile-menu-button\"]'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:356:65\u001b[22m"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:51.566Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-66ca7-ould-work-on-mobile-devices-chromium\\test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-66ca7-ould-work-on-mobile-devices-chromium\\video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-66ca7-ould-work-on-mobile-devices-chromium\\error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                            "column": 65,
+                            "line": 356
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-64e2ef95c1701f841e86",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 351,
+                  "column": 9
+                },
+                {
+                  "title": "should work on tablet devices",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 60000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 10,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 13436,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('[data-testid=\"tablet-layout\"]')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"tablet-layout\"]')\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('[data-testid=\"tablet-layout\"]')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"tablet-layout\"]')\u001b[22m\n\n    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:368:67",
+                            "location": {
+                              "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                              "column": 67,
+                              "line": 368
+                            },
+                            "snippet": "\u001b[0m \u001b[90m 366 |\u001b[39m       \n \u001b[90m 367 |\u001b[39m       \u001b[90m// Check that tablet layout is displayed\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 368 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"tablet-layout\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 369 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 370 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 371 |\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                                "column": 67,
+                                "line": 368
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('[data-testid=\"tablet-layout\"]')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('[data-testid=\"tablet-layout\"]')\u001b[22m\n\n\n\u001b[0m \u001b[90m 366 |\u001b[39m       \n \u001b[90m 367 |\u001b[39m       \u001b[90m// Check that tablet layout is displayed\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 368 |\u001b[39m       \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mlocator(\u001b[32m'[data-testid=\"tablet-layout\"]'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                                                   \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 369 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 370 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 371 |\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m\n\u001b[2m    at D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts:368:67\u001b[22m"
+                            }
+                          ],
+                          "stdout": [
+                            {
+                              "text": "🔐 Logging in as employee...\n"
+                            },
+                            {
+                              "text": "✅ Redirected to employee dashboard\n"
+                            },
+                            {
+                              "text": "✅ Employee login successful\n"
+                            }
+                          ],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-09-28T02:41:54.291Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-b2df2-ould-work-on-tablet-devices-chromium\\test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-b2df2-ould-work-on-tablet-devices-chromium\\video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "D:\\KPI-Central\\test-results\\employee-dashboard-Employe-b2df2-ould-work-on-tablet-devices-chromium\\error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "D:\\KPI-Central\\tests\\employee\\dashboard.spec.ts",
+                            "column": 67,
+                            "line": 368
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "c60758cf77a3f34fedf7-6d6029ec8d29e10201c5",
+                  "file": "employee/dashboard.spec.ts",
+                  "line": 363,
                   "column": 9
                 }
               ]
@@ -183,11 +1838,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-09-25T09:57:26.955Z",
-    "duration": 28013.616,
-    "expected": 1,
+    "startTime": "2025-09-28T02:41:11.841Z",
+    "duration": 60554.547,
+    "expected": 19,
     "skipped": 0,
-    "unexpected": 0,
+    "unexpected": 10,
     "flaky": 0
   }
 }

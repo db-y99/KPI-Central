@@ -85,6 +85,7 @@ export type KpiRecord = {
   notes?: string;
   submittedReport?: string; // Báo cáo đã nộp
   approvalComment?: string; // Comment từ admin khi duyệt/từ chối
+  attachedFiles?: FileUploadResult[]; // Files đã upload
   statusHistory?: Array<{
     status: KpiStatus;
     changedAt: string;

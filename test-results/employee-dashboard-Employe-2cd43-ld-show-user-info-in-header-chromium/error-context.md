@@ -1,0 +1,93 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - img "Logo Y99 KPI Central" [ref=e9]
+        - navigation [ref=e10]:
+          - link [ref=e11] [cursor=pointer]:
+            - /url: /employee
+            - img
+          - link [ref=e12] [cursor=pointer]:
+            - /url: /employee/profile
+            - img
+          - link [ref=e13] [cursor=pointer]:
+            - /url: /employee/reports
+            - img
+        - generic [ref=e14]:
+          - generic [ref=e17]: E
+          - button [ref=e18] [cursor=pointer]:
+            - img
+    - generic [ref=e20]:
+      - banner [ref=e21]:
+        - heading "Dashboard cá nhân" [level=1] [ref=e22]
+        - generic [ref=e23]:
+          - button "Toggle theme" [ref=e24] [cursor=pointer]:
+            - img
+            - img
+            - generic [ref=e25] [cursor=pointer]: Toggle theme
+          - button "Tiếng Anh" [ref=e26] [cursor=pointer]:
+            - img
+            - generic [ref=e27] [cursor=pointer]: Tiếng Anh
+      - main [ref=e28]:
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - generic [ref=e32]:
+              - generic [ref=e33]: "1"
+              - paragraph [ref=e34]: Tổng KPI
+            - generic [ref=e36]:
+              - generic [ref=e37]: "0"
+              - paragraph [ref=e38]: Hoàn thành
+            - generic [ref=e40]:
+              - generic [ref=e41]: "0"
+              - paragraph [ref=e42]: Chờ duyệt
+            - generic [ref=e44]:
+              - generic [ref=e45]: 0.0%
+              - paragraph [ref=e46]: Tỷ lệ hoàn thành
+          - generic [ref=e50]:
+            - img [ref=e51]
+            - generic [ref=e54]:
+              - paragraph [ref=e55]: "Deadline sắp đến: 26/12/2025"
+              - paragraph [ref=e56]: Hãy cập nhật tiến độ trước khi quá hạn
+          - generic [ref=e57]:
+            - generic [ref=e58]:
+              - heading "KPI của tôi" [level=3] [ref=e59]:
+                - img [ref=e60]
+                - text: KPI của tôi
+              - paragraph [ref=e64]: Danh sách KPI được giao và tiến độ thực hiện
+            - generic [ref=e67]:
+              - generic [ref=e68]:
+                - heading "Sales Target Achievement" [level=4] [ref=e69]
+                - generic [ref=e70]:
+                  - img [ref=e71]
+                  - text: Chờ bắt đầu
+              - paragraph [ref=e74]: Tỷ lệ đạt mục tiêu doanh số
+              - generic [ref=e75]:
+                - generic [ref=e77]: 0 / 100 percentage
+                - generic [ref=e78]: "Hạn: 26/12/2025"
+              - progressbar [ref=e80]
+          - generic [ref=e82]:
+            - generic [ref=e83]:
+              - heading "Cập nhật KPI" [level=3] [ref=e85]
+              - generic [ref=e86]:
+                - paragraph [ref=e87]: Cập nhật tiến độ thực hiện các KPI được giao
+                - link "Cập nhật tiến độ" [ref=e88] [cursor=pointer]:
+                  - /url: /employee/profile
+                  - button "Cập nhật tiến độ" [ref=e89] [cursor=pointer]:
+                    - img
+                    - text: Cập nhật tiến độ
+            - generic [ref=e90]:
+              - heading "Thông tin cá nhân" [level=3] [ref=e92]
+              - generic [ref=e93]:
+                - paragraph [ref=e94]: Xem thông tin cá nhân và lịch sử KPI
+                - link "Xem hồ sơ" [ref=e95] [cursor=pointer]:
+                  - /url: /employee/profile
+                  - button "Xem hồ sơ" [ref=e96] [cursor=pointer]:
+                    - img
+                    - text: Xem hồ sơ
+  - region "Notifications (F8)":
+    - list
+  - alert [ref=e97]
+```

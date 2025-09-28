@@ -126,7 +126,7 @@ export default function SelfUpdateMetricsPage() {
   const statistics = useMemo(() => {
     const total = employeeKpis.length;
     const approved = employeeKpis.filter(k => k.status === 'approved').length;
-    const pending = employeeKpis.filter(k => k.status === 'pending').length;
+    const pending = employeeKpis.filter(k => k.status === 'not_started').length;
     const rejected = employeeKpis.filter(k => k.status === 'rejected').length;
     const averageCompletion = total > 0 ? 
       employeeKpis.reduce((sum, k) => sum + getCompletionRate(k.targetValue, k.actualValue), 0) / total : 0;
@@ -183,7 +183,7 @@ export default function SelfUpdateMetricsPage() {
         newValue: parseFloat(formData.actualValue),
         reason: formData.notes,
         supportingDocuments: formData.supportingDocuments.map(f => f.url),
-        status: 'pending',
+        status: 'not_started',
         submittedAt: new Date().toISOString()
       });
 
@@ -454,7 +454,9 @@ export default function SelfUpdateMetricsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  <SelectItem value="pending">Chờ duyệt</SelectItem>
+                  <SelectItem value="not_started">Chưa bắt đầu</SelectItem>
+                  <SelectItem value="in_progress">Đang thực hiện</SelectItem>
+                  <SelectItem value="submitted">Chờ duyệt</SelectItem>
                   <SelectItem value="approved">Đã duyệt</SelectItem>
                   <SelectItem value="rejected">Từ chối</SelectItem>
                 </SelectContent>

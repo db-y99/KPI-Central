@@ -1,24 +1,631 @@
-<testsuites id="" name="" tests="1" failures="0" skipped="0" errors="0" time="28.013616000000003">
-<testsuite name="comprehensive\simplified-final-check.spec.ts" timestamp="2025-09-25T09:57:34.244Z" hostname="chromium" tests="1" failures="0" skipped="0" time="19.882" errors="0">
-<testcase name="Final Comprehensive Check - Simplified › Final Summary › should provide final test summary" classname="comprehensive\simplified-final-check.spec.ts" time="19.882">
+<testsuites id="" name="" tests="29" failures="10" skipped="0" errors="0" time="60.554547">
+<testsuite name="employee\dashboard.spec.ts" timestamp="2025-09-28T02:41:13.660Z" hostname="chromium" tests="29" failures="10" skipped="0" time="457.232" errors="0">
+<testcase name="Employee Dashboard › Dashboard Overview › should display employee dashboard correctly" classname="employee\dashboard.spec.ts" time="6.616">
 <system-out>
-<![CDATA[🚀 Final test summary...
-🔐 Logging in as admin...
-✅ Redirected to admin dashboard
-✅ Admin login successful
-✅ body: Present
-✅ main: Present
-✅ nav: Present
-✅ header: Present
-📊 Present basic elements: 4/4
-🎯 FINAL SUMMARY:
-✅ Authentication: Working
-✅ Navigation: Working
-✅ Basic UI: Working
-✅ Error Handling: Working
-✅ Context Providers: Working
-✅ Core Services: Working
-✅ Final test summary completed
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Dashboard Overview › should display employee statistics" classname="employee\dashboard.spec.ts" time="7.223">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Dashboard Overview › should display KPI progress cards" classname="employee\dashboard.spec.ts" time="6.937">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Dashboard Overview › should show completion rate progress bar" classname="employee\dashboard.spec.ts" time="3.87">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › KPI Management › should display assigned KPIs" classname="employee\dashboard.spec.ts" time="7.904">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › KPI Management › should show KPI status badges" classname="employee\dashboard.spec.ts" time="4.519">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › KPI Management › should display KPI progress information" classname="employee\dashboard.spec.ts" time="6.851">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › KPI Management › should show upcoming deadlines" classname="employee\dashboard.spec.ts" time="6.423">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › KPI Updates › should navigate to KPI update page" classname="employee\dashboard.spec.ts" time="9.152">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+Current URL after clicking update button: http://localhost:9001/employee
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › KPI Updates › should update KPI progress" classname="employee\dashboard.spec.ts" time="25.556">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › KPI Updates › should validate KPI update form" classname="employee\dashboard.spec.ts" time="53.899">
+<failure message="dashboard.spec.ts:145:9 should validate KPI update form" type="FAILURE">
+<![CDATA[  [chromium] › employee\dashboard.spec.ts:145:9 › Employee Dashboard › KPI Updates › should validate KPI update form 
+
+    TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('button[type="submit"]') to be visible
+
+
+       at utils\test-utils.ts:114
+
+      112 |    */
+      113 |   async waitForElement(selector: string, timeout = 10000) {
+    > 114 |     await this.page.waitForSelector(selector, { 
+          |                     ^
+      115 |       state: 'visible', 
+      116 |       timeout 
+      117 |     });
+        at TestUtils.waitForElement (D:\KPI-Central\tests\utils\test-utils.ts:114:21)
+        at TestUtils.clickButton (D:\KPI-Central\tests\utils\test-utils.ts:180:20)
+        at D:\KPI-Central\tests\employee\dashboard.spec.ts:150:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-621bf-ld-validate-KPI-update-form-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-621bf-ld-validate-KPI-update-form-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\employee-dashboard-Employe-621bf-ld-validate-KPI-update-form-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+
+[[ATTACHMENT|employee-dashboard-Employe-621bf-ld-validate-KPI-update-form-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|employee-dashboard-Employe-621bf-ld-validate-KPI-update-form-chromium\video.webm]]
+
+[[ATTACHMENT|employee-dashboard-Employe-621bf-ld-validate-KPI-update-form-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › KPI Updates › should upload supporting documents" classname="employee\dashboard.spec.ts" time="22.964">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Personal Information › should navigate to personal info page" classname="employee\dashboard.spec.ts" time="10.294">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Personal Information › should display personal information form" classname="employee\dashboard.spec.ts" time="32.286">
+<failure message="dashboard.spec.ts:181:9 should display personal information form" type="FAILURE">
+<![CDATA[  [chromium] › employee\dashboard.spec.ts:181:9 › Employee Dashboard › Personal Information › should display personal information form 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('input[name="name"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 10000ms
+      - waiting for locator('input[name="name"]')
+
+
+      184 |       
+      185 |       // Check for personal info form elements
+    > 186 |       await expect(page.locator('input[name="name"]')).toBeVisible();
+          |                                                        ^
+      187 |       await expect(page.locator('input[name="email"]')).toBeVisible();
+      188 |       await expect(page.locator('input[name="phone"]')).toBeVisible();
+      189 |       await expect(page.locator('textarea[name="address"]')).toBeVisible();
+        at D:\KPI-Central\tests\employee\dashboard.spec.ts:186:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-fc668-y-personal-information-form-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-fc668-y-personal-information-form-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\employee-dashboard-Employe-fc668-y-personal-information-form-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+
+[[ATTACHMENT|employee-dashboard-Employe-fc668-y-personal-information-form-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|employee-dashboard-Employe-fc668-y-personal-information-form-chromium\video.webm]]
+
+[[ATTACHMENT|employee-dashboard-Employe-fc668-y-personal-information-form-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Personal Information › should update personal information" classname="employee\dashboard.spec.ts" time="32.401">
+<failure message="dashboard.spec.ts:192:9 should update personal information" type="FAILURE">
+<![CDATA[  [chromium] › employee\dashboard.spec.ts:192:9 › Employee Dashboard › Personal Information › should update personal information 
+
+    TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="name"]') to be visible
+
+
+       at utils\test-utils.ts:114
+
+      112 |    */
+      113 |   async waitForElement(selector: string, timeout = 10000) {
+    > 114 |     await this.page.waitForSelector(selector, { 
+          |                     ^
+      115 |       state: 'visible', 
+      116 |       timeout 
+      117 |     });
+        at TestUtils.waitForElement (D:\KPI-Central\tests\utils\test-utils.ts:114:21)
+        at TestUtils.fillFormField (D:\KPI-Central\tests\utils\test-utils.ts:166:16)
+        at D:\KPI-Central\tests\employee\dashboard.spec.ts:200:23
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-f182e-update-personal-information-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-f182e-update-personal-information-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\employee-dashboard-Employe-f182e-update-personal-information-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+
+[[ATTACHMENT|employee-dashboard-Employe-f182e-update-personal-information-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|employee-dashboard-Employe-f182e-update-personal-information-chromium\video.webm]]
+
+[[ATTACHMENT|employee-dashboard-Employe-f182e-update-personal-information-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Personal Information › should validate personal information form" classname="employee\dashboard.spec.ts" time="32.662">
+<failure message="dashboard.spec.ts:210:9 should validate personal information form" type="FAILURE">
+<![CDATA[  [chromium] › employee\dashboard.spec.ts:210:9 › Employee Dashboard › Personal Information › should validate personal information form 
+
+    TimeoutError: page.waitForSelector: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('input[name="name"]') to be visible
+
+
+       at utils\test-utils.ts:114
+
+      112 |    */
+      113 |   async waitForElement(selector: string, timeout = 10000) {
+    > 114 |     await this.page.waitForSelector(selector, { 
+          |                     ^
+      115 |       state: 'visible', 
+      116 |       timeout 
+      117 |     });
+        at TestUtils.waitForElement (D:\KPI-Central\tests\utils\test-utils.ts:114:21)
+        at TestUtils.fillFormField (D:\KPI-Central\tests\utils\test-utils.ts:166:16)
+        at D:\KPI-Central\tests\employee\dashboard.spec.ts:215:23
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-4d965-e-personal-information-form-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-4d965-e-personal-information-form-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\employee-dashboard-Employe-4d965-e-personal-information-form-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+
+[[ATTACHMENT|employee-dashboard-Employe-4d965-e-personal-information-form-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|employee-dashboard-Employe-4d965-e-personal-information-form-chromium\video.webm]]
+
+[[ATTACHMENT|employee-dashboard-Employe-4d965-e-personal-information-form-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Reports and History › should navigate to reports page" classname="employee\dashboard.spec.ts" time="32.584">
+<failure message="dashboard.spec.ts:228:9 should navigate to reports page" type="FAILURE">
+<![CDATA[  [chromium] › employee\dashboard.spec.ts:228:9 › Employee Dashboard › Reports and History › should navigate to reports page 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('text=My Reports')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 10000ms
+      - waiting for locator('text=My Reports')
+
+
+      231 |       
+      232 |       // Check for reports page elements
+    > 233 |       await expect(page.locator('text=My Reports')).toBeVisible();
+          |                                                     ^
+      234 |     });
+      235 |
+      236 |     test('should display KPI history', async ({ page }) => {
+        at D:\KPI-Central\tests\employee\dashboard.spec.ts:233:53
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-41023-ld-navigate-to-reports-page-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-41023-ld-navigate-to-reports-page-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\employee-dashboard-Employe-41023-ld-navigate-to-reports-page-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+
+[[ATTACHMENT|employee-dashboard-Employe-41023-ld-navigate-to-reports-page-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|employee-dashboard-Employe-41023-ld-navigate-to-reports-page-chromium\video.webm]]
+
+[[ATTACHMENT|employee-dashboard-Employe-41023-ld-navigate-to-reports-page-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Reports and History › should display KPI history" classname="employee\dashboard.spec.ts" time="23.406">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Reports and History › should filter reports by date range" classname="employee\dashboard.spec.ts" time="22.874">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Reports and History › should export reports" classname="employee\dashboard.spec.ts" time="20.247">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Notifications and Alerts › should display overdue KPI alerts" classname="employee\dashboard.spec.ts" time="5.082">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Notifications and Alerts › should display upcoming deadline alerts" classname="employee\dashboard.spec.ts" time="5.627">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Notifications and Alerts › should dismiss alerts" classname="employee\dashboard.spec.ts" time="4.665">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Navigation and Layout › should maintain navigation state across pages" classname="employee\dashboard.spec.ts" time="13.811">
+<failure message="dashboard.spec.ts:320:9 should maintain navigation state across pages" type="FAILURE">
+<![CDATA[  [chromium] › employee\dashboard.spec.ts:320:9 › Employee Dashboard › Navigation and Layout › should maintain navigation state across pages 
+
+    TimeoutError: page.click: Timeout 10000ms exceeded.
+    Call log:
+      - waiting for locator('text=Update Progress')
+
+
+      320 |     test('should maintain navigation state across pages', async ({ page }) => {
+      321 |       // Navigate to different employee pages
+    > 322 |       await page.click('text=Update Progress');
+          |                  ^
+      323 |       await expect(page).toHaveURL(/.*\/employee\/profile/);
+      324 |       
+      325 |       await page.goto('/employee/reports');
+        at D:\KPI-Central\tests\employee\dashboard.spec.ts:322:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-70af0-vigation-state-across-pages-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-70af0-vigation-state-across-pages-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\employee-dashboard-Employe-70af0-vigation-state-across-pages-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+
+[[ATTACHMENT|employee-dashboard-Employe-70af0-vigation-state-across-pages-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|employee-dashboard-Employe-70af0-vigation-state-across-pages-chromium\video.webm]]
+
+[[ATTACHMENT|employee-dashboard-Employe-70af0-vigation-state-across-pages-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Navigation and Layout › should display employee layout correctly" classname="employee\dashboard.spec.ts" time="13.689">
+<failure message="dashboard.spec.ts:329:9 should display employee layout correctly" type="FAILURE">
+<![CDATA[  [chromium] › employee\dashboard.spec.ts:329:9 › Employee Dashboard › Navigation and Layout › should display employee layout correctly 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('[data-testid="employee-layout"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 10000ms
+      - waiting for locator('[data-testid="employee-layout"]')
+
+
+      329 |     test('should display employee layout correctly', async ({ page }) => {
+      330 |       // Check for employee layout elements
+    > 331 |       await expect(page.locator('[data-testid="employee-layout"]')).toBeVisible();
+          |                                                                     ^
+      332 |       await expect(page.locator('[data-testid="employee-sidebar"]')).toBeVisible();
+      333 |       await expect(page.locator('[data-testid="employee-header"]')).toBeVisible();
+      334 |     });
+        at D:\KPI-Central\tests\employee\dashboard.spec.ts:331:69
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-42f8e-y-employee-layout-correctly-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-42f8e-y-employee-layout-correctly-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\employee-dashboard-Employe-42f8e-y-employee-layout-correctly-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+
+[[ATTACHMENT|employee-dashboard-Employe-42f8e-y-employee-layout-correctly-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|employee-dashboard-Employe-42f8e-y-employee-layout-correctly-chromium\video.webm]]
+
+[[ATTACHMENT|employee-dashboard-Employe-42f8e-y-employee-layout-correctly-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Navigation and Layout › should show user info in header" classname="employee\dashboard.spec.ts" time="13.653">
+<failure message="dashboard.spec.ts:336:9 should show user info in header" type="FAILURE">
+<![CDATA[  [chromium] › employee\dashboard.spec.ts:336:9 › Employee Dashboard › Navigation and Layout › should show user info in header 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('[data-testid="user-info"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 10000ms
+      - waiting for locator('[data-testid="user-info"]')
+
+
+      336 |     test('should show user info in header', async ({ page }) => {
+      337 |       // Check for user information in header
+    > 338 |       await expect(page.locator('[data-testid="user-info"]')).toBeVisible();
+          |                                                               ^
+      339 |       await expect(page.locator('text=Test Employee')).toBeVisible();
+      340 |     });
+      341 |
+        at D:\KPI-Central\tests\employee\dashboard.spec.ts:338:63
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-2cd43-ld-show-user-info-in-header-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-2cd43-ld-show-user-info-in-header-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\employee-dashboard-Employe-2cd43-ld-show-user-info-in-header-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+
+[[ATTACHMENT|employee-dashboard-Employe-2cd43-ld-show-user-info-in-header-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|employee-dashboard-Employe-2cd43-ld-show-user-info-in-header-chromium\video.webm]]
+
+[[ATTACHMENT|employee-dashboard-Employe-2cd43-ld-show-user-info-in-header-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Navigation and Layout › should logout from employee dashboard" classname="employee\dashboard.spec.ts" time="4.492">
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+🚪 Logging out...
+✅ Logout successful
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Responsive Design › should work on mobile devices" classname="employee\dashboard.spec.ts" time="14.109">
+<failure message="dashboard.spec.ts:351:9 should work on mobile devices" type="FAILURE">
+<![CDATA[  [chromium] › employee\dashboard.spec.ts:351:9 › Employee Dashboard › Responsive Design › should work on mobile devices 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('[data-testid="mobile-menu"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 10000ms
+      - waiting for locator('[data-testid="mobile-menu"]')
+
+
+      354 |       
+      355 |       // Check that mobile layout is displayed
+    > 356 |       await expect(page.locator('[data-testid="mobile-menu"]')).toBeVisible();
+          |                                                                 ^
+      357 |       
+      358 |       // Test mobile navigation
+      359 |       await page.click('[data-testid="mobile-menu-button"]');
+        at D:\KPI-Central\tests\employee\dashboard.spec.ts:356:65
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-66ca7-ould-work-on-mobile-devices-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-66ca7-ould-work-on-mobile-devices-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\employee-dashboard-Employe-66ca7-ould-work-on-mobile-devices-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+
+[[ATTACHMENT|employee-dashboard-Employe-66ca7-ould-work-on-mobile-devices-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|employee-dashboard-Employe-66ca7-ould-work-on-mobile-devices-chromium\video.webm]]
+
+[[ATTACHMENT|employee-dashboard-Employe-66ca7-ould-work-on-mobile-devices-chromium\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Employee Dashboard › Responsive Design › should work on tablet devices" classname="employee\dashboard.spec.ts" time="13.436">
+<failure message="dashboard.spec.ts:363:9 should work on tablet devices" type="FAILURE">
+<![CDATA[  [chromium] › employee\dashboard.spec.ts:363:9 › Employee Dashboard › Responsive Design › should work on tablet devices 
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator:  locator('[data-testid="tablet-layout"]')
+    Expected: visible
+    Received: <element(s) not found>
+    Timeout:  10000ms
+
+    Call log:
+      - Expect "toBeVisible" with timeout 10000ms
+      - waiting for locator('[data-testid="tablet-layout"]')
+
+
+      366 |       
+      367 |       // Check that tablet layout is displayed
+    > 368 |       await expect(page.locator('[data-testid="tablet-layout"]')).toBeVisible();
+          |                                                                   ^
+      369 |     });
+      370 |   });
+      371 | });
+        at D:\KPI-Central\tests\employee\dashboard.spec.ts:368:67
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-b2df2-ould-work-on-tablet-devices-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ..\test-results\employee-dashboard-Employe-b2df2-ould-work-on-tablet-devices-chromium\video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\employee-dashboard-Employe-b2df2-ould-work-on-tablet-devices-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔐 Logging in as employee...
+✅ Redirected to employee dashboard
+✅ Employee login successful
+
+[[ATTACHMENT|employee-dashboard-Employe-b2df2-ould-work-on-tablet-devices-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|employee-dashboard-Employe-b2df2-ould-work-on-tablet-devices-chromium\video.webm]]
+
+[[ATTACHMENT|employee-dashboard-Employe-b2df2-ould-work-on-tablet-devices-chromium\error-context.md]]
 ]]>
 </system-out>
 </testcase>

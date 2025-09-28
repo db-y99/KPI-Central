@@ -53,11 +53,11 @@ export default function EmployeeDashboardPage() {
       return { ...kpiDetails, ...record };
     });
 
-    // Basic stats
+    // Basic stats - Sử dụng trạng thái mới từ KPI Status Service
     const totalKpis = enrichedRecords.length;
     const completedKpis = enrichedRecords.filter(r => r.status === 'approved').length;
-    const inProgressKpis = enrichedRecords.filter(r => r.status === 'awaiting_approval').length;
-    const pendingKpis = enrichedRecords.filter(r => r.status === 'pending').length;
+    const inProgressKpis = enrichedRecords.filter(r => ['in_progress', 'submitted'].includes(r.status)).length;
+    const pendingKpis = enrichedRecords.filter(r => r.status === 'not_started').length;
     const overdueKpis = enrichedRecords.filter(r => {
       const endDate = new Date(r.endDate);
       return endDate < today && r.status !== 'approved';
@@ -90,12 +90,19 @@ export default function EmployeeDashboardPage() {
     switch (status) {
       case 'approved':
         return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />{t.employeeDashboard.completed}</Badge>;
+      case 'submitted':
+        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />{t.employeeDashboard.awaitingApproval}</Badge>;
+      case 'in_progress':
+        return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />Đang thực hiện</Badge>;
+      case 'not_started':
+        return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />{t.employeeDashboard.waitingToStart}</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive"><AlertTriangle className="w-3 h-3 mr-1" />{t.employeeDashboard.rejected}</Badge>;
+      // Fallback cho trạng thái cũ
       case 'awaiting_approval':
         return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />{t.employeeDashboard.awaitingApproval}</Badge>;
       case 'pending':
         return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />{t.employeeDashboard.waitingToStart}</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive"><AlertTriangle className="w-3 h-3 mr-1" />{t.employeeDashboard.rejected}</Badge>;
       default:
         return <Badge variant="outline">{t.employeeDashboard.waitingToStart}</Badge>;
     }

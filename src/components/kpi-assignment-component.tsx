@@ -93,7 +93,13 @@ export default function KpiAssignmentComponent() {
       const matchesStatus = statusFilter === 'all' || record.status === statusFilter;
       
       return matchesSearch && matchesDepartment && matchesStatus;
-    });
+    }).reduce((acc, record) => {
+      // Additional safety check to prevent duplicates
+      if (!acc.find(existingRecord => existingRecord.id === record.id)) {
+        acc.push(record);
+      }
+      return acc;
+    }, [] as KpiRecord[]);
   }, [kpiRecords, employees, kpis, departments, searchTerm, departmentFilter, statusFilter]);
 
   // Helper functions

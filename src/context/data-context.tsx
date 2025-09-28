@@ -17,6 +17,7 @@ import {
 import { db } from '@/lib/firebase';
 import { SystemNotificationService } from '@/lib/system-notification-service';
 import { KpiStatusService, KpiStatus } from '@/lib/kpi-status-service';
+import { FileUploadResult } from '@/lib/file-upload-service';
 import type { 
   Department, 
   Employee, 
@@ -429,8 +430,22 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         // Add the firestore doc id as uid
         const emps = empsSnap.docs.map(doc => ({ ...doc.data(), uid: doc.id } as Employee));
         const kpisData = kpisSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as Kpi));
+        // Deduplicate KPIs by ID to prevent duplicate keys
+        const uniqueKpisData = kpisData.reduce((acc, kpi) => {
+          if (!acc.find(existingKpi => existingKpi.id === kpi.id)) {
+            acc.push(kpi);
+          }
+          return acc;
+        }, [] as Kpi[]);
         const kpiRecordsData = kpiRecordsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as KpiRecord));
-        console.log('Loaded KPI Records from Firestore:', kpiRecordsData);
+        // Deduplicate KPI records by ID to prevent duplicate keys
+        const uniqueKpiRecordsData = kpiRecordsData.reduce((acc, record) => {
+          if (!acc.find(existingRecord => existingRecord.id === record.id)) {
+            acc.push(record);
+          }
+          return acc;
+        }, [] as KpiRecord[]);
+        console.log('Loaded KPI Records from Firestore:', uniqueKpiRecordsData);
         const rewardProgramsData = rewardProgramsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as RewardProgram));
         const positionConfigsData = positionConfigsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as PositionConfig));
         const employeePointsData = employeePointsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as EmployeePoint));
@@ -453,8 +468,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
         setDepartments(depts);
         setEmployees(emps);
-        setKpis(kpisData);
-        setKpiRecords(kpiRecordsData);
+        setKpis(uniqueKpisData);
+        setKpiRecords(uniqueKpiRecordsData);
         setRewardPrograms(rewardProgramsData);
         setPositionConfigs(positionConfigsData);
         setEmployeePoints(employeePointsData);
@@ -563,8 +578,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         id: doc.id,
         ...doc.data(),
       })) as KpiRecord[];
-      console.log('Real-time KPI records update:', kpiRecordsData);
-      setKpiRecords(kpiRecordsData);
+      
+      // Deduplicate KPI records by ID to prevent duplicate keys
+      const uniqueKpiRecords = kpiRecordsData.reduce((acc, record) => {
+        if (!acc.find(existingRecord => existingRecord.id === record.id)) {
+          acc.push(record);
+        }
+        return acc;
+      }, [] as KpiRecord[]);
+      
+      console.log('Real-time KPI records update:', uniqueKpiRecords);
+      setKpiRecords(uniqueKpiRecords);
     }, (error) => {
       console.error('Error listening to KPI records:', error);
     });
@@ -582,8 +606,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         id: doc.id,
         ...doc.data(),
       })) as Kpi[];
-      console.log('Real-time KPIs update:', kpisData);
-      setKpis(kpisData);
+      
+      // Deduplicate KPIs by ID to prevent duplicate keys
+      const uniqueKpis = kpisData.reduce((acc, kpi) => {
+        if (!acc.find(existingKpi => existingKpi.id === kpi.id)) {
+          acc.push(kpi);
+        }
+        return acc;
+      }, [] as Kpi[]);
+      
+      console.log('Real-time KPIs update:', uniqueKpis);
+      setKpis(uniqueKpis);
     }, (error) => {
       console.error('Error listening to KPIs:', error);
     });
@@ -636,6 +669,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
   const updateKpi = async (kpiId: string, updates: Partial<Kpi>) => {
     try {
+      // Validate kpiId parameter
+      if (!kpiId || typeof kpiId !== 'string') {
+        throw new Error('Invalid KPI ID: kpiId must be a non-empty string');
+      }
+
       const kpiRef = doc(db, 'kpis', kpiId);
       await updateDoc(kpiRef, {
         ...updates,

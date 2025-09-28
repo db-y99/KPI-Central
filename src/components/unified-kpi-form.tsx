@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
 import type { Kpi, Department } from '@/types';
-import { collection, getDocs, query, where, orderBy, doc, updateDoc, addDoc } from 'firebase/firestore';
+import { collection, doc, updateDoc, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useLanguage } from '@/context/language-context';
 import { useToast } from '@/hooks/use-toast';
@@ -96,11 +96,9 @@ interface KpiFormProps {
 
 export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
   const { t } = useLanguage();
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [loadingDepartments, setLoadingDepartments] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const { addKpi, updateKpi } = useContext(DataContext);
+  const { addKpi, updateKpi, departments } = useContext(DataContext);
 
   const isEditMode = mode === 'edit';
   const schema = isEditMode ? editKpiSchema(t) : createKpiSchema(t);
@@ -140,35 +138,6 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
     },
   });
 
-  // Load departments from Firestore
-  useEffect(() => {
-    const fetchDepartments = async () => {
-      try {
-        setLoadingDepartments(true);
-        const departmentsRef = collection(db, 'departments');
-        const q = query(departmentsRef, where('isActive', '==', true), orderBy('name'));
-        const querySnapshot = await getDocs(q);
-        
-        const departmentsData: Department[] = [];
-        querySnapshot.forEach((doc) => {
-          departmentsData.push({ id: doc.id, ...doc.data() } as Department);
-        });
-        
-        setDepartments(departmentsData);
-      } catch (error) {
-        console.error('Error fetching departments:', error);
-        toast({
-          variant: 'destructive',
-          title: t.common.error as string,
-          description: 'Không thể tải danh sách phòng ban.',
-        });
-      } finally {
-        setLoadingDepartments(false);
-      }
-    };
-
-    fetchDepartments();
-  }, [toast, t]);
 
   const onSubmit = async (data: CreateKpiFormValues | EditKpiFormValues) => {
     setIsSubmitting(true);
@@ -201,7 +170,7 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
           ...editData,
         };
 
-        updateKpi(updatedKpi);
+        await updateKpi(kpi!.id, editData);
         onSave(updatedKpi);
         
         toast({
@@ -258,14 +227,6 @@ export default function KpiForm({ mode, kpi, onSave, onClose }: KpiFormProps) {
     }
   };
 
-  if (loadingDepartments) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="w-8 h-8 animate-spin" />
-        <span className="ml-2">Đang tải danh sách phòng ban...</span>
-      </div>
-    );
-  }
 
   return (
     <Form {...form}>
