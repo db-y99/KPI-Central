@@ -63,13 +63,12 @@ export async function createUserAction(userData: CreateUserParams) {
 
     // Check if Firebase Admin services are available
     if (!isInitialized || !auth || !db) {
-      // Fallback: Create employee document without Firebase Auth for development
-      console.warn('Firebase Admin SDK not available, creating employee document only');
+      // Fallback: Create user using Firebase Client SDK
+      console.warn('Firebase Admin SDK not available, using client SDK for user creation');
       
-      // Generate a temporary UID for development
-      const tempUid = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      // Create employee document in Firestore using client SDK
+      // Import Firebase client SDK
+      const { auth: clientAuth } = await import('@/lib/firebase');
+      const { createUserWithEmailAndPassword } = await import('firebase/auth');
       const { db: clientDb } = await import('@/lib/firebase');
       const { doc, setDoc, collection, getDocs } = await import('firebase/firestore');
       
@@ -85,10 +84,18 @@ export async function createUserAction(userData: CreateUserParams) {
         return { success: false, error: 'Mã nhân viên đã tồn tại' };
       }
 
-      // Create employee document
+      // Create user in Firebase Auth using client SDK
+      const userCredential = await createUserWithEmailAndPassword(
+        clientAuth, 
+        userData.email, 
+        userData.password!
+      );
+      const firebaseUser = userCredential.user;
+
+      // Create employee document in Firestore
       const employeeData = {
         id: `e${existingEmployees.length + 1}`,
-        uid: tempUid,
+        uid: firebaseUser.uid,
         name: userData.name,
         email: userData.email,
         username: userData.username,
@@ -98,22 +105,18 @@ export async function createUserAction(userData: CreateUserParams) {
         phone: userData.phone || '',
         startDate: userData.startDate,
         employeeId: userData.employeeId,
-        avatar: `https://picsum.photos/seed/${tempUid}/100/100`,
+        avatar: `https://picsum.photos/seed/${firebaseUser.uid}/100/100`,
         isActive: true,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        // Store password temporarily for development (in production, this should be handled by Firebase Auth)
-        tempPassword: userData.password,
-        needsAuthSetup: true // Flag to indicate this user needs Firebase Auth setup
+        updatedAt: new Date().toISOString()
       };
 
-      await setDoc(doc(clientDb, 'employees', tempUid), employeeData);
+      await setDoc(doc(clientDb, 'employees', firebaseUser.uid), employeeData);
 
       return {
         success: true,
-        uid: tempUid,
-        message: `Tài khoản nhân viên ${userData.name} đã được tạo thành công! (Chế độ phát triển - cần thiết lập Firebase Auth)`,
-        developmentMode: true
+        uid: firebaseUser.uid,
+        message: `Tài khoản nhân viên ${userData.name} đã được tạo thành công!`
       };
     }
 
