@@ -1,6 +1,17 @@
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from './firebase';
-import { googleDriveService, DriveFile } from './google-drive-service';
+
+// Dynamic import for server-side only Google Drive service
+let googleDriveService: any = null;
+
+// Lazy load Google Drive service only on server
+const getGoogleDriveService = async () => {
+  if (typeof window === 'undefined' && !googleDriveService) {
+    const { googleDriveService: service } = await import('./google-drive-service');
+    googleDriveService = service;
+  }
+  return googleDriveService;
+};
 
 export interface UploadedFile {
   id: string;
@@ -108,10 +119,11 @@ class UnifiedFileService {
       const folderId = await this.getOrCreateFolder(path);
       
       // Upload file to Google Drive
-      const driveFile = await googleDriveService.uploadFile(file, folderId, onProgress);
+      const driveService = await getGoogleDriveService();
+      const driveFile = await driveService.uploadFile(file, folderId, onProgress);
       
       // Make file public for easy access
-      await googleDriveService.makeFilePublic(driveFile.id);
+      await driveService.makeFilePublic(driveFile.id);
       
       return {
         id: driveFile.id,
@@ -199,7 +211,8 @@ class UnifiedFileService {
   async deleteFile(file: UploadedFile): Promise<void> {
     try {
       if (file.storageType === 'google-drive' && file.driveFileId) {
-        await googleDriveService.deleteFile(file.driveFileId);
+        const driveService = await getGoogleDriveService();
+        await driveService.deleteFile(file.driveFileId);
       } else {
         // Firebase Storage
         const fileRef = ref(storage, file.id);
@@ -221,12 +234,13 @@ class UnifiedFileService {
       let currentFolderId = this.config.googleDriveFolderId || 'root';
       
       for (const folderName of folders) {
-        let folderId = await googleDriveService.getFolderByName(folderName, currentFolderId);
-        
+        const driveService = await getGoogleDriveService();
+        let folderId = await driveService.getFolderByName(folderName, currentFolderId);
+
         if (!folderId) {
-          folderId = await googleDriveService.createFolder(folderName, currentFolderId);
+          folderId = await driveService.createFolder(folderName, currentFolderId);
         }
-        
+
         currentFolderId = folderId;
       }
       

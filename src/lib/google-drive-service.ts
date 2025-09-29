@@ -1,3 +1,8 @@
+// Server-side only imports
+if (typeof window !== 'undefined') {
+  throw new Error('Google Drive service can only be used on the server side');
+}
+
 import { google } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 

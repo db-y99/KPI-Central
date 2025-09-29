@@ -19,20 +19,33 @@ const nextConfig: NextConfig = {
         zlib: false,
         child_process: false,
         buffer: false,
+        // Add more Node.js modules that might be required
+        events: false,
+        url: false,
+        querystring: false,
+        assert: false,
+        constants: false,
+        domain: false,
+        https: false,
+        http: false,
+        timers: false,
       };
     }
-    
+
     // Ignore specific modules that cause issues in client-side builds
     config.externals = config.externals || [];
     config.externals.push({
       'googleapis': 'commonjs googleapis',
+      'google-auth-library': 'commonjs google-auth-library',
       'node:buffer': 'commonjs buffer',
       'node:fs': 'commonjs fs',
       'node:path': 'commonjs path',
+      'child_process': 'commonjs child_process',
     });
-    
+
     return config;
   },
+
   // Enable Turbopack features
   turbopack: {
     // Turbopack specific configuration
