@@ -14,7 +14,7 @@ async function handleGetEmployees(request: NextRequest, user?: any) {
     const page = parseInt(searchParams.get('page') || '1');
     const pageSize = parseInt(searchParams.get('pageSize') || '10');
 
-    let q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+    let q = query(collection(db, 'employees'), orderBy('createdAt', 'desc'));
 
     // Apply filters
     if (department) {
@@ -107,7 +107,7 @@ async function handleCreateEmployee(request: NextRequest, user?: any) {
 
     // Check if email already exists
     const existingUserQuery = query(
-      collection(db, 'users'),
+      collection(db, 'employees'),
       where('email', '==', email)
     );
     const existingUserSnapshot = await getDocs(existingUserQuery);
@@ -130,7 +130,7 @@ async function handleCreateEmployee(request: NextRequest, user?: any) {
       updatedAt: new Date().toISOString()
     };
 
-    const docRef = await addDoc(collection(db, 'users'), employeeData);
+    const docRef = await addDoc(collection(db, 'employees'), employeeData);
 
     const { password, ...safeData } = employeeData;
     return createSuccessResponse({

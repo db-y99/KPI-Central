@@ -6,15 +6,15 @@ export default function EvaluationReportsRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to KPI Management tab with evaluation-reports tab active
-    router.replace('/admin/kpi-management?tab=evaluation-reports');
+    // Redirect to KPI Management main page
+    router.replace('/admin/kpi-management');
   }, [router]);
 
   return (
     <div className="flex items-center justify-center h-64">
       <div className="text-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-        <p className="text-muted-foreground">Đang chuyển hướng đến Đánh giá & Báo cáo...</p>
+        <p className="text-muted-foreground">Đang chuyển hướng đến Quản lý KPI...</p>
       </div>
     </div>
   );

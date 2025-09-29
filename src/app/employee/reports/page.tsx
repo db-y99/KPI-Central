@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import FileUploadComponent from '@/components/file-upload-component';
 import { FileUploadResult } from '@/lib/file-upload-service';
+import { KpiStatusService, KpiStatus } from '@/lib/kpi-status-service';
 
 export default function EmployeeReportPage() {
   const { kpiRecords, kpis, updateKpiRecord } = useContext(DataContext);
@@ -53,17 +54,34 @@ export default function EmployeeReportPage() {
   });
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />Đã duyệt</Badge>;
-      case 'awaiting_approval':
-        return <Badge className="bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" />Chờ duyệt</Badge>;
-      case 'pending':
-        return <Badge className="bg-orange-100 text-orange-800"><Clock className="w-3 h-3 mr-1" />Chưa nộp</Badge>;
-      case 'rejected':
-        return <Badge className="bg-red-100 text-red-800"><Clock className="w-3 h-3 mr-1" />Bị từ chối</Badge>;
-      default:
-        return <Badge variant="outline">Chưa bắt đầu</Badge>;
+    try {
+      const statusConfig = KpiStatusService.getStatusConfig(status as KpiStatus);
+      const IconComponent = status === 'approved' ? CheckCircle2 :
+                           status === 'rejected' ? Clock :
+                           Clock;
+
+      return (
+        <Badge className={`${statusConfig.color.replace('bg-', 'bg-').replace('-500', '-100')} text-${statusConfig.color.replace('bg-', '').replace('-500', '-800')}`}>
+          <IconComponent className="w-3 h-3 mr-1" />
+          {statusConfig.label}
+        </Badge>
+      );
+    } catch (error) {
+      // Fallback cho trạng thái cũ
+      switch (status) {
+        case 'approved':
+          return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />Đã duyệt</Badge>;
+        case 'awaiting_approval':
+        case 'submitted':
+          return <Badge className="bg-blue-100 text-blue-800"><Clock className="w-3 h-3 mr-1" />Chờ duyệt</Badge>;
+        case 'pending':
+        case 'not_started':
+          return <Badge className="bg-orange-100 text-orange-800"><Clock className="w-3 h-3 mr-1" />Chưa nộp</Badge>;
+        case 'rejected':
+          return <Badge className="bg-red-100 text-red-800"><Clock className="w-3 h-3 mr-1" />Bị từ chối</Badge>;
+        default:
+          return <Badge variant="outline">Chưa bắt đầu</Badge>;
+      }
     }
   };
 

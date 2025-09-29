@@ -1,8 +1,8 @@
 'use client';
 import { useContext, useState, useMemo } from 'react';
-import { 
-  TrendingUp, 
-  Users, 
+import {
+  TrendingUp,
+  Users,
   AlertTriangle,
   CheckCircle2,
   Clock,
@@ -11,7 +11,8 @@ import {
   Edit,
   RefreshCw,
   Play,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,7 +50,7 @@ import { useToast } from '@/hooks/use-toast';
 import { KpiStatusService, KpiStatus } from '@/lib/kpi-status-service';
 
 export default function KpiTrackingComponent() {
-  const { employees, kpis, kpiRecords, departments, updateKpiRecord } = useContext(DataContext);
+  const { employees, kpis, kpiRecords, departments, updateKpiRecord, removeDuplicateKpiRecords } = useContext(DataContext);
   const { t } = useLanguage();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
@@ -147,6 +148,23 @@ export default function KpiTrackingComponent() {
 
   const handleRefreshData = () => {
     window.location.reload();
+  };
+
+  const handleCleanupDuplicates = async () => {
+    try {
+      await removeDuplicateKpiRecords();
+      toast({
+        title: "Thành công!",
+        description: "Đã dọn dẹp các bản ghi KPI trùng lặp."
+      });
+    } catch (error) {
+      console.error('Error cleaning up duplicates:', error);
+      toast({
+        variant: 'destructive',
+        title: "Lỗi!",
+        description: "Không thể dọn dẹp các bản ghi trùng lặp."
+      });
+    }
   };
 
   const handleRowClick = (record: any) => {
@@ -294,6 +312,10 @@ export default function KpiTrackingComponent() {
               <Button onClick={handleRefreshData} variant="outline">
                 <RefreshCw className="w-4 h-4 mr-2" />
                 {t.kpiTracking.refresh}
+              </Button>
+              <Button onClick={handleCleanupDuplicates} variant="outline">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Dọn dẹp trùng lặp
               </Button>
             </div>
           </div>

@@ -14,6 +14,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "init:policies": "tsx src/scripts/init-policies-cli.ts",
+    "init:system": "tsx src/scripts/init-system-data.ts",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed",

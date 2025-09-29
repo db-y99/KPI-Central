@@ -6,8 +6,8 @@ export default function EvaluationRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to KPI Management tab with evaluation-reports tab active
-    router.replace('/admin/kpi-management?tab=evaluation-reports');
+    // Redirect to KPI Management main page
+    router.replace('/admin/kpi-management');
   }, [router]);
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 import { useContext } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 import { AuthContext } from '@/context/auth-context';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -11,6 +11,7 @@ export default function DashboardHeader() {
   const { user } = useContext(AuthContext);
   const isMobile = useIsMobile();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { t } = useLanguage();
 
   let title = t.dashboard.title;
@@ -18,10 +19,6 @@ export default function DashboardHeader() {
     title = 'KPI Management';
   } else if (pathname.startsWith('/admin/hr-management')) {
     title = 'HR Management';
-  } else if (pathname.startsWith('/admin/evaluation-reports') || 
-             (pathname.startsWith('/admin/kpi-management') && searchParams.get('tab') === 'evaluation') ||
-             (pathname.startsWith('/admin/kpi-management') && searchParams.get('tab') === 'reports')) {
-    title = 'Evaluation & Reports';
   } else if (pathname.startsWith('/admin/reward-system')) {
     title = 'Reward System';
   } else if (pathname.startsWith('/admin/system-settings')) {

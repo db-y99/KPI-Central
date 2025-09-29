@@ -28,9 +28,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  UserPlus, 
-  Target, 
+import {
+  UserPlus,
+  Target,
   Search,
   PlusCircle,
   Clock,
@@ -41,14 +41,16 @@ import {
   Calendar,
   Users,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  Trash2
 } from 'lucide-react';
 import { DataContext } from '@/context/data-context';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
+import { KpiStatusService, KpiStatus } from '@/lib/kpi-status-service';
 
 export default function KpiAssignmentComponent() {
-  const { employees, kpis, departments, kpiRecords, assignKpi } = useContext(DataContext);
+  const { employees, kpis, departments, kpiRecords, assignKpi, removeDuplicateKpiRecords } = useContext(DataContext);
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -79,19 +81,26 @@ export default function KpiAssignmentComponent() {
       const employee = employees.find(e => e.uid === record.employeeId);
       const kpi = kpis.find(k => k.id === record.kpiId);
       const department = departments.find(d => d.id === employee?.departmentId);
-      
+
       // Search filter
-      const matchesSearch = searchTerm === '' || 
+      const matchesSearch = searchTerm === '' ||
         (employee?.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (kpi?.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (department?.name.toLowerCase().includes(searchTerm.toLowerCase()));
-      
+
       // Department filter
       const matchesDepartment = departmentFilter === 'all' || employee?.departmentId === departmentFilter;
-      
+
       // Status filter
-      const matchesStatus = statusFilter === 'all' || record.status === statusFilter;
-      
+      const matchesStatus = statusFilter === 'all' || (() => {
+        try {
+          const statusConfig = KpiStatusService.getStatusConfig(statusFilter as KpiStatus);
+          return record.status === statusFilter;
+        } catch {
+          return record.status === statusFilter;
+        }
+      })();
+
       return matchesSearch && matchesDepartment && matchesStatus;
     }).reduce((acc, record) => {
       // Additional safety check to prevent duplicates
@@ -119,13 +128,54 @@ export default function KpiAssignmentComponent() {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved': return 'bg-green-100 text-green-800';
-      case 'submitted': return 'bg-blue-100 text-blue-800';
-      case 'in_progress': return 'bg-yellow-100 text-yellow-800';
-      case 'not_started': return 'bg-gray-100 text-gray-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+    try {
+      const statusConfig = KpiStatusService.getStatusConfig(status as KpiStatus);
+      return `${statusConfig.color.replace('bg-', 'bg-').replace('-500', '-100')} text-${statusConfig.color.replace('bg-', '').replace('-500', '-800')}`;
+    } catch (error) {
+      // Fallback cho trạng thái cũ
+      switch (status) {
+        case 'approved':
+        case 'completed':
+          return 'bg-green-100 text-green-800';
+        case 'awaiting_approval':
+        case 'submitted':
+          return 'bg-blue-100 text-blue-800';
+        case 'in_progress':
+          return 'bg-yellow-100 text-yellow-800';
+        case 'not_started':
+        case 'pending':
+          return 'bg-gray-100 text-gray-800';
+        case 'rejected':
+          return 'bg-red-100 text-red-800';
+        default:
+          return 'bg-gray-100 text-gray-800';
+      }
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    try {
+      const statusConfig = KpiStatusService.getStatusConfig(status as KpiStatus);
+      return statusConfig.label;
+    } catch (error) {
+      // Fallback cho trạng thái cũ
+      switch (status) {
+        case 'approved':
+        case 'completed':
+          return 'Hoàn thành';
+        case 'awaiting_approval':
+        case 'submitted':
+          return 'Chờ duyệt';
+        case 'in_progress':
+          return 'Đang thực hiện';
+        case 'not_started':
+        case 'pending':
+          return 'Chưa bắt đầu';
+        case 'rejected':
+          return 'Từ chối';
+        default:
+          return 'Chưa bắt đầu';
+      }
     }
   };
 
@@ -142,6 +192,23 @@ export default function KpiAssignmentComponent() {
       notes: ''
     });
     setIsDialogOpen(true);
+  };
+
+  const handleCleanupDuplicates = async () => {
+    try {
+      await removeDuplicateKpiRecords();
+      toast({
+        title: "Thành công!",
+        description: "Đã dọn dẹp các bản ghi KPI trùng lặp."
+      });
+    } catch (error) {
+      console.error('Error cleaning up duplicates:', error);
+      toast({
+        variant: 'destructive',
+        title: "Lỗi!",
+        description: "Không thể dọn dẹp các bản ghi trùng lặp."
+      });
+    }
   };
 
   const handleSaveAssignment = async () => {
@@ -231,11 +298,31 @@ export default function KpiAssignmentComponent() {
   // Statistics
   const stats = useMemo(() => {
     const totalAssignments = kpiRecords.length;
-    const activeAssignments = kpiRecords.filter(r => ['not_started', 'in_progress', 'submitted'].includes(r.status)).length;
-    const completedAssignments = kpiRecords.filter(r => r.status === 'approved').length;
+    const activeAssignments = kpiRecords.filter(r => {
+      try {
+        return KpiStatusService.isActiveStatus(r.status as KpiStatus);
+      } catch {
+        return ['not_started', 'in_progress', 'submitted', 'awaiting_approval'].includes(r.status);
+      }
+    }).length;
+    const completedAssignments = kpiRecords.filter(r => {
+      try {
+        return KpiStatusService.isCompletedStatus(r.status as KpiStatus);
+      } catch {
+        return ['approved', 'completed'].includes(r.status);
+      }
+    }).length;
     const overdueAssignments = kpiRecords.filter(r => {
       const endDate = new Date(r.endDate);
-      return endDate < new Date() && !['approved', 'rejected'].includes(r.status);
+      const isOverdue = endDate < new Date();
+      const isNotCompleted = (() => {
+        try {
+          return !KpiStatusService.isCompletedStatus(r.status as KpiStatus);
+        } catch {
+          return !['approved', 'completed', 'rejected'].includes(r.status);
+        }
+      })();
+      return isOverdue && isNotCompleted;
     }).length;
 
     return {
@@ -258,10 +345,16 @@ export default function KpiAssignmentComponent() {
             {t.kpiAssignment.manageKpiAssignment}
           </p>
         </div>
-        <Button onClick={handleAddAssignment} className="flex items-center gap-2">
-          <PlusCircle className="w-4 h-4" />
-          {t.kpiAssignment.assignKpi}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={handleCleanupDuplicates} variant="outline">
+            <Trash2 className="w-4 h-4 mr-2" />
+            Dọn dẹp trùng lặp
+          </Button>
+          <Button onClick={handleAddAssignment} className="flex items-center gap-2">
+            <PlusCircle className="w-4 h-4" />
+            {t.kpiAssignment.assignKpi}
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -343,11 +436,11 @@ export default function KpiAssignmentComponent() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t.kpiAssignment.allStatuses}</SelectItem>
-                <SelectItem value="not_started">{t.kpiAssignment.notStarted}</SelectItem>
-                <SelectItem value="in_progress">{t.kpiAssignment.inProgress}</SelectItem>
-                <SelectItem value="submitted">{t.kpiAssignment.submitted}</SelectItem>
-                <SelectItem value="approved">{t.kpiAssignment.approved}</SelectItem>
-                <SelectItem value="rejected">{t.kpiAssignment.rejected}</SelectItem>
+                {Object.values(KpiStatusService.getAllStatuses()).map(status => (
+                  <SelectItem key={status.key} value={status.key}>
+                    {status.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -377,9 +470,28 @@ export default function KpiAssignmentComponent() {
               {filteredKpiRecords.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                    {searchTerm || departmentFilter !== 'all' || statusFilter !== 'all'
-                      ? t.kpiAssignment.noKpiMatchFilter
-                      : t.kpiAssignment.noKpiAssignedYet}
+                    {searchTerm || departmentFilter !== 'all' || statusFilter !== 'all' ? (
+                      <div>
+                        <p className="mb-2">{t.kpiAssignment.noKpiMatchFilter}</p>
+                        <p className="text-sm">
+                          {searchTerm && `Tìm kiếm: "${searchTerm}"`}
+                          {departmentFilter !== 'all' && ` | Phòng ban: ${departments.find(d => d.id === departmentFilter)?.name}`}
+                          {statusFilter !== 'all' && ` | Trạng thái: ${getStatusLabel(statusFilter)}`}
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <Target className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">{t.kpiAssignment.noKpiAssignedYet}</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Chưa có KPI nào được giao cho nhân viên.
+                        </p>
+                        <div className="space-y-2 text-sm text-muted-foreground">
+                          <p>• {t.kpiAssignment.createKpiAt} <a href="/admin/kpi-management?tab=definitions" className="text-blue-600 hover:underline">{t.kpiAssignment.defineKpiLink}</a></p>
+                          <p>• {t.kpiAssignment.assignKpiAt} <span className="text-blue-600">{t.kpiAssignment.assignKpiLink}</span></p>
+                        </div>
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -423,7 +535,7 @@ export default function KpiAssignmentComponent() {
                       </TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(record.status)}>
-                          {record.status}
+                          {getStatusLabel(record.status)}
                         </Badge>
                       </TableCell>
                       <TableCell>

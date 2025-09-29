@@ -143,7 +143,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Quick Actions - Cập nhật theo cấu trúc mới */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
         <Link href="/admin/kpi-management">
           <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
@@ -170,18 +170,6 @@ export default function AdminDashboardPage() {
           </Card>
         </Link>
 
-        <Link href="/admin/kpi-management?tab=evaluation">
-          <Card className="cursor-pointer hover:shadow-md transition-shadow">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-primary" />
-                {t.dashboard.evaluationReports}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-            </CardContent>
-          </Card>
-        </Link>
 
         <Link href="/admin/kpi-management?tab=reward-penalty">
           <Card className="cursor-pointer hover:shadow-md transition-shadow">

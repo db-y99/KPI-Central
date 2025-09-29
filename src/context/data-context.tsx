@@ -96,6 +96,7 @@ interface DataContextType {
   deleteDepartment: (departmentId: string) => Promise<void>;
   assignKpi: (assignment: Omit<KpiRecord, 'id' | 'actual' | 'status' | 'submittedReport' | 'approvalComment'>) => Promise<void>;
   updateKpiRecord: (recordId: string, updates: Partial<KpiRecord>) => Promise<void>;
+  removeDuplicateKpiRecords: () => Promise<void>;
   submitReport: (recordId: string, reportName: string) => Promise<void>;
   approveKpi: (recordId: string) => Promise<void>;
   rejectKpi: (recordId: string, comment: string) => Promise<void>;
@@ -244,6 +245,7 @@ export const DataContext = createContext<DataContextType>({
   deleteDepartment: async () => {},
   assignKpi: async () => {},
   updateKpiRecord: async () => {},
+  removeDuplicateKpiRecords: async () => {},
   submitReport: async () => {},
   approveKpi: async () => {},
   rejectKpi: async () => {},
@@ -438,8 +440,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
           return acc;
         }, [] as Kpi[]);
         const kpiRecordsData = kpiRecordsSnap.docs.map(doc => ({ ...doc.data(), id: doc.id } as KpiRecord));
-        // Deduplicate KPI records by ID to prevent duplicate keys
-        const uniqueKpiRecordsData = kpiRecordsData.reduce((acc, record) => {
+        // Filter out deleted duplicates and deduplicate by ID to prevent duplicate keys
+        const activeKpiRecordsData = kpiRecordsData.filter(record => !record.isDeleted);
+        const uniqueKpiRecordsData = activeKpiRecordsData.reduce((acc, record) => {
           if (!acc.find(existingRecord => existingRecord.id === record.id)) {
             acc.push(record);
           }
@@ -578,15 +581,16 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         id: doc.id,
         ...doc.data(),
       })) as KpiRecord[];
-      
-      // Deduplicate KPI records by ID to prevent duplicate keys
-      const uniqueKpiRecords = kpiRecordsData.reduce((acc, record) => {
+
+      // Filter out deleted duplicates and deduplicate by ID
+      const activeRecords = kpiRecordsData.filter(record => !record.isDeleted);
+      const uniqueKpiRecords = activeRecords.reduce((acc, record) => {
         if (!acc.find(existingRecord => existingRecord.id === record.id)) {
           acc.push(record);
         }
         return acc;
       }, [] as KpiRecord[]);
-      
+
       console.log('Real-time KPI records update:', uniqueKpiRecords);
       setKpiRecords(uniqueKpiRecords);
     }, (error) => {
@@ -718,11 +722,104 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     setDepartments(prev => prev.filter(d => d.id !== departmentId));
   };
   
+  const removeDuplicateKpiRecords = async (): Promise<void> => {
+    try {
+      // Get all KPI records ordered by employeeId, kpiId, period, and updatedAt
+      const recordsRef = collection(db, 'kpiRecords');
+      const q = query(recordsRef, orderBy('employeeId'), orderBy('kpiId'), orderBy('period'), orderBy('updatedAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+
+      const groupedRecords: Record<string, any[]> = {};
+      const duplicateIds: string[] = [];
+
+      // Group records by employeeId-kpiId-period combination
+      querySnapshot.forEach((doc) => {
+        const record = { id: doc.id, ...doc.data() };
+        const key = `${record.employeeId}-${record.kpiId}-${record.period}`;
+
+        if (!groupedRecords[key]) {
+          groupedRecords[key] = [];
+        }
+        groupedRecords[key].push(record);
+      });
+
+      // Identify duplicates (keep the most recent one)
+      Object.values(groupedRecords).forEach((records) => {
+        if (records.length > 1) {
+          // Keep the first one (most recent due to ordering), mark others for deletion
+          const duplicates = records.slice(1);
+          duplicates.forEach((duplicate) => {
+            duplicateIds.push(duplicate.id);
+          });
+        }
+      });
+
+      // Soft delete duplicates
+      const deletePromises = duplicateIds.map(id =>
+        updateDoc(doc(db, 'kpiRecords', id), {
+          deletedAt: new Date().toISOString(),
+          isDeleted: true
+        })
+      );
+
+      await Promise.all(deletePromises);
+
+      console.log(`Cleaned up ${duplicateIds.length} duplicate KPI records`);
+
+      // Refresh local state
+      const remainingRecords = querySnapshot.docs
+        .filter(doc => !duplicateIds.includes(doc.id))
+        .map(doc => ({ ...doc.data(), id: doc.id } as KpiRecord));
+
+      setKpiRecords(remainingRecords);
+    } catch (error) {
+      console.error('Error removing duplicate KPI records:', error);
+      throw error;
+    }
+  };
+
   const assignKpi = async (assignment: Omit<KpiRecord, 'id' | 'actual' | 'status' | 'submittedReport' | 'approvalComment' | 'statusHistory' | 'lastStatusChange' | 'lastStatusChangedBy'>) => {
-    const newRecord = {
+    try {
+      // Validate required fields
+      if (!assignment.employeeId || !assignment.kpiId || !assignment.period) {
+        throw new Error('Missing required fields: employeeId, kpiId, or period');
+      }
+
+      // Validate employee exists and is active
+      const employeeQuery = query(
+        collection(db, 'employees'),
+        where('uid', '==', assignment.employeeId),
+        where('isActive', '==', true)
+      );
+      const employeeSnapshot = await getDocs(employeeQuery);
+      if (employeeSnapshot.empty) {
+        throw new Error('Employee not found or inactive');
+      }
+
+      // Validate KPI exists and is active
+      const kpiQuery = query(
+        collection(db, 'kpis'),
+        where('id', '==', assignment.kpiId),
+        where('isActive', '==', true)
+      );
+      const kpiSnapshot = await getDocs(kpiQuery);
+      if (kpiSnapshot.empty) {
+        throw new Error('KPI not found or inactive');
+      }
+
+      // Check if KPI record already exists for this employee, KPI, and period
+      const existingQuery = query(
+        collection(db, 'kpiRecords'),
+        where('employeeId', '==', assignment.employeeId),
+        where('kpiId', '==', assignment.kpiId),
+        where('period', '==', assignment.period)
+      );
+      const existingSnapshot = await getDocs(existingQuery);
+
+      const newRecordData = {
         ...assignment,
         actual: 0,
-        status: 'not_started' as KpiStatus, // Sử dụng trạng thái mới
+        status: 'not_started' as KpiStatus,
         submittedReport: '',
         approvalComment: '',
         statusHistory: [{
@@ -735,24 +832,64 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         lastStatusChangedBy: user?.uid || 'system',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-    } as const;
-    
-    console.log('Saving KPI record to Firestore:', newRecord);
-    
-    const docRef = await addDoc(collection(db, 'kpiRecords'), newRecord);
-    const savedRecord = { ...newRecord, id: docRef.id };
-    
-    console.log('KPI record saved with ID:', docRef.id);
-    console.log('Updated KPI records:', [...kpiRecords, savedRecord]);
-    
-    setKpiRecords(prev => [...prev, savedRecord]);
+      };
 
-    // Create notification for the employee
-    const kpi = kpis.find(k => k.id === assignment.kpiId);
-    const employee = employees.find(e => e.uid === assignment.employeeId);
-    
-    if (employee && kpi) {
-      await SystemNotificationService.notifyKpiAssigned(savedRecord, employee, kpi.name, kpi.unit);
+      let savedRecord: KpiRecord;
+      let docRef;
+
+      if (existingSnapshot.empty) {
+        // Create new KPI record
+        console.log('Creating new KPI record:', newRecordData);
+        docRef = await addDoc(collection(db, 'kpiRecords'), newRecordData);
+        savedRecord = { ...newRecordData, id: docRef.id };
+        console.log('New KPI record created with ID:', docRef.id);
+      } else {
+        // Update existing KPI record
+        const existingDoc = existingSnapshot.docs[0];
+        const existingRecord = existingDoc.data() as KpiRecord;
+
+        console.log('Updating existing KPI record:', existingDoc.id);
+        await updateDoc(existingDoc.ref, {
+          ...newRecordData,
+          updatedAt: new Date().toISOString(),
+          // Preserve existing status history and add new entry
+          statusHistory: [
+            ...(existingRecord.statusHistory || []),
+            {
+              status: 'not_started' as KpiStatus,
+              changedAt: new Date().toISOString(),
+              changedBy: user?.uid || 'system',
+              comment: 'KPI được giao (cập nhật)'
+            }
+          ]
+        });
+
+        savedRecord = { ...newRecordData, id: existingDoc.id };
+        console.log('Existing KPI record updated:', existingDoc.id);
+      }
+
+      // Update local state
+      setKpiRecords(prev => {
+        const filtered = prev.filter(r =>
+          !(r.employeeId === assignment.employeeId &&
+            r.kpiId === assignment.kpiId &&
+            r.period === assignment.period)
+        );
+        return [...filtered, savedRecord];
+      });
+
+      // Create notification for the employee
+      const kpi = kpis.find(k => k.id === assignment.kpiId);
+      const employee = employees.find(e => e.uid === assignment.employeeId);
+
+      if (employee && kpi) {
+        await SystemNotificationService.notifyKpiAssigned(savedRecord, employee, kpi.name, kpi.unit);
+      }
+
+      console.log('KPI assignment completed successfully');
+    } catch (error) {
+      console.error('Error assigning KPI:', error);
+      throw error;
     }
   }
 
@@ -760,10 +897,25 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     recordId: string,
     updates: Partial<KpiRecord>
   ) => {
+    // Validate recordId
+    if (!recordId) {
+      throw new Error('Record ID is required');
+    }
+
     // Tìm record hiện tại
     const currentRecord = kpiRecords.find(r => r.id === recordId);
     if (!currentRecord) {
       throw new Error('KPI record not found');
+    }
+
+    // Validate actual value if provided
+    if (updates.actual !== undefined && (typeof updates.actual !== 'number' || updates.actual < 0)) {
+      throw new Error('Actual value must be a non-negative number');
+    }
+
+    // Validate status if provided
+    if (updates.status && !['not_started', 'in_progress', 'submitted', 'awaiting_approval', 'approved', 'rejected'].includes(updates.status)) {
+      throw new Error('Invalid status value');
     }
 
     // Validate status transition nếu có thay đổi status
@@ -2429,6 +2581,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     deleteDepartment,
     assignKpi,
     updateKpiRecord,
+    removeDuplicateKpiRecords,
     submitReport,
     approveKpi,
     rejectKpi,

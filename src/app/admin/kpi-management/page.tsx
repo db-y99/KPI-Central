@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Target, UserPlus, TrendingUp, FileCheck, Award, AlertTriangle, Gift, BarChart3 } from 'lucide-react';
+import { Target, UserPlus, TrendingUp, FileCheck, Award } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
 
 // Import existing components with lazy loading
@@ -24,9 +24,6 @@ const ApprovalComponent = dynamic(() => import('@/components/approval-component'
 const RewardPenaltyComponent = dynamic(() => import('@/components/reward-penalty-component'), { 
   loading: () => <div className="p-4">Loading Reward & Penalty...</div>
 });
-const EvaluationReportsComponent = dynamic(() => import('@/components/evaluation-reports-component'), { 
-  loading: () => <div className="p-4">Loading Evaluation & Reports...</div>
-});
 
 export default function KpiManagementPage() {
   const { t } = useLanguage();
@@ -37,7 +34,7 @@ export default function KpiManagementPage() {
   // Handle query parameter for tab
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['definitions', 'assignment', 'tracking', 'approval', 'reward-penalty', 'evaluation-reports'].includes(tab)) {
+    if (tab && ['definitions', 'assignment', 'tracking', 'approval', 'reward-penalty'].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -82,12 +79,6 @@ export default function KpiManagementPage() {
       icon: Award,
       component: RewardPenaltyComponent
     },
-    {
-      id: 'evaluation-reports',
-      label: t.nav.evaluateReward,
-      icon: BarChart3,
-      component: EvaluationReportsComponent
-    }
   ];
 
   return (
@@ -95,7 +86,7 @@ export default function KpiManagementPage() {
 
       {/* Tabs Section */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6 gap-0 p-1 h-12 bg-gray-100 rounded-lg">
+        <TabsList className="grid w-full grid-cols-5 gap-0 p-1 h-12 bg-gray-100 rounded-lg">
           {tabs.map((tab) => (
             <TabsTrigger 
               key={tab.id} 

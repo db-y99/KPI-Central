@@ -207,7 +207,7 @@ async function handleGetDashboardData(request: NextRequest, user?: any) {
     // Get department performance if admin
     let departmentStats = null;
     if (user?.role === 'admin') {
-      const departmentsQuery = query(collection(db, 'users'), where('role', '==', 'employee'));
+      const departmentsQuery = query(collection(db, 'employees'), where('role', '==', 'employee'));
       const departmentsSnapshot = await getDocs(departmentsQuery);
       const employees = departmentsSnapshot.docs.map(doc => doc.data());
       

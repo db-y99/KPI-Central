@@ -30,6 +30,7 @@ import { DataContext } from '@/context/data-context';
 import { useLanguage } from '@/context/language-context';
 import { startOfQuarter, isAfter } from 'date-fns';
 import Link from 'next/link';
+import { KpiStatusService, KpiStatus } from '@/lib/kpi-status-service';
 
 export default function EmployeeDashboardPage() {
   const { user } = useContext(AuthContext);
@@ -55,9 +56,27 @@ export default function EmployeeDashboardPage() {
 
     // Basic stats - Sử dụng trạng thái mới từ KPI Status Service
     const totalKpis = enrichedRecords.length;
-    const completedKpis = enrichedRecords.filter(r => r.status === 'approved').length;
-    const inProgressKpis = enrichedRecords.filter(r => ['in_progress', 'submitted'].includes(r.status)).length;
-    const pendingKpis = enrichedRecords.filter(r => r.status === 'not_started').length;
+    const completedKpis = enrichedRecords.filter(r => {
+      try {
+        return KpiStatusService.isCompletedStatus(r.status as KpiStatus);
+      } catch {
+        return r.status === 'approved';
+      }
+    }).length;
+    const inProgressKpis = enrichedRecords.filter(r => {
+      try {
+        return KpiStatusService.isActiveStatus(r.status as KpiStatus);
+      } catch {
+        return ['in_progress', 'submitted', 'awaiting_approval'].includes(r.status);
+      }
+    }).length;
+    const pendingKpis = enrichedRecords.filter(r => {
+      try {
+        return r.status === 'not_started';
+      } catch {
+        return r.status === 'not_started' || r.status === 'pending';
+      }
+    }).length;
     const overdueKpis = enrichedRecords.filter(r => {
       const endDate = new Date(r.endDate);
       return endDate < today && r.status !== 'approved';
@@ -87,24 +106,36 @@ export default function EmployeeDashboardPage() {
   }, [kpiRecords, kpis, user.uid]);
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />{t.employeeDashboard.completed}</Badge>;
-      case 'submitted':
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />{t.employeeDashboard.awaitingApproval}</Badge>;
-      case 'in_progress':
-        return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />Đang thực hiện</Badge>;
-      case 'not_started':
-        return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />{t.employeeDashboard.waitingToStart}</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive"><AlertTriangle className="w-3 h-3 mr-1" />{t.employeeDashboard.rejected}</Badge>;
+    try {
+      const statusConfig = KpiStatusService.getStatusConfig(status as KpiStatus);
+      const IconComponent = status === 'approved' ? CheckCircle2 :
+                           status === 'rejected' ? AlertTriangle :
+                           Clock;
+
+      return (
+        <Badge className={`${statusConfig.color.replace('bg-', 'bg-').replace('-500', '-100')} text-${statusConfig.color.replace('bg-', '').replace('-500', '-800')}`}>
+          <IconComponent className="w-3 h-3 mr-1" />
+          {statusConfig.label}
+        </Badge>
+      );
+    } catch (error) {
       // Fallback cho trạng thái cũ
-      case 'awaiting_approval':
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />{t.employeeDashboard.awaitingApproval}</Badge>;
-      case 'pending':
-        return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />{t.employeeDashboard.waitingToStart}</Badge>;
-      default:
-        return <Badge variant="outline">{t.employeeDashboard.waitingToStart}</Badge>;
+      switch (status) {
+        case 'approved':
+          return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="w-3 h-3 mr-1" />{t.employeeDashboard.completed}</Badge>;
+        case 'submitted':
+        case 'awaiting_approval':
+          return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />{t.employeeDashboard.awaitingApproval}</Badge>;
+        case 'in_progress':
+          return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />Đang thực hiện</Badge>;
+        case 'not_started':
+        case 'pending':
+          return <Badge variant="outline"><Clock className="w-3 h-3 mr-1" />{t.employeeDashboard.waitingToStart}</Badge>;
+        case 'rejected':
+          return <Badge variant="destructive"><AlertTriangle className="w-3 h-3 mr-1" />{t.employeeDashboard.rejected}</Badge>;
+        default:
+          return <Badge variant="outline">{t.employeeDashboard.waitingToStart}</Badge>;
+      }
     }
   };
 

@@ -97,19 +97,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
       key: 'hr-management',
     }] : []),
     // Đánh giá & Báo cáo (Admin only) - Gộp các chức năng đánh giá
-    ...(isAdmin ? [{
-      href: '/admin/kpi-management?tab=evaluation',
-      label: t.dashboard.evaluationReports,
-      icon: BarChart3,
-      isActive: pathname.startsWith('/admin/evaluation-reports') ||
-                pathname.startsWith('/admin/approval') ||
-                pathname.startsWith('/admin/evaluation') ||
-                pathname.startsWith('/admin/reports') ||
-                pathname.startsWith('/admin/reports-analytics') ||
-                (pathname.startsWith('/admin/kpi-management') && searchParams.get('tab') === 'evaluation') ||
-                (pathname.startsWith('/admin/kpi-management') && searchParams.get('tab') === 'reports'),
-      key: 'evaluation-reports',
-    }] : []),
     // Cài đặt & Hệ thống (Admin only) - Gộp các chức năng cài đặt
     ...(isAdmin ? [{
       href: '/admin/system-settings',

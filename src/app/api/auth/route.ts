@@ -16,9 +16,9 @@ async function handleLogin(request: NextRequest) {
       return createErrorResponse('Email and password are required', 400);
     }
 
-    // Query user from Firestore
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('email', '==', email));
+    // Query user from Firestore using employees collection
+    const employeesRef = collection(db, 'employees');
+    const q = query(employeesRef, where('email', '==', email));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
@@ -28,10 +28,14 @@ async function handleLogin(request: NextRequest) {
     const userDoc = querySnapshot.docs[0];
     const userData = userDoc.data();
 
-    // In a real app, you would hash and compare passwords
-    // For now, we'll assume password validation is done elsewhere
+    // Simple password validation - in production, use proper hashing
     if (userData.password !== password) {
       return createErrorResponse('Invalid credentials', 401);
+    }
+
+    // Check if user is active
+    if (!userData.isActive) {
+      return createErrorResponse('Account is deactivated', 401);
     }
 
     // Generate JWT token
@@ -43,7 +47,7 @@ async function handleLogin(request: NextRequest) {
     });
 
     // Update last login
-    await updateDoc(doc(db, 'users', userDoc.id), {
+    await updateDoc(doc(db, 'employees', userDoc.id), {
       lastLogin: new Date().toISOString()
     });
 

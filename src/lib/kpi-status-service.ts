@@ -334,11 +334,24 @@ export class KpiStatusService {
    */
   static migrateRecord(record: KpiRecord): KpiRecord {
     const newStatus = this.migrateOldStatus(record.status);
-    
+
     return {
       ...record,
       status: newStatus
     };
+  }
+
+  /**
+   * Lấy tất cả các trạng thái KPI có sẵn
+   */
+  static getAllStatuses(): Array<{key: KpiStatus, label: string, color: string, icon: string, description: string}> {
+    return Object.entries(this.STATUS_CONFIGS).map(([key, config]) => ({
+      key: key as KpiStatus,
+      label: config.label,
+      color: config.color,
+      icon: config.icon,
+      description: config.description
+    }));
   }
 }
 
