@@ -73,7 +73,7 @@ class KpiRewardPenaltyService {
       
       // Calculate penalty based on achievement rate and KPI settings
       if (achievementRate < (kpi.penaltyThreshold || 60)) {
-        if (kpi.penaltyType === 'percentage') {
+        if (kpi.penaltyType === 'interval') {
           penaltyAmount = (kpi.penalty || 0) * ((100 - achievementRate) / 100);
         } else if (kpi.penaltyType === 'variable') {
           // Variable penalty based on how much below threshold
@@ -113,8 +113,26 @@ class KpiRewardPenaltyService {
         notes: kpiRecord.notes
       };
 
-      // Save calculation to database
-      const docRef = await addDoc(collection(db, 'kpiRewardPenalties'), result);
+      // Check if calculation already exists for this KPI record
+      const existingQuery = query(
+        collection(db, 'kpiRewardPenalties'),
+        where('kpiRecordId', '==', kpiRecord.id)
+      );
+      const existingSnapshot = await getDocs(existingQuery);
+      
+      let docRef;
+      if (existingSnapshot.empty) {
+        // Create new calculation
+        docRef = await addDoc(collection(db, 'kpiRewardPenalties'), result);
+      } else {
+        // Update existing calculation
+        const existingDoc = existingSnapshot.docs[0];
+        docRef = { id: existingDoc.id };
+        await updateDoc(existingDoc.ref, {
+          ...result,
+          updatedAt: new Date().toISOString()
+        });
+      }
       
       return {
         id: docRef.id,
@@ -155,6 +173,50 @@ class KpiRewardPenaltyService {
   }
 
   /**
+   * Remove duplicate calculations for the same KPI record, keeping only the latest one
+   */
+  async removeDuplicateCalculations(): Promise<void> {
+    try {
+      // Get all calculations grouped by kpiRecordId
+      const calculationsRef = collection(db, 'kpiRewardPenalties');
+      const q = query(calculationsRef, orderBy('kpiRecordId'), orderBy('calculatedAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      const groupedCalculations: Record<string, any[]> = {};
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (!groupedCalculations[data.kpiRecordId]) {
+          groupedCalculations[data.kpiRecordId] = [];
+        }
+        groupedCalculations[data.kpiRecordId].push({ id: doc.id, ...data });
+      });
+      
+      // Remove duplicates - keep only the most recent one for each kpiRecordId
+      const deletePromises: Promise<void>[] = [];
+      
+      Object.values(groupedCalculations).forEach((calculations) => {
+        if (calculations.length > 1) {
+          // Keep the first one (most recent due to order), delete the rest
+          const duplicates = calculations.slice(1);
+          duplicates.forEach((duplicate) => {
+            deletePromises.push(updateDoc(doc(db, 'kpiRewardPenalties', duplicate.id), {
+              deletedAt: new Date().toISOString(),
+              isDeleted: true
+            }));
+          });
+        }
+      });
+      
+      await Promise.all(deletePromises);
+      console.log(`Cleaned up duplicate calculations`);
+    } catch (error) {
+      console.error('Error removing duplicate calculations:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get KPI reward/penalty calculations for a period
    */
   async getKpiRewardPenalties(period: string): Promise<KpiRewardPenaltyCalculationResult[]> {
@@ -163,13 +225,18 @@ class KpiRewardPenaltyService {
       const q = query(
         calculationsRef,
         where('period', '==', period),
+        where('isDeleted', '==', false), // Exclude deleted records
         orderBy('netAmount', 'desc')
       );
       const querySnapshot = await getDocs(q);
       
       const calculations: KpiRewardPenaltyCalculationResult[] = [];
       querySnapshot.forEach((doc) => {
-        calculations.push({ id: doc.id, ...doc.data() } as KpiRewardPenaltyCalculationResult);
+        const data = doc.data();
+        // Filter out deleted duplicates
+        if (!data.isDeleted) {
+          calculations.push({ id: doc.id, ...data } as KpiRewardPenaltyCalculationResult);
+        }
       });
       
       return calculations;
@@ -191,6 +258,7 @@ class KpiRewardPenaltyService {
       let q = query(
         calculationsRef,
         where('employeeId', '==', employeeId),
+        where('isDeleted', '==', false), // Exclude deleted records
         orderBy('calculatedAt', 'desc')
       );
       
@@ -199,6 +267,7 @@ class KpiRewardPenaltyService {
           calculationsRef,
           where('employeeId', '==', employeeId),
           where('period', '==', period),
+          where('isDeleted', '==', false), // Exclude deleted records
           orderBy('calculatedAt', 'desc')
         );
       }
@@ -207,7 +276,11 @@ class KpiRewardPenaltyService {
       
       const calculations: KpiRewardPenaltyCalculationResult[] = [];
       querySnapshot.forEach((doc) => {
-        calculations.push({ id: doc.id, ...doc.data() } as KpiRewardPenaltyCalculationResult);
+        const data = doc.data();
+        // Filter out deleted duplicates
+        if (!data.isDeleted) {
+          calculations.push({ id: doc.id, ...data } as KpiRewardPenaltyCalculationResult);
+        }
       });
       
       return calculations;

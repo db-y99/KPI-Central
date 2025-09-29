@@ -53,9 +53,8 @@ import {
 import { DataContext } from '@/context/data-context';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
-import { rewardCalculationService, type RewardCalculation } from '@/lib/reward-calculation-service';
+import { AuthContext } from '@/context/auth-context';
 import { kpiRewardPenaltyService, type KpiRewardPenaltyCalculationResult } from '@/lib/kpi-reward-penalty-service';
-import { rewardProgramsData } from '@/lib/reward-programs-data';
 import type { KpiRecord, Employee, Kpi } from '@/types';
 
 interface KpiRewardPenalty {
@@ -79,6 +78,7 @@ interface KpiRewardPenalty {
 
 export default function RewardPenaltyComponent() {
   const { employees, kpiRecords, departments, kpis } = useContext(DataContext);
+  const { user } = useContext(AuthContext);
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -91,6 +91,7 @@ export default function RewardPenaltyComponent() {
   const [selectedRecord, setSelectedRecord] = useState<KpiRewardPenaltyCalculationResult | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newRewardPenalty, setNewRewardPenalty] = useState({
     kpiId: '',
@@ -122,7 +123,7 @@ export default function RewardPenaltyComponent() {
   // Load KPI reward/penalty data
   useEffect(() => {
     loadKpiRewardPenalties();
-  }, [selectedPeriod]);
+  }, [selectedPeriod, periods]); // Add periods dependency
 
   const loadKpiRewardPenalties = async () => {
     setIsLoading(true);
@@ -199,9 +200,100 @@ export default function RewardPenaltyComponent() {
     setIsDialogOpen(true);
   };
 
+  const handleApproveRecord = async () => {
+    if (!selectedRecord) return;
+
+    try {
+      setIsUploading(true);
+      
+      await kpiRewardPenaltyService.updateKpiRewardPenaltyStatus(
+        selectedRecord.id,
+        'approved',
+        user?.name || 'Admin'
+      );
+      
+      toast({
+        title: t.common.success,
+        description: `Đã duyệt thưởng/phạt cho ${selectedRecord.employeeName}`,
+      });
+      
+      // Reload the data to reflect the changes
+      await loadKpiRewardPenalties();
+      
+      // Update selected record locally
+      setSelectedRecord({
+        ...selectedRecord,
+        status: 'approved',
+        approvedBy: user?.name || 'Admin',
+        approvedAt: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('Error approving reward/penalty:', error);
+      toast({
+        title: t.common.error,
+        description: "Không thể duyệt thưởng/phạt",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleMarkAsPaid = async () => {
+    if (!selectedRecord) return;
+
+    try {
+      setIsUploading(true);
+      
+      await kpiRewardPenaltyService.updateKpiRewardPenaltyStatus(
+        selectedRecord.id,
+        'paid'
+      );
+      
+      toast({
+        title: t.common.success,
+        description: `Đã đánh dấu đã trả cho ${selectedRecord.employeeName}`,
+      });
+      
+      // Reload the data to reflect the changes
+      await loadKpiRewardPenalties();
+      
+      // Update selected record locally
+      setSelectedRecord({
+        ...selectedRecord,
+        status: 'paid',
+        paidAt: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('Error marking as paid:', error);
+      toast({
+        title: t.common.error,
+        description: "Không thể đánh dấu đã trả",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleApproveRecordFromTable = async (record: KpiRewardPenaltyCalculationResult) => {
+    setSelectedRecord(record);
+    await handleApproveRecord();
+  };
+
+  const handleMarkAsPaidFromTable = async (record: KpiRewardPenaltyCalculationResult) => {
+    setSelectedRecord(record);
+    await handleMarkAsPaid();
+  };
+
   const handleCalculateAll = async () => {
     setIsCalculating(true);
     try {
+      // Clean up existing duplicates first
+      await kpiRewardPenaltyService.removeDuplicateCalculations();
+      
       // Get approved KPI records for the period
       const approvedRecords = kpiRecords.filter(record => {
         if (selectedPeriod === 'all') {
@@ -209,6 +301,15 @@ export default function RewardPenaltyComponent() {
         }
         return record.period === selectedPeriod && record.status === 'approved';
       });
+      
+      if (approvedRecords.length === 0) {
+        toast({
+          title: t.common.warning,
+          description: "No approved KPI records found for calculation",
+          variant: "destructive",
+        });
+        return;
+      }
       
       // Calculate reward/penalty for all records
       const calculations = await kpiRewardPenaltyService.calculateBulkKpiRewardPenalties(
@@ -236,24 +337,83 @@ export default function RewardPenaltyComponent() {
     }
   };
 
-  const handleCreateRewardPenalty = () => {
-    // Here you would typically save the new reward/penalty record
-    console.log('Creating new reward/penalty record:', newRewardPenalty);
-    
-    toast({
-      title: t.common.success,
-      description: "Reward/penalty record created successfully",
-    });
-    
-    setIsCreateDialogOpen(false);
-    setNewRewardPenalty({
-      kpiId: '',
-      employeeId: '',
-      period: '',
-      rewardAmount: 0,
-      penaltyAmount: 0,
-      notes: ''
-    });
+  const handleCreateRewardPenalty = async () => {
+    try {
+      setIsUploading(true);
+      
+      // Find related KPI record for validation
+      const kpiRecord = kpiRecords.find(record => 
+        record.kpiId === newRewardPenalty.kpiId && 
+        record.employeeId === newRewardPenalty.employeeId &&
+        record.period === newRewardPenalty.period
+      );
+
+      const employee = employees.find(emp => emp.uid === newRewardPenalty.employeeId);
+      const kpi = kpis.find(k => k.id === newRewardPenalty.kpiId);
+
+      if (!employee || !kpi) {
+        toast({
+          title: t.common.error,
+          description: "Employee or KPI not found",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Calculate net amount
+      const netAmount = newRewardPenalty.rewardAmount - newRewardPenalty.penaltyAmount;
+
+      // Create reward/penalty calculation result
+      const calculationResult: Omit<KpiRewardPenaltyCalculationResult, 'id'> = {
+        kpiRecordId: kpiRecord?.id || '',
+        employeeId: newRewardPenalty.employeeId,
+        employeeName: employee.name,
+        department: employee.departmentId || '',
+        kpiId: newRewardPenalty.kpiId,
+        kpiName: kpi.name,
+        period: newRewardPenalty.period,
+        targetValue: kpiRecord?.target || 0,
+        actualValue: kpiRecord?.actual || 0,
+        achievementRate: kpiRecord?.target > 0 ? (kpiRecord.actual / kpiRecord.target) * 100 : 0,
+        rewardAmount: newRewardPenalty.rewardAmount,
+        penaltyAmount: newRewardPenalty.penaltyAmount,
+        netAmount,
+        status: 'calculated',
+        calculatedAt: new Date().toISOString(),
+        calculatedBy: user?.name || 'Admin',
+        notes: newRewardPenalty.notes
+      };
+
+      console.log('Creating manual reward/penalty record=', calculationResult);
+      
+      toast({
+        title: t.common.success,
+        description: "Reward/penalty record created successfully",
+      });
+      
+      setIsCreateDialogOpen(false);
+      setNewRewardPenalty({
+        kpiId: '',
+        employeeId: '',
+        period: '',
+        rewardAmount: 0,
+        penaltyAmount: 0,
+        notes: ''
+      });
+
+      // Reload data to show new record
+      await loadKpiRewardPenalties();
+      
+    } catch (error) {
+      console.error('Error creating reward/penalty record:', error);
+      toast({
+        title: t.common.error,
+        description: "Failed to create reward/penalty record",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleExportData = async () => {
@@ -300,11 +460,21 @@ export default function RewardPenaltyComponent() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'approved': return 'bg-green-100 text-green-800';
-      case 'paid': return 'bg-blue-100 text-blue-800';
-      case 'calculated': return 'bg-yellow-100 text-yellow-800';
-      case 'pending': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'approved': return 'bg-green-100 text-green-800 border-green-200';
+      case 'paid': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'calculated': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'pending': return 'bg-gray-100 text-gray-800 border-gray-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'approved': return 'Đã duyệt';
+      case 'paid': return 'Đã trả';
+      case 'calculated': return 'Đã tính';
+      case 'pending': return 'Chờ duyệt';
+      default: return status;
     }
   };
 
@@ -612,17 +782,41 @@ export default function RewardPenaltyComponent() {
                       </TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(record.status)}>
-                          {record.status}
-                        </Badge>
+                          {getStatusText(record.status)}
+                        </Badge> 
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewRecord(record)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewRecord(record)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          {record.status === 'calculated' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleApproveRecordFromTable(record)}
+                              disabled={isUploading}
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              {t.admin.approve}
+                            </Button>
+                          )}
+                          {record.status === 'approved' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleMarkAsPaidFromTable(record)}
+                              disabled={isUploading}
+                              className="text-blue-600 hover:text-blue-700"
+                            >
+                              {t.evaluation.markAsPaid}
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -736,14 +930,30 @@ export default function RewardPenaltyComponent() {
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">{t.admin.status}:</span>
                   <Badge className={getStatusColor(selectedRecord.status)}>
-                    {selectedRecord.status}
+                    {getStatusText(selectedRecord.status)}
                   </Badge>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleApproveRecord}
+                    disabled={isUploading || selectedRecord.status === 'approved' || selectedRecord.status === 'paid'}
+                  >
+                    {isUploading && selectedRecord.status === 'calculated' ? (
+                      <RefreshCw className="w-4 h-4 animate-spin mr-1" />
+                    ) : null}
                     {t.admin.approve}
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleMarkAsPaid}
+                    disabled={isUploading || selectedRecord.status !== 'approved' || selectedRecord.status === 'paid'}
+                  >
+                    {isUploading && selectedRecord.status === 'approved' ? (
+                      <RefreshCw className="w-4 h-4 animate-spin mr-1" />
+                    ) : null}
                     {t.evaluation.markAsPaid}
                   </Button>
                 </div>
@@ -863,10 +1073,14 @@ export default function RewardPenaltyComponent() {
               <Button
                 onClick={handleCreateRewardPenalty}
                 className="flex-1"
-                disabled={!newRewardPenalty.kpiId || !newRewardPenalty.employeeId || !newRewardPenalty.period}
+                disabled={!newRewardPenalty.kpiId || !newRewardPenalty.employeeId || !newRewardPenalty.period || isUploading}
               >
-                <Plus className="w-4 h-4 mr-2" />
-                {t.common.create}
+                {isUploading ? (
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Plus className="w-4 h-4 mr-2" />
+                )}
+                {isUploading ? t.common.updating : t.common.create}
               </Button>
             </div>
           </div>
