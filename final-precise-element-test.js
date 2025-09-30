@@ -300,3 +300,4 @@ async function testRewardPenaltyPrecise(page) {
 
 // Run precise element testing
 finalPreciseElementTest().catch(console.error);
+

@@ -516,3 +516,4 @@ async function testRewardPenalty(page) {
 }
 
 testDetailedFunctionality().catch(console.error);
+

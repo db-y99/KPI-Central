@@ -31,3 +31,4 @@ set /p choice="Do you want to open the HTML report? (y/n): "
 if /i "%choice%"=="y" start playwright-report/index.html
 
 pause
+

@@ -171,3 +171,4 @@ if (failed > 0) {
   console.log('\n🎉 All tests passed! KPI Management system is ready for production.');
   process.exit(0);
 }
+

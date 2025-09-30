@@ -52,3 +52,4 @@ if [[ "$choice" == "y" || "$choice" == "Y" ]]; then
         echo "Please manually open playwright-report/index.html in your browser"
     fi
 fi
+

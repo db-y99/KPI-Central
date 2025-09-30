@@ -635,3 +635,4 @@ async function checkRewardPenaltyDialogElements(page) {
 
 // Run comprehensive element test
 testAllKpiElementsComprehensively().catch(console.error);
+

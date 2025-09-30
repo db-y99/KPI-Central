@@ -138,3 +138,4 @@ npx playwright test tests/admin/kpi-management.spec.ts --headed
 ---
 
 **🎊 Chúc mừng! KPI Management system đã được verified và sẵn sàng cho production!** 🎊
+

@@ -159,3 +159,4 @@ await page.locator('input[name="actual"]').fill('60'); // Convert number to stri
 - **Test Coverage**: All 5 tabs with complete CRUD workflows
 - **Browser**: Chromium (Playwright) in headed mode
 - **Timing**: SlowMo 800ms for accurate debugging
+
