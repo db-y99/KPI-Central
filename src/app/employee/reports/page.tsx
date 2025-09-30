@@ -43,7 +43,7 @@ export default function EmployeeReportPage() {
 
   // Get KPI details for each record
   const enrichedRecords = userKpiRecords.map(record => {
-    const kpi = kpis.find(k => k.id === record.kpiId);
+    const kpi = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);
     return {
       ...record,
       kpiName: kpi?.name || 'Unknown',

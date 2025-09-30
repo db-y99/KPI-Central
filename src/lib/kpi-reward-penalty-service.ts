@@ -156,8 +156,8 @@ class KpiRewardPenaltyService {
     
     for (const record of kpiRecords) {
       try {
-        const kpi = kpis.find(k => k.id === record.kpiId);
-        const employee = employees.find(emp => emp.uid === record.employeeId);
+        const kpi = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);
+        const employee = employees.find(emp => emp.uid === record.employeeId || emp.id === record.employeeId || emp.documentId === record.employeeId);
         
         if (kpi && employee && record.status === 'approved') {
           const result = await this.calculateKpiRewardPenalty(record, kpi, employee);

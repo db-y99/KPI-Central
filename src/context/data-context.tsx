@@ -18,6 +18,7 @@ import { db } from '@/lib/firebase';
 import { SystemNotificationService } from '@/lib/system-notification-service';
 import { KpiStatusService, KpiStatus } from '@/lib/kpi-status-service';
 import { FileUploadResult } from '@/lib/file-upload-service';
+import { cache, CacheKeys, cacheable } from '@/lib/cache-service';
 import type { 
   Department, 
   Employee, 

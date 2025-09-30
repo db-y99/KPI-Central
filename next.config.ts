@@ -46,13 +46,6 @@ const nextConfig: NextConfig = {
     return config;
   },
 
-  // Enable Turbopack features
-  turbopack: {
-    // Turbopack specific configuration
-    rules: {
-      // Add any specific rules if needed
-    },
-  },
   typescript: {
     ignoreBuildErrors: true,
   },

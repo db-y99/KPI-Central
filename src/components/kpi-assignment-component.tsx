@@ -79,7 +79,7 @@ export default function KpiAssignmentComponent() {
   const filteredKpiRecords = useMemo(() => {
     return kpiRecords.filter(record => {
       const employee = employees.find(e => e.uid === record.employeeId);
-      const kpi = kpis.find(k => k.id === record.kpiId);
+      const kpi = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);
       const department = departments.find(d => d.id === employee?.departmentId);
 
       // Search filter
@@ -497,7 +497,7 @@ export default function KpiAssignmentComponent() {
               ) : (
                 filteredKpiRecords.map((record) => {
                   const employee = employees.find(e => e.uid === record.employeeId);
-                  const kpi = kpis.find(k => k.id === record.kpiId);
+                  const kpi = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);
                   const department = departments.find(d => d.id === employee?.departmentId);
                   
                   return (

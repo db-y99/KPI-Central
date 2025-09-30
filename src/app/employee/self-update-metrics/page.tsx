@@ -780,7 +780,7 @@ export default function SelfUpdateMetricsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {employeeKpis.map(record => {
-                    const kpi = kpis.find(k => k.id === record.kpiId);
+                    const kpi = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);
                     return (
                       <SelectItem key={record.id} value={record.id}>
                         {kpi?.name} - {record.target} {kpi?.unit}

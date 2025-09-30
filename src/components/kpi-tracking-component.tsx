@@ -71,8 +71,8 @@ export default function KpiTrackingComponent() {
   // Create enriched KPI records
   const enrichedRecords = useMemo(() => {
     return kpiRecords.map(record => {
-      const employee = employees.find(emp => emp.uid === record.employeeId);
-      const kpi = kpis.find(k => k.id === record.kpiId);
+      const employee = employees.find(emp => emp.uid === record.employeeId || emp.id === record.employeeId || emp.documentId === record.employeeId);
+      const kpi = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);
       const department = employee ? departments.find(d => d.id === employee.departmentId) : null;
 
       return {
@@ -348,7 +348,7 @@ export default function KpiTrackingComponent() {
               <TableBody>
                 {filteredRecords.map((record) => {
                   const daysRemaining = getDaysRemaining(record.endDate);
-                  const employee = employees.find(emp => emp.uid === record.employeeId);
+                  const employee = employees.find(emp => emp.uid === record.employeeId || emp.id === record.employeeId || emp.documentId === record.employeeId);
                   
                   return (
                     <TableRow 

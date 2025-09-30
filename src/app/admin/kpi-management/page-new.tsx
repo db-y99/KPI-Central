@@ -131,7 +131,7 @@ export default function KpiManagementPage() {
   const filteredKpiRecords = useMemo(() => {
     return kpiRecords.filter(record => {
       const employee = employees.find(e => e.uid === record.employeeId);
-      const kpi = kpis.find(k => k.id === record.kpiId);
+      const kpi = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);
       
       const matchesSearch = searchTerm === '' || 
         (employee?.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -421,7 +421,7 @@ export default function KpiManagementPage() {
                   <div className="space-y-4">
                     {filteredKpiRecords.slice(0, 10).map((record) => {
                       const employee = employees.find(e => e.uid === record.employeeId);
-                      const kpi = kpis.find(k => k.id === record.kpiId);
+                      const kpi = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);
                       const department = departments.find(d => d.id === employee?.departmentId);
                       
                       return (

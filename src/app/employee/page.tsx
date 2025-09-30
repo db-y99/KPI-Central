@@ -50,7 +50,7 @@ export default function EmployeeDashboardPage() {
     const userKpiRecords = kpiRecords.filter(r => r.employeeId === user.uid);
 
     const enrichedRecords = userKpiRecords.map(record => {
-      const kpiDetails = kpis.find(k => k.id === record.kpiId);
+      const kpiDetails = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);
       return { ...kpiDetails, ...record };
     });
 

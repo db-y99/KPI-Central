@@ -62,8 +62,17 @@ export default function SystemNotificationPanel({
     }
   };
 
-  // Get user notifications
-  const userNotifications = notifications.filter(n => n.userId === user?.uid);
+  // Get user notifications - admin can see all notifications
+  const userNotifications = user?.role === 'admin'
+    ? notifications
+    : notifications.filter(n => n.userId === user?.uid);
+
+  // Helper function to get employee name from userId
+  const getEmployeeName = (userId: string) => {
+    if (userId === 'admin') return 'Admin';
+    const employee = employees.find(emp => emp.uid === userId);
+    return employee?.name || `User ${userId.slice(0, 8)}...`;
+  };
 
   const getNotificationIcon = (type: Notification['type']) => {
     switch (type) {
@@ -208,10 +217,20 @@ export default function SystemNotificationPanel({
 
         {/* Notifications Section */}
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold flex items-center gap-2">
-            <Bell className="w-4 h-4 text-primary" />
-            Thông báo gần đây
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Bell className="w-4 h-4 text-primary" />
+              Thông báo gần đây
+            </h3>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                {user?.role === 'admin' ? 'Tất cả' : 'Cá nhân'}
+              </span>
+              <span className="badge-modern badge-info">
+                {userNotifications.length}
+              </span>
+            </div>
+          </div>
           {userNotifications
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
             .slice(0, maxNotifications)
@@ -229,9 +248,20 @@ export default function SystemNotificationPanel({
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3 className="text-sm font-medium text-foreground">
-                        {notification.title}
-                      </h3>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-medium text-foreground">
+                          {notification.title}
+                        </h3>
+                        {/* Show recipient info for admin */}
+                        {user?.role === 'admin' && notification.userId !== 'admin' && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <Users className="w-3 h-3 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">
+                              Gửi tới: {getEmployeeName(notification.userId)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
                         {notification.isImportant && (
                           <span className="badge-modern badge-error">
@@ -247,10 +277,36 @@ export default function SystemNotificationPanel({
                         )}
                       </div>
                     </div>
-                    
+
                     <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                       {notification.message}
                     </p>
+
+                    {/* Show role-specific context */}
+                    {user?.role === 'admin' && notification.userId !== 'admin' && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <span className="text-xs text-blue-600 font-medium">
+                          Thông báo nhân viên
+                        </span>
+                      </div>
+                    )}
+                    {user?.role === 'admin' && notification.userId === 'admin' && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                        <span className="text-xs text-purple-600 font-medium">
+                          Thông báo hệ thống
+                        </span>
+                      </div>
+                    )}
+                    {user?.role !== 'admin' && (
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-xs text-green-600 font-medium">
+                          Thông báo cá nhân
+                        </span>
+                      </div>
+                    )}
                     
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -287,25 +343,6 @@ export default function SystemNotificationPanel({
           )}
         </div>
 
-        {/* System Alerts */}
-        {showAlerts && stats.kpis.overdue > 0 && (
-          <div className="mt-6 p-4 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-4 h-4 text-red-600" />
-              <span className="text-sm font-semibold text-red-700 dark:text-red-300">
-                Cần chú ý
-              </span>
-            </div>
-            <p className="text-sm text-red-600 dark:text-red-400">
-              Có {stats.kpis.overdue} KPI quá hạn cần được xử lý ngay
-            </p>
-            <Link href="/admin/kpi-management">
-              <Button variant="outline" size="sm" className="mt-2 text-red-600 border-red-300 hover:bg-red-50">
-                Xem chi tiết
-              </Button>
-            </Link>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

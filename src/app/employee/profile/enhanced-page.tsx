@@ -347,7 +347,7 @@ export default function EnhancedEmployeeProfilePage() {
               ) : (
                 <div className="space-y-4">
                   {userKpiRecords.map((record) => {
-                    const kpiDetail = kpis.find(k => k.id === record.kpiId);
+                    const kpiDetail = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);
                     return (
                       <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div className="flex-1">

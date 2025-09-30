@@ -73,7 +73,7 @@ export default function KPICalendarPage() {
     const today = new Date();
 
     userKpiRecords.forEach(record => {
-      const kpi = kpis.find(k => k.id === record.kpiId);
+      const kpi = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);
       if (!kpi) return;
 
       const startDate = new Date(record.startDate);

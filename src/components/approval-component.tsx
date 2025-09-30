@@ -52,6 +52,8 @@ import { DataContext } from '@/context/data-context';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import { AuthContext } from '@/context/auth-context';
+import { usePagination } from '@/hooks/use-pagination';
+import { Pagination } from '@/components/ui/pagination';
 
 export default function ApprovalComponent() {
   const { employees, kpis, kpiRecords, departments, updateKpiRecord } = useContext(DataContext);
@@ -74,8 +76,19 @@ export default function ApprovalComponent() {
   // Create enriched KPI records for approval
   const enrichedRecords = useMemo(() => {
     return kpiRecords.map(record => {
-      const employee = employees.find(emp => emp.uid === record.employeeId);
-      const kpi = kpis.find(k => k.id === record.kpiId);
+      // Find employee with multiple matching strategies
+      const employee = employees.find(emp =>
+        emp.uid === record.employeeId ||
+        emp.id === record.employeeId ||
+        emp.documentId === record.employeeId
+      );
+
+      // Find KPI with multiple matching strategies
+      const kpi = kpis.find(k =>
+        k.id === record.kpiId ||
+        k.documentId === record.kpiId
+      );
+
       const department = employee ? departments.find(d => d.id === employee.departmentId) : null;
 
       return {
@@ -100,6 +113,19 @@ export default function ApprovalComponent() {
       return matchesSearch && matchesStatus;
     });
   }, [enrichedRecords, searchTerm, selectedStatus]);
+
+  // Add pagination for filtered records
+  const {
+    items: paginatedRecords,
+    pagination,
+    totalPages,
+    hasNextPage,
+    hasPreviousPage,
+    goToPage,
+    nextPage,
+    previousPage,
+    setPageSize
+  } = usePagination(filteredRecords, 15);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -302,10 +328,10 @@ export default function ApprovalComponent() {
       {/* Approval Table */}
       <Card>
         <CardHeader>
-          <CardTitle>{t.admin.reportsList} ({filteredRecords.length})</CardTitle>
+          <CardTitle>{t.admin.reportsList} ({pagination.totalItems})</CardTitle>
         </CardHeader>
         <CardContent>
-          {filteredRecords.length === 0 ? (
+          {paginatedRecords.length === 0 ? (
             <div className="text-center py-8">
               <FileCheck className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">{t.admin.noReportsFound}</h3>
@@ -329,7 +355,7 @@ export default function ApprovalComponent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredRecords.map((record) => (
+                {paginatedRecords.map((record) => (
                   <TableRow 
                     key={record.id} 
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
@@ -398,6 +424,21 @@ export default function ApprovalComponent() {
                 ))}
               </TableBody>
             </Table>
+          )}
+
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
+            <div className="p-4 border-t">
+              <Pagination
+                currentPage={pagination.currentPage}
+                totalPages={totalPages}
+                pageSize={pagination.pageSize}
+                totalItems={pagination.totalItems}
+                onPageChange={goToPage}
+                onPageSizeChange={setPageSize}
+                showPageSizeSelector={true}
+              />
+            </div>
           )}
         </CardContent>
       </Card>

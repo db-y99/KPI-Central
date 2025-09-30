@@ -727,7 +727,7 @@ export default function RewardPenaltyComponent() {
               </TableHeader>
               <TableBody>
                 {filteredRecords.map((record) => {
-                  const employee = employees.find(emp => emp.uid === record.employeeId);
+                  const employee = employees.find(emp => emp.uid === record.employeeId || emp.id === record.employeeId || emp.documentId === record.employeeId);
                   
                   return (
                     <TableRow key={record.id}>

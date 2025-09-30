@@ -67,7 +67,7 @@ export default function ProfilePage() {
   const completedKpiRecords = useMemo(() => {
     return userKpiRecords
       .map(record => {
-        const kpiDetail = kpis.find(k => k.id === record.kpiId);
+        const kpiDetail = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);
         const completion =
           record.target > 0 ? (record.actual / record.target) * 100 : 0;
         return {

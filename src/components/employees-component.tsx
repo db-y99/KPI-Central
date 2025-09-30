@@ -33,6 +33,8 @@ import { DataContext } from '@/context/data-context';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import { createUserAction } from '@/lib/server-actions';
+import { usePagination } from '@/hooks/use-pagination';
+import { Pagination } from '@/components/ui/pagination';
 
 export default function EmployeesComponent() {
   const { employees, departments, addEmployee, updateEmployee, deleteEmployee } = useContext(DataContext);
@@ -71,6 +73,19 @@ export default function EmployeesComponent() {
     const matchesDepartment = selectedDepartment === 'all' || emp.departmentId === selectedDepartment;
     return matchesSearch && matchesDepartment;
   });
+
+  // Add pagination
+  const {
+    items: paginatedEmployees,
+    pagination,
+    totalPages,
+    hasNextPage,
+    hasPreviousPage,
+    goToPage,
+    nextPage,
+    previousPage,
+    setPageSize
+  } = usePagination(filteredEmployees, 10);
 
   const handleAddEmployee = () => {
     setEditingEmployee(null);
@@ -340,7 +355,7 @@ export default function EmployeesComponent() {
       {/* Employee Table */}
       <Card>
         <CardHeader>
-          <CardTitle>{t.employees.employeeList} ({filteredEmployees.length})</CardTitle>
+          <CardTitle>{t.employees.employeeList} ({pagination.totalItems})</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -355,16 +370,16 @@ export default function EmployeesComponent() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredEmployees.length === 0 ? (
+              {paginatedEmployees.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    {searchTerm || selectedDepartment !== 'all' 
-                      ? 'No employees found matching your criteria.' 
+                    {searchTerm || selectedDepartment !== 'all'
+                      ? 'No employees found matching your criteria.'
                       : 'No employees found. Add your first employee to get started.'}
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredEmployees.map((employee) => (
+                paginatedEmployees.map((employee) => (
                   <TableRow key={employee.uid}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -418,6 +433,21 @@ export default function EmployeesComponent() {
             </TableBody>
           </Table>
         </CardContent>
+
+        {/* Pagination */}
+        {pagination.totalPages > 1 && (
+          <div className="p-4 border-t">
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={totalPages}
+              pageSize={pagination.pageSize}
+              totalItems={pagination.totalItems}
+              onPageChange={goToPage}
+              onPageSizeChange={setPageSize}
+              showPageSizeSelector={true}
+            />
+          </div>
+        )}
       </Card>
 
       {/* Add/Edit Employee Dialog */}
