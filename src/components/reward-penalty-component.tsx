@@ -107,11 +107,7 @@ export default function RewardPenaltyComponent() {
 
   // Get unique periods from kpiRecords
   const periods = useMemo(() => {
-    const uniquePeriods = [...new Set(kpiRecords.map(record => record.period))];
-    // Add default periods if no data exists
-    if (uniquePeriods.length === 0) {
-      return ['2024-Q1', '2024-Q2', '2024-Q3', '2024-Q4'];
-    }
+    const uniquePeriods = [...new Set(kpiRecords.map(record => record.period).filter(Boolean))];
     return uniquePeriods.sort();
   }, [kpiRecords]);
 
@@ -671,15 +667,21 @@ export default function RewardPenaltyComponent() {
             </Select>
             <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder={t.admin.selectPeriod} />
+                <SelectValue placeholder={periods.length > 0 ? (t.admin.selectPeriod || "Chọn kỳ") : "Chưa có dữ liệu"} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t.admin.allPeriods || 'Tất cả kỳ'}</SelectItem>
-                {periods.map((period, index) => (
-                  <SelectItem key={period || `period-${index}`} value={period}>
-                    {period}
+                {periods.length > 0 ? (
+                  periods.map((period, index) => (
+                    <SelectItem key={period || `period-${index}`} value={period}>
+                      {period}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-data" disabled>
+                    Chưa có dữ liệu kỳ
                   </SelectItem>
-                ))}
+                )}
               </SelectContent>
             </Select>
           </div>

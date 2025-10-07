@@ -55,6 +55,7 @@ export default function KpiTrackingComponent() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('all');
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
@@ -67,6 +68,12 @@ export default function KpiTrackingComponent() {
 
   // Filter non-admin employees
   const nonAdminEmployees = employees.filter(emp => emp.role !== 'admin');
+
+  // Get unique periods from kpiRecords
+  const periods = useMemo(() => {
+    const uniquePeriods = [...new Set(kpiRecords.map(record => record.period).filter(Boolean))];
+    return uniquePeriods.sort();
+  }, [kpiRecords]);
 
   // Create enriched KPI records
   const enrichedRecords = useMemo(() => {
@@ -88,16 +95,17 @@ export default function KpiTrackingComponent() {
     });
   }, [kpiRecords, employees, kpis, departments]);
 
-  // Filter records based on search and department
+  // Filter records based on search, department, and period
   const filteredRecords = useMemo(() => {
     return enrichedRecords.filter(record => {
       const matchesSearch = record.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            record.kpiName.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesDepartment = selectedDepartment === 'all' ||
                                record.departmentName === departments.find(d => d.id === selectedDepartment)?.name;
-      return matchesSearch && matchesDepartment;
+      const matchesPeriod = selectedPeriod === 'all' || record.period === selectedPeriod;
+      return matchesSearch && matchesDepartment && matchesPeriod;
     });
-  }, [enrichedRecords, searchTerm, selectedDepartment, departments]);
+  }, [enrichedRecords, searchTerm, selectedDepartment, selectedPeriod, departments]);
 
   const getStatusBadge = (status: string) => {
     try {
@@ -309,6 +317,25 @@ export default function KpiTrackingComponent() {
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder={periods.length > 0 ? "Chọn kỳ" : "Chưa có dữ liệu"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả kỳ</SelectItem>
+                  {periods.length > 0 ? (
+                    periods.map((period, index) => (
+                      <SelectItem key={period || `period-${index}`} value={period}>
+                        {period}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-data" disabled>
+                      Chưa có dữ liệu kỳ
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
               <Button onClick={handleRefreshData} variant="outline">
                 <RefreshCw className="w-4 h-4 mr-2" />
                 {t.kpiTracking.refresh}
@@ -375,6 +402,9 @@ export default function KpiTrackingComponent() {
                           <p className="font-medium">{record.kpiName}</p>
                           <p className="text-sm text-muted-foreground">
                             {record.actual || 0} / {record.target} {record.kpiUnit}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Kỳ: {record.period || 'N/A'}
                           </p>
                         </div>
                       </TableCell>

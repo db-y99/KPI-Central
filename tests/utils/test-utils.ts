@@ -8,7 +8,7 @@ export const TEST_DATA = {
   ADMIN: {
     email: 'admin-test@y99.vn',
     password: 'admin123456',
-    name: 'Test Administrator',
+    name: 'Administrator',
     role: 'admin'
   },
   

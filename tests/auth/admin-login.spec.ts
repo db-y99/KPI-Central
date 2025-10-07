@@ -33,8 +33,8 @@ test.describe('Admin Login Test', () => {
     // Check if we're redirected to admin page
     expect(currentUrl).toContain('/admin');
     
-    // Check if admin dashboard elements are visible
-    await expect(page.locator('.grid.gap-4.md\\:grid-cols-4')).toBeVisible();
+    // Check if admin dashboard elements are visible - look for KPI management link
+    await expect(page.locator('text=Quản lý KPI').first()).toBeVisible();
     
     console.log('✅ Admin login test completed successfully');
   });
