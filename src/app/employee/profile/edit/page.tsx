@@ -152,11 +152,66 @@ export default function EditProfilePage() {
     }
 
     try {
-      // Here you would typically call a password change API
-      // For now, we'll just show a success message
+      // Validate current password
+      if (user?.password !== passwordData.currentPassword) {
+        toast({
+          variant: 'destructive',
+          title: t.common.error as string,
+          description: 'Mật khẩu hiện tại không đúng.',
+        });
+        return;
+      }
+
+      // Update password in Firestore
+      if (user?.uid || user?.id || user?.username) {
+        const { doc, updateDoc, collection, query, where, getDocs } = await import('firebase/firestore');
+        const { db } = await import('@/lib/firebase');
+        
+        let userDocRef;
+        
+        // Try to find the correct document ID
+        if (user.uid && user.uid !== user.id) {
+          // If user has Firebase UID, try to find by UID first
+          try {
+            userDocRef = doc(db, 'employees', user.uid);
+            await updateDoc(userDocRef, {
+              password: passwordData.newPassword,
+              updatedAt: new Date().toISOString()
+            });
+          } catch (error) {
+            console.log('Document not found by UID, trying by username...');
+            // If not found by UID, try by username
+            const usernameQuery = query(collection(db, 'employees'), where('username', '==', user.username));
+            const usernameSnapshot = await getDocs(usernameQuery);
+            if (!usernameSnapshot.empty) {
+              userDocRef = usernameSnapshot.docs[0].ref;
+              await updateDoc(userDocRef, {
+                password: passwordData.newPassword,
+                updatedAt: new Date().toISOString()
+              });
+            } else {
+              throw new Error('User document not found');
+            }
+          }
+        } else {
+          // If no Firebase UID, use username or id
+          const documentId = user.username || user.id;
+          userDocRef = doc(db, 'employees', documentId);
+          await updateDoc(userDocRef, {
+            password: passwordData.newPassword,
+            updatedAt: new Date().toISOString()
+          });
+        }
+
+        // Update local user state
+        await updateUser({
+          password: passwordData.newPassword
+        });
+      }
+
       toast({
         title: 'Thành công!',
-        description: 'Đã thay đổi mật khẩu.',
+        description: 'Đã thay đổi mật khẩu thành công.',
       });
       
       setPasswordData({
@@ -166,6 +221,7 @@ export default function EditProfilePage() {
       });
       setIsChangingPassword(false);
     } catch (error) {
+      console.error('Password change error:', error);
       toast({
         variant: 'destructive',
         title: t.common.error as string,

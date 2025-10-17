@@ -14,18 +14,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "init:policies": "tsx src/scripts/init-policies-cli.ts",
-    "init:system": "tsx src/scripts/init-system-data.ts",
-    "test": "playwright test",
-    "test:ui": "playwright test --ui",
-    "test:headed": "playwright test --headed",
-    "test:debug": "playwright test --debug",
-    "test:auth": "playwright test tests/auth/",
-    "test:admin": "playwright test tests/admin/",
-    "test:employee": "playwright test tests/employee/",
-    "test:integration": "playwright test tests/integration/",
-    "test:report": "playwright show-report",
-    "test:install": "playwright install",
-    "test:codegen": "playwright codegen localhost:9001"
+    "init:system": "tsx src/scripts/init-system-data.ts"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",
@@ -86,7 +75,6 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@playwright/test": "^1.55.1",
     "@types/node": "^20",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^18",

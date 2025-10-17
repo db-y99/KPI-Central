@@ -136,11 +136,18 @@ class RewardCalculationService {
         updatedAt: new Date().toISOString()
       };
 
-      // Save calculation to database
-      const docRef = await addDoc(collection(db, 'rewardCalculations'), calculation);
+      // DISABLED: Save calculation to database
+      // const docRef = await addDoc(collection(db, 'rewardCalculations'), calculation);
+      
+      // Return calculation without saving to database
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      console.log('Reward calculation completed (not saved to database):', {
+        id: tempId,
+        ...calculation
+      });
       
       return {
-        id: docRef.id,
+        id: tempId,
         ...calculation
       };
     } catch (error) {

@@ -21,8 +21,6 @@ export default function DashboardHeader() {
     title = 'HR Management';
   } else if (pathname.startsWith('/admin/reward-system')) {
     title = 'Reward System';
-  } else if (pathname.startsWith('/admin/system-settings')) {
-    title = 'System Settings';
   } else if (pathname.startsWith('/admin/reports')) {
     title = t.nav.reports;
   } else if (pathname.startsWith('/admin/kpi-definitions')) {
@@ -37,8 +35,6 @@ export default function DashboardHeader() {
     title = t.kpiTracking.title;
   } else if (pathname.startsWith('/admin/approval')) {
     title = t.nav.approveReports;
-  } else if (pathname.startsWith('/admin/evaluation')) {
-    title = t.nav.evaluateReward;
   } else if (pathname.startsWith('/admin/notifications')) {
     title = t.nav.notifications;
   } else if (pathname.startsWith('/admin/settings')) {

@@ -5,13 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  StandardTable,
+  StandardTableBody,
+  StandardTableCell,
+  StandardTableHead,
+  StandardTableHeader,
+  StandardTableRow,
+  TableEmptyState,
+} from '@/components/ui/standard-table';
 import {
   Dialog,
   DialogContent,
@@ -36,10 +37,7 @@ export default function DepartmentsComponent() {
   const [editingDepartment, setEditingDepartment] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
-    managerId: '',
-    email: '',
-    phone: ''
+    description: ''
   });
 
   // Filter departments based on search
@@ -52,10 +50,7 @@ export default function DepartmentsComponent() {
     setEditingDepartment(null);
     setFormData({
       name: '',
-      description: '',
-      managerId: '',
-      email: '',
-      phone: ''
+      description: ''
     });
     setIsDialogOpen(true);
   };
@@ -64,10 +59,7 @@ export default function DepartmentsComponent() {
     setEditingDepartment(department);
     setFormData({
       name: department.name,
-      description: department.description || '',
-      managerId: department.managerId || '',
-      email: department.email || '',
-      phone: department.phone || ''
+      description: department.description || ''
     });
     setIsDialogOpen(true);
   };
@@ -82,14 +74,22 @@ export default function DepartmentsComponent() {
       return;
     }
 
+    const departmentData = {
+      name: formData.name,
+      description: formData.description || '',
+      managerId: '',
+      email: '',
+      phone: ''
+    };
+
     if (editingDepartment) {
-      updateDepartment(editingDepartment.id, formData);
+      updateDepartment(editingDepartment.id, departmentData);
       toast({
         title: t.common.success,
         description: t.departments.updateSuccess,
       });
     } else {
-      addDepartment(formData);
+      addDepartment(departmentData);
       toast({
         title: t.common.success,
         description: t.departments.createSuccess,
@@ -116,8 +116,8 @@ export default function DepartmentsComponent() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             {t.departments.title}
           </h1>
@@ -125,10 +125,24 @@ export default function DepartmentsComponent() {
             {t.departments.subtitle}
           </p>
         </div>
-        <Button onClick={handleAddDepartment} className="flex items-center gap-2">
-          <PlusCircle className="w-4 h-4" />
-          {t.departments.addDepartment}
-        </Button>
+        <div className="flex items-center gap-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Tìm kiếm phòng ban..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-64"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleAddDepartment} className="flex items-center gap-2">
+              <PlusCircle className="w-4 h-4" />
+              {t.departments.addDepartment}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -182,69 +196,57 @@ export default function DepartmentsComponent() {
         </Card>
       </div>
 
-      {/* Search */}
-      <Card>
-        <CardContent className="pt-4">
-          <div className="relative max-w-sm">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search departments..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Department Table */}
       <Card>
         <CardHeader>
           <CardTitle>{t.departments.departmentList} ({filteredDepartments.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t.departments.department}</TableHead>
-                <TableHead>{t.departments.manager}</TableHead>
-                <TableHead>{t.departments.employees}</TableHead>
-                <TableHead>{t.employees.contact}</TableHead>
-                <TableHead>{t.common.actions}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <StandardTable>
+            <StandardTableHeader>
+              <StandardTableRow>
+                <StandardTableHead>{t.departments.department}</StandardTableHead>
+                <StandardTableHead>{t.departments.manager}</StandardTableHead>
+                <StandardTableHead>{t.departments.employees}</StandardTableHead>
+                <StandardTableHead>{t.employees.contact}</StandardTableHead>
+                <StandardTableHead>{t.common.actions}</StandardTableHead>
+              </StandardTableRow>
+            </StandardTableHeader>
+            <StandardTableBody>
               {filteredDepartments.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    {searchTerm 
-                      ? 'No departments found matching your search.' 
-                      : 'No departments found. Add your first department to get started.'}
-                  </TableCell>
-                </TableRow>
+                <TableEmptyState
+                  icon={<Building2 className="w-12 h-12 text-muted-foreground" />}
+                  title={searchTerm 
+                    ? 'Không tìm thấy phòng ban phù hợp' 
+                    : 'Chưa có phòng ban nào'}
+                  description={searchTerm 
+                    ? 'Thử thay đổi từ khóa tìm kiếm' 
+                    : 'Bắt đầu bằng cách thêm phòng ban đầu tiên'}
+                  colSpan={5}
+                />
               ) : (
                 filteredDepartments.map((department) => (
-                  <TableRow key={department.id}>
-                    <TableCell>
+                  <StandardTableRow key={department.id}>
+                    <StandardTableCell>
                       <div>
                         <p className="font-medium">{department.name}</p>
                         {department.description && (
                           <p className="text-sm text-muted-foreground">{department.description}</p>
                         )}
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </StandardTableCell>
+                    <StandardTableCell>
                       <Badge variant="outline">
                         {getManagerName(department.managerId)}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
+                    </StandardTableCell>
+                    <StandardTableCell>
                       <div className="flex items-center gap-2">
                         <Users className="w-4 h-4 text-muted-foreground" />
                         <span className="font-medium">{getEmployeeCount(department.id)}</span>
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </StandardTableCell>
+                    <StandardTableCell>
                       <div className="space-y-1">
                         {department.email && (
                           <div className="flex items-center gap-2 text-sm">
@@ -259,8 +261,8 @@ export default function DepartmentsComponent() {
                           </div>
                         )}
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </StandardTableCell>
+                    <StandardTableCell>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -268,12 +270,12 @@ export default function DepartmentsComponent() {
                       >
                         Edit
                       </Button>
-                    </TableCell>
-                  </TableRow>
+                    </StandardTableCell>
+                  </StandardTableRow>
                 ))
               )}
-            </TableBody>
-          </Table>
+            </StandardTableBody>
+          </StandardTable>
         </CardContent>
       </Card>
 
@@ -293,61 +295,23 @@ export default function DepartmentsComponent() {
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="name">Department Name *</Label>
+              <Label htmlFor="name">Tên phòng ban *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                placeholder={t.departments.enterDepartmentName}
+                placeholder="Nhập tên phòng ban"
               />
             </div>
 
             <div>
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">Mô tả (tùy chọn)</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder={t.departments.enterDescription}
+                placeholder="Nhập mô tả về phòng ban..."
                 rows={3}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="manager">Manager</Label>
-              <select
-                id="manager"
-                value={formData.managerId}
-                onChange={(e) => setFormData({...formData, managerId: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Select a manager</option>
-                {getManagers().map(manager => (
-                  <option key={manager.uid} value={manager.uid}>
-                    {manager.name} - {manager.position}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                placeholder={t.departments.enterEmail}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                placeholder={t.departments.enterPhone}
               />
             </div>
 

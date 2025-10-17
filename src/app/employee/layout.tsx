@@ -9,15 +9,25 @@ export default function EmployeeLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useContext(AuthContext);
   const router = useRouter();
 
+  // Debug logs
+  console.log('🔍 Employee Layout - user:', user);
+  console.log('🔍 Employee Layout - loading:', loading);
+
   useEffect(() => {
+    console.log('🔄 Employee Layout useEffect - loading:', loading, 'user:', user);
+    
     // Nếu quá trình xác thực chưa hoàn tất, không làm gì cả.
     if (loading) {
+      console.log('⏳ Still loading, waiting...');
       return;
     }
 
     // Nếu không có người dùng, chuyển hướng về trang đăng nhập.
     if (!user) {
+      console.log('❌ No user found, redirecting to login');
       router.push('/login');
+    } else {
+      console.log('✅ User found, showing content');
     }
   }, [loading, user, router]);
 

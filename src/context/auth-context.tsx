@@ -1,315 +1,209 @@
 'use client';
 
-import { createContext, useState, useEffect, type ReactNode } from 'react';
-import {
-  getAuth,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut,
-  type User as FirebaseAuthUser,
-} from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db, auth as firebaseAuth } from '@/lib/firebase';
+import React, { createContext, useState, useEffect, type ReactNode } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
+import { authService, type AuthUser } from '@/lib/auth-service';
 import type { Employee } from '@/types';
 
 interface LoginResult {
   success: boolean;
   error?: string;
-  user?: Employee;
+  user?: AuthUser;
 }
 
 interface AuthContextType {
-  user: Employee | null;
-  firebaseUser: FirebaseAuthUser | null;
+  user: AuthUser | null;
   loading: boolean;
   isLoggingIn: boolean;
-  login: (email: string, pass: string) => Promise<LoginResult>;
-  logout: () => void;
+  login: (emailOrUsername: string, password: string) => Promise<LoginResult>;
+  logout: () => Promise<void>;
   updateUser: (updates: Partial<Employee>) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
-  firebaseUser: null,
   loading: true,
   isLoggingIn: false,
   login: async () => ({ success: false, error: 'Context not ready' }),
-  logout: () => {},
+  logout: async () => {},
   updateUser: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<Employee | null>(null);
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseAuthUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Debug user state changes
   useEffect(() => {
-    console.log('🔄 User state changed:', user);
+    console.log('🔄 AuthContext: User state changed:', user);
   }, [user]);
 
+  // Initialize user from localStorage on mount (before Firebase Auth listener)
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(firebaseAuth, async (fbUser) => {
-      console.log('🔄 onAuthStateChanged triggered:', fbUser?.uid, 'isLoggingIn:', isLoggingIn);
-      
-      // Skip onAuthStateChanged if we're in the middle of logging in
-      if (isLoggingIn) {
-        console.log('⏸️ Skipping onAuthStateChanged during login process');
-        return;
-      }
-      
-      setFirebaseUser(fbUser);
-      if (fbUser) {
-        setLoading(true);
-        try {
-          // User is signed in, get their profile from Firestore
-          const userDocRef = doc(db, 'employees', fbUser.uid);
-          const userDoc = await getDoc(userDocRef);
+    const initializeUser = async () => {
+      try {
+        const storedUser = localStorage.getItem('kpi_user');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser) as AuthUser;
+          // Verify the stored user still exists in Firestore
+          const { doc, getDoc } = await import('firebase/firestore');
+          const userDoc = await getDoc(doc(db, 'employees', userData.id));
           if (userDoc.exists()) {
-            // IMPORTANT: Add the uid to the user object from firestore data
-            const userData = { ...userDoc.data(), uid: fbUser.uid } as Employee;
-            console.log('📖 User found in Firestore via onAuthStateChanged:', userData);
             setUser(userData);
+            console.log('✅ AuthContext: User initialized from localStorage');
           } else {
-            // This case might happen if a user exists in Auth but not Firestore.
-            // For this app, we treat them as not logged in.
-            console.log('❌ User not found in Firestore, signing out...');
-            setUser(null);
-            await signOut(firebaseAuth); // Sign out the invalid user
+            localStorage.removeItem('kpi_user');
+            console.log('❌ AuthContext: Stored user no longer exists in Firestore');
+          }
+        }
+      } catch (error) {
+        console.error('❌ AuthContext: Error initializing user from localStorage:', error);
+        localStorage.removeItem('kpi_user');
+      }
+    };
+
+    initializeUser();
+  }, []);
+
+  // Listen for Firebase Auth state changes
+  useEffect(() => {
+    console.log('🔍 AuthContext: Setting up Firebase Auth listener...');
+    
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('🔥 AuthContext: Firebase Auth state changed:', firebaseUser?.uid || 'null');
+      
+      if (firebaseUser) {
+        // Try to find user in employees collection
+        try {
+          const { collection, query, where, getDocs } = await import('firebase/firestore');
+          const emailQuery = query(collection(db, 'employees'), where('email', '==', firebaseUser.email));
+          const emailSnapshot = await getDocs(emailQuery);
+          
+          if (!emailSnapshot.empty) {
+            const userDoc = emailSnapshot.docs[0];
+            const userData = { ...userDoc.data(), id: userDoc.id } as AuthUser;
+            userData.firebaseUser = firebaseUser;
+            setUser(userData);
+            // Update localStorage with Firebase user data
+            localStorage.setItem('kpi_user', JSON.stringify(userData));
+            console.log('✅ AuthContext: User found via Firebase Auth');
+          } else {
+            // If Firebase user exists but not found in employees collection,
+            // keep existing user from localStorage if available
+            const storedUser = localStorage.getItem('kpi_user');
+            if (!storedUser) {
+              setUser(null);
+              console.log('❌ AuthContext: User not found in employees collection');
+            } else {
+              console.log('⚠️ AuthContext: Firebase user not in employees, keeping stored user');
+            }
           }
         } catch (error) {
-          console.error('Error fetching user data:', error);
-          setUser(null);
+          console.error('❌ AuthContext: Error finding user:', error);
+          // Don't clear user on error, keep existing state
         }
       } else {
-        // User is signed out
-        console.log('👋 User signed out');
-        setUser(null);
+        // When Firebase user is null, only clear user if we don't have a stored user
+        // This handles the case where user logged in with username/password (no Firebase Auth)
+        const storedUser = localStorage.getItem('kpi_user');
+        if (!storedUser) {
+          setUser(null);
+          console.log('👋 AuthContext: User signed out');
+        } else {
+          console.log('⚠️ AuthContext: Firebase user null but stored user exists, keeping stored user');
+        }
       }
       setLoading(false);
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, [isLoggingIn]);
+  }, []);
 
-  const login = async (email: string, pass: string): Promise<LoginResult> => {
-    console.log('🔐 Starting login process for:', email);
+  const login = async (emailOrUsername: string, password: string): Promise<LoginResult> => {
+    console.log('🔐 AuthContext: Starting login for:', emailOrUsername);
     setIsLoggingIn(true);
     
     try {
-      // Validate email format before attempting login
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        console.log('❌ Invalid email format');
-        return { success: false, error: 'Email không hợp lệ.' };
-      }
-
-      // Validate password length
-      if (pass.length < 6) {
-        console.log('❌ Password too short');
-        return { success: false, error: 'Mật khẩu phải có ít nhất 6 ký tự.' };
-      }
-
-      console.log('✅ Validation passed, attempting Firebase Auth...');
+      const result = await authService.login(emailOrUsername, password);
       
-      // Sign in with Firebase Auth
-      const userCredential = await signInWithEmailAndPassword(firebaseAuth, email, pass);
-      const fbUser = userCredential.user;
-      console.log('✅ Firebase Auth successful, UID:', fbUser.uid);
-      
-      // Create user object - check if admin
-      let userData: Employee;
-      
-      try {
-        console.log('🔍 Checking Firestore for user...');
-        // Try to get user from Firestore
-        const userDocRef = doc(db, 'employees', fbUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        if (userDoc.exists()) {
-          console.log('✅ User found in Firestore');
-          userData = { ...userDoc.data(), uid: fbUser.uid } as Employee;
-        } else {
-          console.log('⚠️ User not in Firestore, creating new profile...');
-          // If user not in Firestore, create default admin user for db@y99.vn
-          if (email === 'db@y99.vn') {
-            userData = {
-              id: 'admin-1',
-              uid: fbUser.uid,
-              email: email,
-              username: 'admin',
-              name: 'Administrator',
-              position: 'System Admin',
-              departmentId: 'admin',
-              avatar: '/avatars/admin.jpg',
-              role: 'admin' as const,
-              startDate: new Date().toISOString(),
-              employeeId: 'EMP001',
-              isActive: true,
-              phone: '',
-              address: '',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            };
-            console.log('👑 Created admin user:', userData);
-            
-            // Save admin user to Firestore
-            try {
-              console.log('💾 Saving admin user to Firestore...');
-              await setDoc(doc(db, 'employees', fbUser.uid), userData);
-              console.log('✅ Admin user saved to Firestore successfully');
-              
-              // Small delay to ensure Firestore write is complete
-              await new Promise(resolve => setTimeout(resolve, 100));
-            } catch (saveError) {
-              console.warn('⚠️ Failed to save admin user to Firestore:', saveError);
-            }
-          } else {
-            // For other users, create employee profile
-            userData = {
-              id: `emp-${fbUser.uid.slice(0, 8)}`,
-              uid: fbUser.uid,
-              email: email,
-              username: email.split('@')[0],
-              name: 'Employee',
-              position: 'Staff',
-              departmentId: 'general',
-              avatar: '/avatars/default.jpg',
-              role: 'employee' as const,
-              startDate: new Date().toISOString(),
-              employeeId: `EMP${fbUser.uid.slice(0, 6).toUpperCase()}`,
-              isActive: true,
-              phone: '',
-              address: '',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            };
-            console.log('👤 Created employee user:', userData);
-            
-            // Save employee user to Firestore
-            try {
-              console.log('💾 Saving employee user to Firestore...');
-              await setDoc(doc(db, 'employees', fbUser.uid), userData);
-              console.log('✅ Employee user saved to Firestore successfully');
-              
-              // Small delay to ensure Firestore write is complete
-              await new Promise(resolve => setTimeout(resolve, 100));
-            } catch (saveError) {
-              console.warn('⚠️ Failed to save employee user to Firestore:', saveError);
-            }
-          }
-        }
-      } catch (firestoreError) {
-        console.warn('⚠️ Firestore error, using default user:', firestoreError);
-        // Fallback: create user based on email
-        userData = {
-          id: email === 'db@y99.vn' ? 'admin-1' : `emp-${fbUser.uid.slice(0, 8)}`,
-          uid: fbUser.uid,
-          email: email,
-          username: email.split('@')[0],
-          name: email === 'db@y99.vn' ? 'Administrator' : 'Employee',
-          position: email === 'db@y99.vn' ? 'System Admin' : 'Staff',
-          departmentId: email === 'db@y99.vn' ? 'admin' : 'general',
-          avatar: '/avatars/default.jpg',
-          role: email === 'db@y99.vn' ? 'admin' as const : 'employee' as const,
-          startDate: new Date().toISOString(),
-          employeeId: email === 'db@y99.vn' ? 'EMP001' : `EMP${fbUser.uid.slice(0, 6).toUpperCase()}`,
-          isActive: true,
-          phone: '',
-          address: '',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        console.log('🔄 Using fallback user:', userData);
+      if (result.success && result.user) {
+        setUser(result.user);
+        // Store user in localStorage for persistence across page refreshes
+        localStorage.setItem('kpi_user', JSON.stringify(result.user));
+        console.log('✅ AuthContext: Login successful, user set:', result.user.username || result.user.email);
+      } else {
+        console.log('❌ AuthContext: Login failed:', result.error);
       }
       
-      console.log('📝 Setting user state...');
-      // Set user state immediately
-      setUser(userData);
-      setFirebaseUser(fbUser);
       setIsLoggingIn(false);
-      
-      console.log('✅ User state set - user:', userData);
-      console.log('✅ Login process completed successfully');
-      return { success: true, user: userData };
+      return result;
     } catch (error: any) {
-      console.error("❌ Login error:", error);
-      let errorMessage = 'Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.';
-      
-      switch (error.code) {
-        case 'auth/user-not-found':
-          errorMessage = 'Không tìm thấy tài khoản với email này.';
-          break;
-        case 'auth/wrong-password':
-          errorMessage = 'Mật khẩu không chính xác.';
-          break;
-        case 'auth/invalid-credential':
-          errorMessage = 'Email hoặc mật khẩu không chính xác.';
-          break;
-        case 'auth/too-many-requests':
-          errorMessage = 'Quá nhiều lần thử không thành công. Vui lòng thử lại sau 15 phút.';
-          break;
-        case 'auth/user-disabled':
-          errorMessage = 'Tài khoản này đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.';
-          break;
-        case 'auth/invalid-email':
-          errorMessage = 'Email không hợp lệ.';
-          break;
-        case 'auth/network-request-failed':
-          errorMessage = 'Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.';
-          break;
-        case 'auth/operation-not-allowed':
-          errorMessage = 'Phương thức đăng nhập này không được phép.';
-          break;
-        default:
-          errorMessage = 'Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.';
-      }
-      
+      console.error('❌ AuthContext: Login error:', error);
       setIsLoggingIn(false);
-      return { success: false, error: errorMessage };
+      return { 
+        success: false, 
+        error: error.message || 'Đã xảy ra lỗi khi đăng nhập.' 
+      };
     }
   };
 
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
+    console.log('👋 AuthContext: Logging out...');
     try {
-      await signOut(firebaseAuth);
-      // onAuthStateChanged will handle cleanup and set user to null
+      await authService.logout();
+      setUser(null);
+      // Remove user from localStorage
+      localStorage.removeItem('kpi_user');
+      console.log('✅ AuthContext: Logout successful');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('❌ AuthContext: Logout error:', error);
     }
   };
 
-  const updateUser = async (updates: Partial<Employee>) => {
-    if (!user || !firebaseUser) {
-      throw new Error('No user logged in');
+  const updateUser = async (updates: Partial<Employee>): Promise<void> => {
+    if (!user) {
+      console.error('❌ AuthContext: Cannot update user - no user logged in');
+      return;
     }
-
+    
     try {
-      // Update user document in Firestore
-      const userDocRef = doc(db, 'employees', firebaseUser.uid);
-      
-      // Filter out undefined values to prevent Firebase errors
-      const filteredUpdates = Object.fromEntries(
-        Object.entries(updates).filter(([_, value]) => value !== undefined)
-      );
-      
-      await setDoc(userDocRef, filteredUpdates, { merge: true });
-      
-      // Update local user state
-      setUser({ ...user, ...filteredUpdates });
+      const success = await authService.updateProfile(user.id, updates);
+      if (success) {
+        const updatedUser = { ...user, ...updates };
+        setUser(updatedUser);
+        // Update localStorage with updated user data
+        localStorage.setItem('kpi_user', JSON.stringify(updatedUser));
+        console.log('✅ AuthContext: User updated successfully');
+      } else {
+        console.error('❌ AuthContext: Failed to update user');
+      }
     } catch (error) {
-      console.error('Error updating user:', error);
-      throw error;
+      console.error('❌ AuthContext: Update user error:', error);
     }
   };
-  
-  // The provider now simply provides the context value without rendering a loading screen itself.
-  // The consuming components will decide what to render based on the loading state.
+
+  const value: AuthContextType = {
+    user,
+    loading,
+    isLoggingIn,
+    login,
+    logout,
+    updateUser,
+  };
+
   return (
-    <AuthContext.Provider value={{ user, firebaseUser, loading, isLoggingIn, login, logout, updateUser }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  const context = React.useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

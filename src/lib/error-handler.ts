@@ -31,7 +31,7 @@ export class ErrorHandler {
    * Log an error with context
    */
   public logError(
-    error: Error | string,
+    error: Error | string | any,
     context?: {
       userId?: string;
       component?: string;
@@ -39,20 +39,43 @@ export class ErrorHandler {
       metadata?: Record<string, any>;
     }
   ): void {
+    // Handle empty or invalid error objects
+    let message = 'Unknown error';
+    let stack: string | undefined;
+    
+    if (typeof error === 'string') {
+      message = error;
+    } else if (error && typeof error === 'object') {
+      message = error.message || error.toString() || 'Unknown error';
+      stack = error.stack;
+      
+      // If error object is empty, try to extract more info
+      if (message === 'Unknown error' && Object.keys(error).length === 0) {
+        message = 'Empty error object received';
+      }
+    } else {
+      message = String(error) || 'Unknown error';
+    }
+
     const errorLog: ErrorLog = {
       id: this.generateId(),
       timestamp: new Date(),
       level: 'error',
-      message: typeof error === 'string' ? error : error.message,
-      stack: typeof error === 'object' ? error.stack : undefined,
+      message,
+      stack,
       ...context,
     };
 
     this.errorLogs.push(errorLog);
     
-    // Log to console in development
+    // Log to console in development with more details
     if (process.env.NODE_ENV === 'development') {
-      console.error('Error logged:', errorLog);
+      console.error('Error logged:', {
+        ...errorLog,
+        originalError: error,
+        errorType: typeof error,
+        errorKeys: error && typeof error === 'object' ? Object.keys(error) : 'N/A'
+      });
     }
 
     // Send to external logging service in production

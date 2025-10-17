@@ -9,13 +9,14 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  StandardTable,
+  StandardTableBody,
+  StandardTableCell,
+  StandardTableHead,
+  StandardTableHeader,
+  StandardTableRow,
+  TableEmptyState,
+} from '@/components/ui/standard-table';
 import {
   Dialog,
   DialogContent,
@@ -114,8 +115,8 @@ export default function KpiDefinitionsComponent() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             {t.kpis.title}
           </h1>
@@ -123,13 +124,24 @@ export default function KpiDefinitionsComponent() {
             {t.kpis.subtitle}
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <PlusCircle className="w-4 h-4" />
-              {t.kpis.addKpi}
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t.common.search}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-64"
+            />
+          </div>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <PlusCircle className="w-4 h-4" />
+                {t.kpis.addKpi}
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{t.kpis.addKpiTitle}</DialogTitle>
@@ -255,6 +267,7 @@ export default function KpiDefinitionsComponent() {
             )}
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -305,82 +318,62 @@ export default function KpiDefinitionsComponent() {
         </Card>
       </div>
 
-      {/* Search */}
+      {/* KPI Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>{t.kpis.title}</CardTitle>
-          <CardDescription>
-            {t.kpis.subtitle}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-2 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={t.common.search}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-          </div>
-
-          {/* KPI Table */}
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t.kpis.kpiName}</TableHead>
-                  <TableHead>{t.kpis.kpiDescription}</TableHead>
-                  <TableHead>{t.kpis.kpiCategory}</TableHead>
-                  <TableHead>{t.kpis.kpiDepartment}</TableHead>
-                  <TableHead>{t.kpis.weight}</TableHead>
-                  <TableHead>{t.kpis.target}</TableHead>
-                  <TableHead>{t.kpis.status}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredKpis.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      {searchTerm ? t.kpis.noKpisFound : t.kpis.noKpisDescription}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredKpis.map((kpi) => (
-                    <TableRow
-                      key={kpi.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleKpiRowClick(kpi)}
-                    >
-                      <TableCell className="font-medium">{kpi.name}</TableCell>
-                      <TableCell className="max-w-xs truncate">
-                        {kpi.description}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {kpi.category || t.kpis.noCategory}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {getDepartmentName(kpi.department)}
-                      </TableCell>
-                      <TableCell>{kpi.weight}%</TableCell>
-                      <TableCell>
-                        {kpi.target || 0}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="default">
-                          {t.kpis.active}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+        <CardContent className="p-0">
+          <StandardTable>
+            <StandardTableHeader>
+              <StandardTableRow>
+                <StandardTableHead>{t.kpis.kpiName}</StandardTableHead>
+                <StandardTableHead>{t.kpis.kpiDescription}</StandardTableHead>
+                <StandardTableHead>{t.kpis.kpiCategory}</StandardTableHead>
+                <StandardTableHead>{t.kpis.kpiDepartment}</StandardTableHead>
+                <StandardTableHead align="right">{t.kpis.weight}</StandardTableHead>
+                <StandardTableHead align="right">{t.kpis.target}</StandardTableHead>
+                <StandardTableHead>{t.kpis.status}</StandardTableHead>
+              </StandardTableRow>
+            </StandardTableHeader>
+            <StandardTableBody>
+              {filteredKpis.length === 0 ? (
+                <TableEmptyState
+                  icon={<Target className="w-12 h-12 text-muted-foreground" />}
+                  title={searchTerm ? t.kpis.noKpisFound : t.kpis.noKpisDescription}
+                  description=""
+                  colSpan={7}
+                />
+              ) : (
+                filteredKpis.map((kpi) => (
+                  <StandardTableRow
+                    key={kpi.id}
+                    isClickable={true}
+                    onClick={() => handleKpiRowClick(kpi)}
+                  >
+                    <StandardTableCell className="font-medium">{kpi.name}</StandardTableCell>
+                    <StandardTableCell className="max-w-xs truncate">
+                      {kpi.description}
+                    </StandardTableCell>
+                    <StandardTableCell>
+                      <Badge variant="outline">
+                        {kpi.category || t.kpis.noCategory}
+                      </Badge>
+                    </StandardTableCell>
+                    <StandardTableCell>
+                      {getDepartmentName(kpi.department)}
+                    </StandardTableCell>
+                    <StandardTableCell className="text-right">{kpi.weight}%</StandardTableCell>
+                    <StandardTableCell className="text-right">
+                      {kpi.target || 0}
+                    </StandardTableCell>
+                    <StandardTableCell>
+                      <Badge variant="default">
+                        {t.kpis.active}
+                      </Badge>
+                    </StandardTableCell>
+                  </StandardTableRow>
+                ))
+              )}
+            </StandardTableBody>
+          </StandardTable>
         </CardContent>
       </Card>
     </div>

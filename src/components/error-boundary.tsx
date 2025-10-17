@@ -37,18 +37,31 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     });
 
-    // Log error using our error handler
-    errorHandler.logError(error, {
+    // Ensure we have a valid error object
+    const errorToLog = error || new Error('Unknown error caught by ErrorBoundary');
+    
+    // Log error using our error handler with more context
+    errorHandler.logError(errorToLog, {
       component: 'ErrorBoundary',
       action: 'React Error Boundary',
       metadata: {
         componentStack: errorInfo.componentStack,
+        errorInfo: {
+          componentStack: errorInfo.componentStack,
+          errorBoundary: errorInfo.errorBoundary,
+        },
+        originalError: {
+          name: error?.name,
+          message: error?.message,
+          stack: error?.stack,
+          toString: error?.toString?.(),
+        },
       },
     });
 
     // Call custom error handler if provided
     if (this.props.onError) {
-      this.props.onError(error, errorInfo);
+      this.props.onError(errorToLog, errorInfo);
     }
   }
 

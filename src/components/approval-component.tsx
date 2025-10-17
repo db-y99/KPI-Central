@@ -6,13 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  StandardTable,
+  StandardTableBody,
+  StandardTableCell,
+  StandardTableHead,
+  StandardTableHeader,
+  StandardTableRow,
+  TableEmptyState,
+} from '@/components/ui/standard-table';
 import {
   Dialog,
   DialogContent,
@@ -232,14 +233,39 @@ export default function ApprovalComponent() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             {t.admin.reportApprovalTitle}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            {t.admin.approvalPageSubtitle}
+            {t.kpiApproval.subtitle}
           </p>
+        </div>
+        <div className="flex items-center gap-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t.admin.searchPlaceholder}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-64"
+            />
+          </div>
+          {/* Filter */}
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder={t.admin.status} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t.admin.allStatuses}</SelectItem>
+              <SelectItem value="awaiting_approval">{t.admin.awaitingApproval}</SelectItem>
+              <SelectItem value="approved">{t.admin.approved}</SelectItem>
+              <SelectItem value="rejected">{t.admin.rejected}</SelectItem>
+              <SelectItem value="pending">{t.admin.pending}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -296,34 +322,6 @@ export default function ApprovalComponent() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-4">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={t.admin.searchPlaceholder}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder={t.admin.status} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t.admin.allStatuses}</SelectItem>
-                <SelectItem value="awaiting_approval">{t.admin.awaitingApproval}</SelectItem>
-                <SelectItem value="approved">{t.admin.approved}</SelectItem>
-                <SelectItem value="rejected">{t.admin.rejected}</SelectItem>
-                <SelectItem value="pending">{t.admin.pending}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Approval Table */}
       <Card>
@@ -331,37 +329,36 @@ export default function ApprovalComponent() {
           <CardTitle>{t.admin.reportsList} ({pagination.totalItems})</CardTitle>
         </CardHeader>
         <CardContent>
-          {paginatedRecords.length === 0 ? (
-            <div className="text-center py-8">
-              <FileCheck className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">{t.admin.noReportsFound}</h3>
-              <p className="text-muted-foreground">
-                {searchTerm || selectedStatus !== 'all' 
-                  ? t.admin.noReportsMatchFilter
-                  : t.admin.noReportsMessage}
-              </p>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t.admin.employee}</TableHead>
-                  <TableHead>KPI</TableHead>
-                  <TableHead>{t.admin.department}</TableHead>
-                  <TableHead>{t.dashboard.progress}</TableHead>
-                  <TableHead>Tài liệu</TableHead>
-                  <TableHead>{t.admin.status}</TableHead>
-                  <TableHead>{t.admin.submittedAt}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedRecords.map((record) => (
-                  <TableRow 
+          <StandardTable>
+            <StandardTableHeader>
+              <StandardTableRow>
+                <StandardTableHead>{t.admin.employee}</StandardTableHead>
+                <StandardTableHead>KPI</StandardTableHead>
+                <StandardTableHead>{t.admin.department}</StandardTableHead>
+                <StandardTableHead align="right">{t.dashboard.progress}</StandardTableHead>
+                <StandardTableHead>Tài liệu</StandardTableHead>
+                <StandardTableHead>{t.admin.status}</StandardTableHead>
+                <StandardTableHead>{t.admin.submittedAt}</StandardTableHead>
+              </StandardTableRow>
+            </StandardTableHeader>
+            <StandardTableBody>
+              {paginatedRecords.length === 0 ? (
+                <TableEmptyState
+                  icon={<FileCheck className="w-12 h-12 text-muted-foreground" />}
+                  title={t.admin.noReportsFound}
+                  description={searchTerm || selectedStatus !== 'all' 
+                    ? t.admin.noReportsMatchFilter
+                    : t.admin.noReportsMessage}
+                  colSpan={7}
+                />
+              ) : (
+                paginatedRecords.map((record) => (
+                  <StandardTableRow 
                     key={record.id} 
-                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                    isClickable={true}
                     onClick={() => handleRowClick(record)}
                   >
-                    <TableCell>
+                    <StandardTableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="w-8 h-8">
                           <AvatarImage src={employees.find(emp => emp.uid === record.employeeId)?.avatar} />
@@ -374,19 +371,19 @@ export default function ApprovalComponent() {
                           <p className="text-sm text-muted-foreground">{record.employeePosition}</p>
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </StandardTableCell>
+                    <StandardTableCell>
                       <div>
                         <p className="font-medium">{record.kpiName}</p>
                         <p className="text-sm text-muted-foreground">
                           {record.actual || 0} / {record.target} {record.kpiUnit}
                         </p>
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </StandardTableCell>
+                    <StandardTableCell>
                       <Badge variant="outline">{record.departmentName}</Badge>
-                    </TableCell>
-                    <TableCell>
+                    </StandardTableCell>
+                    <StandardTableCell className="text-right">
                       <div className="space-y-1">
                         <div className="flex items-center justify-between">
                           <span className="font-semibold text-sm">
@@ -400,31 +397,31 @@ export default function ApprovalComponent() {
                           />
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </StandardTableCell>
+                    <StandardTableCell>
                       <div className="flex items-center gap-2">
                         <Paperclip className="w-4 h-4 text-gray-500" />
                         <span className="text-sm">
                           {record.attachedFiles?.length || 0} file
                         </span>
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </StandardTableCell>
+                    <StandardTableCell>
                       {getStatusBadge(record.status)}
-                    </TableCell>
-                    <TableCell>
+                    </StandardTableCell>
+                    <StandardTableCell>
                       <div className="text-sm">
                         <p>{new Date(record.updatedAt || record.createdAt).toLocaleDateString('vi-VN')}</p>
                         <p className="text-muted-foreground">
                           {new Date(record.updatedAt || record.createdAt).toLocaleTimeString('vi-VN')}
                         </p>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                    </StandardTableCell>
+                  </StandardTableRow>
+                ))
+              )}
+            </StandardTableBody>
+          </StandardTable>
 
           {/* Pagination */}
           {pagination.totalPages > 1 && (

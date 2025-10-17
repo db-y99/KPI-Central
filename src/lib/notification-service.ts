@@ -257,7 +257,7 @@ export class NotificationService {
         category: 'system_update' as const,
         isRead: false,
         isImportant: false,
-        actionUrl: '/admin/system-settings',
+        actionUrl: '/admin',
         actionText: 'Tìm hiểu thêm'
       }
     ];

@@ -17,7 +17,8 @@ import {
   AlertTriangle,
   XCircle,
   Info,
-  FileText
+  FileText,
+  FileCheck
 } from 'lucide-react';
 import type { Kpi, KpiRecord } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -184,18 +185,19 @@ export default function AdminDashboardPage() {
           </Card>
         </Link>
 
-        <Link href="/admin/system-settings">
+        <Link href="/admin/kpi-management?tab=approval">
           <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
-                <Settings className="w-5 h-5 text-primary" />
-                {t.dashboard.systemSettings}
+                <FileCheck className="w-5 h-5 text-primary" />
+                {t.nav.approveReports}
               </CardTitle>
             </CardHeader>
             <CardContent>
             </CardContent>
           </Card>
         </Link>
+
       </div>
 
 

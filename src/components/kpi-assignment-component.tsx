@@ -5,13 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  StandardTable,
+  StandardTableBody,
+  StandardTableCell,
+  StandardTableHead,
+  StandardTableHeader,
+  StandardTableRow,
+  TableEmptyState,
+} from '@/components/ui/standard-table';
 import {
   Dialog,
   DialogContent,
@@ -48,6 +49,7 @@ import { DataContext } from '@/context/data-context';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 import { KpiStatusService, KpiStatus } from '@/lib/kpi-status-service';
+import type { KpiRecord } from '@/types';
 
 export default function KpiAssignmentComponent() {
   const { employees, kpis, departments, kpiRecords, assignKpi, removeDuplicateKpiRecords } = useContext(DataContext);
@@ -79,7 +81,7 @@ export default function KpiAssignmentComponent() {
   const filteredKpiRecords = useMemo(() => {
     return kpiRecords.filter(record => {
       const employee = employees.find(e => e.uid === record.employeeId);
-      const kpi = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);
+      const kpi = kpis.find(k => k.id === record.kpiId);
       const department = departments.find(d => d.id === employee?.departmentId);
 
       // Search filter
@@ -243,6 +245,8 @@ export default function KpiAssignmentComponent() {
           target: Number(formData.target),
           startDate: new Date(formData.startDate).toISOString(),
           endDate: new Date(formData.endDate).toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         });
 
         toast({
@@ -267,12 +271,14 @@ export default function KpiAssignmentComponent() {
         // Assign KPI to all employees in the department
         const assignmentPromises = departmentEmployees.map(employee =>
           assignKpi({
-            employeeId: employee.uid,
+            employeeId: employee.uid || employee.id || '',
             kpiId: formData.kpiId,
             period: `${new Date().getFullYear()}-Q${Math.ceil((new Date().getMonth() + 1) / 3)}`,
             target: Number(formData.target),
             startDate: new Date(formData.startDate).toISOString(),
             endDate: new Date(formData.endDate).toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
           })
         );
 
@@ -299,29 +305,15 @@ export default function KpiAssignmentComponent() {
   const stats = useMemo(() => {
     const totalAssignments = kpiRecords.length;
     const activeAssignments = kpiRecords.filter(r => {
-      try {
-        return KpiStatusService.isActiveStatus(r.status as KpiStatus);
-      } catch {
-        return ['not_started', 'in_progress', 'submitted', 'awaiting_approval'].includes(r.status);
-      }
+      return ['not_started', 'in_progress', 'submitted', 'awaiting_approval'].includes(r.status);
     }).length;
     const completedAssignments = kpiRecords.filter(r => {
-      try {
-        return KpiStatusService.isCompletedStatus(r.status as KpiStatus);
-      } catch {
-        return ['approved', 'completed'].includes(r.status);
-      }
+      return ['approved', 'completed'].includes(r.status);
     }).length;
     const overdueAssignments = kpiRecords.filter(r => {
       const endDate = new Date(r.endDate);
       const isOverdue = endDate < new Date();
-      const isNotCompleted = (() => {
-        try {
-          return !KpiStatusService.isCompletedStatus(r.status as KpiStatus);
-        } catch {
-          return !['approved', 'completed', 'rejected'].includes(r.status);
-        }
-      })();
+      const isNotCompleted = !['approved', 'completed', 'rejected'].includes(r.status);
       return isOverdue && isNotCompleted;
     }).length;
 
@@ -336,24 +328,63 @@ export default function KpiAssignmentComponent() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             {t.kpiAssignment.title}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            {t.kpiAssignment.manageKpiAssignment}
+            {t.kpiAssignment.subtitle}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={handleCleanupDuplicates} variant="outline">
-            <Trash2 className="w-4 h-4 mr-2" />
-            Dọn dẹp trùng lặp
-          </Button>
-          <Button onClick={handleAddAssignment} className="flex items-center gap-2">
-            <PlusCircle className="w-4 h-4" />
-            {t.kpiAssignment.assignKpi}
-          </Button>
+        <div className="flex items-center gap-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t.kpiAssignment.searchKpiEmployee}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-64"
+            />
+          </div>
+          {/* Filters */}
+          <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder={t.kpiAssignment.allDepartments} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t.kpiAssignment.allDepartments}</SelectItem>
+              {departments.map(dept => (
+                <SelectItem key={dept.id} value={dept.id}>
+                  {dept.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder={t.kpiAssignment.allStatuses} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t.kpiAssignment.allStatuses}</SelectItem>
+              {Object.values(KpiStatusService.getAllStatuses()).map(status => (
+                <SelectItem key={status.key} value={status.key}>
+                  {status.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleCleanupDuplicates} variant="outline">
+              <Trash2 className="w-4 h-4 mr-2" />
+              Dọn dẹp trùng lặp
+            </Button>
+            <Button onClick={handleAddAssignment} className="flex items-center gap-2">
+              <PlusCircle className="w-4 h-4" />
+              {t.kpiAssignment.assignKpi}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -404,48 +435,6 @@ export default function KpiAssignmentComponent() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-4">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={t.kpiAssignment.searchKpiEmployee}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder={t.kpiAssignment.allDepartments} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t.kpiAssignment.allDepartments}</SelectItem>
-                {departments.map(dept => (
-                  <SelectItem key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder={t.kpiAssignment.allStatuses} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t.kpiAssignment.allStatuses}</SelectItem>
-                {Object.values(KpiStatusService.getAllStatuses()).map(status => (
-                  <SelectItem key={status.key} value={status.key}>
-                    {status.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Assignments Table */}
       <Card>
@@ -453,56 +442,39 @@ export default function KpiAssignmentComponent() {
           <CardTitle>{t.kpiAssignment.kpiList} ({filteredKpiRecords.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>KPI</TableHead>
-                <TableHead>{t.kpiAssignment.employee}</TableHead>
-                <TableHead>{t.kpiAssignment.department}</TableHead>
-                <TableHead>{t.kpiAssignment.target}</TableHead>
-                <TableHead>{t.kpiAssignment.actual}</TableHead>
-                <TableHead>{t.kpiAssignment.statusColumn}</TableHead>
-                <TableHead>{t.kpiAssignment.deadline}</TableHead>
-                <TableHead>{t.kpiAssignment.actions}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <StandardTable>
+            <StandardTableHeader>
+              <StandardTableRow>
+                <StandardTableHead>KPI</StandardTableHead>
+                <StandardTableHead>{t.kpiAssignment.employee}</StandardTableHead>
+                <StandardTableHead>{t.kpiAssignment.department}</StandardTableHead>
+                <StandardTableHead align="right">{t.kpiAssignment.target}</StandardTableHead>
+                <StandardTableHead align="right">{t.kpiAssignment.actual}</StandardTableHead>
+                <StandardTableHead>{t.kpiAssignment.statusColumn}</StandardTableHead>
+                <StandardTableHead>{t.kpiAssignment.deadline}</StandardTableHead>
+                <StandardTableHead>{t.kpiAssignment.actions}</StandardTableHead>
+              </StandardTableRow>
+            </StandardTableHeader>
+            <StandardTableBody>
               {filteredKpiRecords.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                    {searchTerm || departmentFilter !== 'all' || statusFilter !== 'all' ? (
-                      <div>
-                        <p className="mb-2">{t.kpiAssignment.noKpiMatchFilter}</p>
-                        <p className="text-sm">
-                          {searchTerm && `Tìm kiếm: "${searchTerm}"`}
-                          {departmentFilter !== 'all' && ` | Phòng ban: ${departments.find(d => d.id === departmentFilter)?.name}`}
-                          {statusFilter !== 'all' && ` | Trạng thái: ${getStatusLabel(statusFilter)}`}
-                        </p>
-                      </div>
-                    ) : (
-                      <div>
-                        <Target className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">{t.kpiAssignment.noKpiAssignedYet}</h3>
-                        <p className="text-muted-foreground mb-4">
-                          Chưa có KPI nào được giao cho nhân viên.
-                        </p>
-                        <div className="space-y-2 text-sm text-muted-foreground">
-                          <p>• {t.kpiAssignment.createKpiAt} <a href="/admin/kpi-management?tab=definitions" className="text-blue-600 hover:underline">{t.kpiAssignment.defineKpiLink}</a></p>
-                          <p>• {t.kpiAssignment.assignKpiAt} <span className="text-blue-600">{t.kpiAssignment.assignKpiLink}</span></p>
-                        </div>
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
+                <TableEmptyState
+                  icon={<Target className="w-12 h-12 text-muted-foreground" />}
+                  title={searchTerm || departmentFilter !== 'all' || statusFilter !== 'all' ? t.kpiAssignment.noKpiMatchFilter : t.kpiAssignment.noKpiAssignedYet}
+                  description={searchTerm || departmentFilter !== 'all' || statusFilter !== 'all' ? 
+                    `${searchTerm ? `Tìm kiếm: "${searchTerm}"` : ''}${departmentFilter !== 'all' ? ` Phòng ban: ${departments.find(d => d.id === departmentFilter)?.name}` : ''}${statusFilter !== 'all' ? ` Trạng thái: ${getStatusLabel(statusFilter)}` : ''}` :
+                    ''
+                  }
+                  colSpan={8}
+                />
               ) : (
                 filteredKpiRecords.map((record) => {
                   const employee = employees.find(e => e.uid === record.employeeId);
-                  const kpi = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);
+                  const kpi = kpis.find(k => k.id === record.kpiId);
                   const department = departments.find(d => d.id === employee?.departmentId);
                   
                   return (
-                    <TableRow key={record.id}>
-                      <TableCell>
+                    <StandardTableRow key={record.id}>
+                      <StandardTableCell>
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                             <Target className="w-4 h-4 text-primary" />
@@ -512,8 +484,8 @@ export default function KpiAssignmentComponent() {
                             <p className="text-sm text-muted-foreground">{kpi?.unit || t.kpiAssignment.unit}</p>
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
+                      </StandardTableCell>
+                      <StandardTableCell>
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                             <User className="w-4 h-4 text-primary" />
@@ -523,38 +495,38 @@ export default function KpiAssignmentComponent() {
                             <p className="text-sm text-muted-foreground">{employee?.position || t.kpiAssignment.unknownPosition}</p>
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
+                      </StandardTableCell>
+                      <StandardTableCell>
                         <Badge variant="outline">{department?.name || t.kpiAssignment.unknownDepartment}</Badge>
-                      </TableCell>
-                      <TableCell>
+                      </StandardTableCell>
+                      <StandardTableCell className="text-right">
                         <p className="font-medium">{record.target}</p>
-                      </TableCell>
-                      <TableCell>
+                      </StandardTableCell>
+                      <StandardTableCell className="text-right">
                         <p className="font-medium">{record.actual}</p>
-                      </TableCell>
-                      <TableCell>
+                      </StandardTableCell>
+                      <StandardTableCell>
                         <Badge className={getStatusColor(record.status)}>
                           {getStatusLabel(record.status)}
                         </Badge>
-                      </TableCell>
-                      <TableCell>
+                      </StandardTableCell>
+                      <StandardTableCell>
                         <div className="flex items-center gap-2 text-sm">
                           <Calendar className="w-4 h-4 text-muted-foreground" />
                           <span>{new Date(record.endDate).toLocaleDateString('vi-VN')}</span>
                         </div>
-                      </TableCell>
-                      <TableCell>
+                      </StandardTableCell>
+                      <StandardTableCell>
                         <Button variant="ghost" size="sm">
                           {t.kpiAssignment.view}
                         </Button>
-                      </TableCell>
-                    </TableRow>
+                      </StandardTableCell>
+                    </StandardTableRow>
                   );
                 })
               )}
-            </TableBody>
-          </Table>
+            </StandardTableBody>
+          </StandardTable>
         </CardContent>
       </Card>
 
@@ -627,7 +599,7 @@ export default function KpiAssignmentComponent() {
                   </SelectTrigger>
                   <SelectContent>
                     {nonAdminEmployees.map(emp => (
-                      <SelectItem key={emp.uid} value={emp.uid}>
+                      <SelectItem key={emp.uid} value={emp.uid || emp.id || ''}>
                         <div className="flex items-center gap-3 py-2">
                           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                             <User className="w-4 h-4 text-primary" />
@@ -647,7 +619,7 @@ export default function KpiAssignmentComponent() {
                 <div className="flex items-center gap-2">
                   <Building2 className="w-4 h-4 text-muted-foreground" />
                   <Label htmlFor="department" className="text-sm font-medium">
-                    {t.kpiAssignment.departmentRequired || 'Phòng ban *'}
+                    {'Phòng ban *'}
                   </Label>
                 </div>
                 <Select value={formData.departmentId} onValueChange={(value) => setFormData({...formData, departmentId: value})}>

@@ -208,7 +208,7 @@ export class SystemNotificationService {
         category: 'system_update' as const,
         isRead: false,
         isImportant: false,
-        actionUrl: '/admin/system-settings',
+        actionUrl: '/admin',
         actionText: 'Tìm hiểu thêm',
         createdAt: new Date().toISOString()
       }));
@@ -226,7 +226,7 @@ export class SystemNotificationService {
         category: 'system_update',
         isRead: false,
         isImportant: false,
-        actionUrl: '/admin/system-settings',
+        actionUrl: '/admin',
         actionText: 'Tìm hiểu thêm'
       };
 

@@ -96,30 +96,6 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 pathname.startsWith('/admin/employee-management'),
       key: 'hr-management',
     }] : []),
-    // Đánh giá & Báo cáo (Admin only) - Gộp các chức năng đánh giá
-    ...(isAdmin ? [{
-      href: '/admin/evaluation',
-      label: t.nav.evaluation,
-      icon: BarChart3,
-      isActive: pathname.startsWith('/admin/evaluation') ||
-                pathname.startsWith('/admin/evaluation-reports') ||
-                pathname.startsWith('/admin/self-update-requests'),
-      key: 'evaluation',
-    }] : []),
-    // Cài đặt & Hệ thống (Admin only) - Gộp các chức năng cài đặt
-    ...(isAdmin ? [{
-      href: '/admin/system-settings',
-      label: t.dashboard.systemSettings,
-      icon: Settings,
-      isActive: pathname.startsWith('/admin/system-settings') ||
-                pathname.startsWith('/admin/settings') ||
-                pathname.startsWith('/admin/notifications') ||
-                pathname.startsWith('/admin/google-drive-config') ||
-                pathname.startsWith('/admin/payroll-integration') ||
-                pathname.startsWith('/admin/policies-overview') ||
-                pathname.startsWith('/admin/init-policies'),
-      key: 'system-settings',
-    }] : []),
     // Profile (Employee only)
     ...(!isAdmin ? [{
       href: '/employee/profile',

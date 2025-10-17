@@ -390,7 +390,14 @@ class BulkImportService {
   }
 
   private async processRewardRow(data: any): Promise<void> {
-    await addDoc(collection(db, 'rewardCalculations'), {
+    // DISABLED: Auto-create reward calculation document
+    // await addDoc(collection(db, 'rewardCalculations'), {
+    //   ...data,
+    //   createdAt: new Date().toISOString(),
+    //   updatedAt: new Date().toISOString()
+    // });
+    
+    console.log('Reward row processed (not saved to database):', {
       ...data,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()

@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
-import type { Kpi, Department } from '@/types';
+import type { Kpi, Department, CreateKpiFormValues, EditKpiFormValues } from '@/types';
 import { collection, doc, updateDoc, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useLanguage } from '@/context/language-context';
@@ -84,8 +84,7 @@ const editKpiSchema = (t: any) => z.object({
   path: ['endDate'],
 });
 
-type CreateKpiFormValues = z.infer<typeof createKpiSchema>;
-type EditKpiFormValues = z.infer<ReturnType<typeof editKpiSchema>>;
+// Types are imported from @/types
 
 interface KpiFormProps {
   mode: 'add' | 'edit';

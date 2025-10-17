@@ -1235,7 +1235,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
 
       const netAmount = Math.max(0, totalReward - totalPenalty); // Ensure net amount is not negative
 
-      // Create reward calculation record
+      // DISABLED: Create reward calculation record
       const calculationData = {
         employeeId,
         programId: program.id,
@@ -1250,9 +1250,14 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         calculatedAt: new Date().toISOString()
       };
 
-      const docRef = await addDoc(collection(db, 'rewardCalculations'), calculationData);
-      const calculation = { ...calculationData, id: docRef.id };
-      setRewardCalculations(prev => [...prev, calculation]);
+      // DISABLED: Auto-create reward calculation document
+      // const docRef = await addDoc(collection(db, 'rewardCalculations'), calculationData);
+      // const calculation = { ...calculationData, id: docRef.id };
+      // setRewardCalculations(prev => [...prev, calculation]);
+
+      // Return calculation without saving to database
+      const calculation = { ...calculationData, id: `temp-${Date.now()}` };
+      console.log('Reward calculation completed (not saved to database):', calculation);
 
       return calculation;
     } catch (error) {

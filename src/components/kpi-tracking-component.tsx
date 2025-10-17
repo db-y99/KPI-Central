@@ -20,13 +20,14 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  StandardTable,
+  StandardTableBody,
+  StandardTableCell,
+  StandardTableHead,
+  StandardTableHeader,
+  StandardTableRow,
+  TableEmptyState,
+} from '@/components/ui/standard-table';
 import {
   Select,
   SelectContent,
@@ -78,8 +79,8 @@ export default function KpiTrackingComponent() {
   // Create enriched KPI records
   const enrichedRecords = useMemo(() => {
     return kpiRecords.map(record => {
-      const employee = employees.find(emp => emp.uid === record.employeeId || emp.id === record.employeeId || emp.documentId === record.employeeId);
-      const kpi = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);
+      const employee = employees.find(emp => emp.uid === record.employeeId || emp.id === record.employeeId);
+      const kpi = kpis.find(k => k.id === record.kpiId);
       const department = employee ? departments.find(d => d.id === employee.departmentId) : null;
 
       return {
@@ -162,15 +163,15 @@ export default function KpiTrackingComponent() {
     try {
       await removeDuplicateKpiRecords();
       toast({
-        title: "Thành công!",
-        description: "Đã dọn dẹp các bản ghi KPI trùng lặp."
+        title: t.common.success || "Thành công!",
+        description: t.kpiTracking.cleanupSuccess || "Đã dọn dẹp các bản ghi KPI trùng lặp."
       });
     } catch (error) {
       console.error('Error cleaning up duplicates:', error);
       toast({
         variant: 'destructive',
-        title: "Lỗi!",
-        description: "Không thể dọn dẹp các bản ghi trùng lặp."
+        title: t.common.error || "Lỗi!",
+        description: t.kpiTracking.cleanupError || "Không thể dọn dẹp các bản ghi trùng lặp."
       });
     }
   };
@@ -214,8 +215,8 @@ export default function KpiTrackingComponent() {
         });
         
         toast({
-          title: "Thành công!",
-          description: "Đã cập nhật tiến độ KPI thành công."
+          title: t.common.success || "Thành công!",
+          description: t.kpiTracking.updateSuccess || "Đã cập nhật tiến độ KPI thành công."
         });
         
         setIsUpdateDialogOpen(false);
@@ -225,8 +226,8 @@ export default function KpiTrackingComponent() {
         console.error('Error updating KPI record:', error);
         toast({
           variant: 'destructive',
-          title: "Lỗi!",
-          description: "Không thể cập nhật tiến độ KPI."
+          title: t.common.error || "Lỗi!",
+          description: t.kpiTracking.updateError || "Không thể cập nhật tiến độ KPI."
         });
       }
     }
@@ -248,6 +249,72 @@ export default function KpiTrackingComponent() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+{t.kpiTracking.title}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            {t.kpiTrackingAdmin.subtitle}
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Input
+              placeholder={t.kpiTracking.searchPlaceholder}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-64"
+            />
+          </div>
+          {/* Filters */}
+          <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder={t.kpiTracking.selectDepartment} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t.kpiTracking.allDepartments}</SelectItem>
+              {departments.map(dept => (
+                <SelectItem key={dept.id} value={dept.id}>
+                  {dept.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder={periods.length > 0 ? t.kpiTracking.selectPeriod : t.kpiTracking.noData} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t.kpiTracking.allPeriods}</SelectItem>
+              {periods.length > 0 ? (
+                periods.map((period, index) => (
+                  <SelectItem key={period || `period-${index}`} value={period}>
+                    {period}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-data" disabled>
+                  Chưa có dữ liệu kỳ
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleRefreshData} variant="outline">
+              <RefreshCw className="w-4 h-4 mr-2" />
+{t.kpiTracking.refresh}
+            </Button>
+            <Button onClick={handleCleanupDuplicates} variant="outline">
+              <Trash2 className="w-4 h-4 mr-2" />
+{t.kpiTracking.cleanupDuplicates}
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -287,103 +354,47 @@ export default function KpiTrackingComponent() {
         </Card>
       </div>
 
+
       {/* KPI Tracking Table */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5" />
-              {t.kpiTracking.tracking} ({filteredRecords.length})
-            </CardTitle>
-            <div className="flex items-center gap-4">
-              <div className="w-64">
-                <Input
-                  placeholder={t.kpiTracking.searchPlaceholder}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder={t.kpiTracking.selectDepartment} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t.kpiTracking.allDepartments}</SelectItem>
-                  {departments.map(dept => (
-                    <SelectItem key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder={periods.length > 0 ? "Chọn kỳ" : "Chưa có dữ liệu"} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả kỳ</SelectItem>
-                  {periods.length > 0 ? (
-                    periods.map((period, index) => (
-                      <SelectItem key={period || `period-${index}`} value={period}>
-                        {period}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="no-data" disabled>
-                      Chưa có dữ liệu kỳ
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-              <Button onClick={handleRefreshData} variant="outline">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                {t.kpiTracking.refresh}
-              </Button>
-              <Button onClick={handleCleanupDuplicates} variant="outline">
-                <Trash2 className="w-4 h-4 mr-2" />
-                Dọn dẹp trùng lặp
-              </Button>
-            </div>
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="w-5 h-5" />
+{t.kpiTracking.tracking} ({filteredRecords.length})
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {filteredRecords.length === 0 ? (
-            <div className="text-center py-8">
-              <Target className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">{t.kpiTracking.noKpisAssigned}</h3>
-              <p className="text-muted-foreground mb-4">
-                {t.kpiTracking.noKpisDescription}
-              </p>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>• {t.kpiTracking.createKpiAt} <a href="/admin/kpi-management?tab=definitions" className="text-blue-600 hover:underline">{t.kpiTracking.defineKpiLink}</a></p>
-                <p>• {t.kpiTracking.assignKpiAt} <a href="/admin/kpi-management?tab=assignment" className="text-blue-600 hover:underline">{t.kpiTracking.assignKpiLink}</a></p>
-              </div>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t.kpiTracking.employeeColumn}</TableHead>
-                  <TableHead>{t.kpiTracking.kpiColumn}</TableHead>
-                  <TableHead>{t.kpiTracking.departmentColumn}</TableHead>
-                  <TableHead>{t.kpiTracking.progressColumn}</TableHead>
-                  <TableHead>{t.kpiTracking.statusColumn}</TableHead>
-                  <TableHead>{t.kpiTracking.deadlineColumn}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredRecords.map((record) => {
+          <StandardTable>
+            <StandardTableHeader>
+              <StandardTableRow>
+                <StandardTableHead>{t.kpiTracking.employeeColumn}</StandardTableHead>
+                <StandardTableHead>{t.kpiTracking.kpiColumn}</StandardTableHead>
+                <StandardTableHead>{t.kpiTracking.departmentColumn}</StandardTableHead>
+                <StandardTableHead align="right">{t.kpiTracking.progressColumn}</StandardTableHead>
+                <StandardTableHead>{t.kpiTracking.statusColumn}</StandardTableHead>
+                <StandardTableHead>{t.kpiTracking.deadlineColumn}</StandardTableHead>
+              </StandardTableRow>
+            </StandardTableHeader>
+            <StandardTableBody>
+              {filteredRecords.length === 0 ? (
+                <TableEmptyState
+                  icon={<Target className="w-12 h-12 text-muted-foreground" />}
+                  title={t.kpiTracking.noKpisAssigned}
+                  description=""
+                  colSpan={6}
+                />
+              ) : (
+                filteredRecords.map((record) => {
                   const daysRemaining = getDaysRemaining(record.endDate);
-                  const employee = employees.find(emp => emp.uid === record.employeeId || emp.id === record.employeeId || emp.documentId === record.employeeId);
+                  const employee = employees.find(emp => emp.uid === record.employeeId || emp.id === record.employeeId);
                   
                   return (
-                    <TableRow 
+                    <StandardTableRow 
                       key={record.id} 
-                      className="cursor-pointer hover:bg-muted/50 transition-colors"
+                      isClickable={true}
                       onClick={() => handleRowClick(record)}
                     >
-                      <TableCell>
+                      <StandardTableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="w-8 h-8">
                             <AvatarImage src={employee?.avatar} />
@@ -396,8 +407,8 @@ export default function KpiTrackingComponent() {
                             <p className="text-sm text-muted-foreground">{record.employeePosition}</p>
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell>
+                      </StandardTableCell>
+                      <StandardTableCell>
                         <div>
                           <p className="font-medium">{record.kpiName}</p>
                           <p className="text-sm text-muted-foreground">
@@ -407,11 +418,11 @@ export default function KpiTrackingComponent() {
                             Kỳ: {record.period || 'N/A'}
                           </p>
                         </div>
-                      </TableCell>
-                      <TableCell>
+                      </StandardTableCell>
+                      <StandardTableCell>
                         <Badge variant="outline">{record.departmentName}</Badge>
-                      </TableCell>
-                      <TableCell>
+                      </StandardTableCell>
+                      <StandardTableCell className="text-right">
                         <div className="space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="font-semibold text-sm">
@@ -420,11 +431,11 @@ export default function KpiTrackingComponent() {
                           </div>
                           <Progress value={record.progress} className="h-2 w-20" />
                         </div>
-                      </TableCell>
-                      <TableCell>
+                      </StandardTableCell>
+                      <StandardTableCell>
                         {getStatusBadge(record.status)}
-                      </TableCell>
-                      <TableCell>
+                      </StandardTableCell>
+                      <StandardTableCell>
                         <div>
                           <p className="text-sm">
                             {new Date(record.endDate).toLocaleDateString('vi-VN')}
@@ -441,13 +452,13 @@ export default function KpiTrackingComponent() {
                             }
                           </p>
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </StandardTableCell>
+                    </StandardTableRow>
                   );
-                })}
-              </TableBody>
-            </Table>
-          )}
+                })
+              )}
+            </StandardTableBody>
+          </StandardTable>
         </CardContent>
       </Card>
 
@@ -626,7 +637,7 @@ export default function KpiTrackingComponent() {
                     id="notes"
                     value={updateForm.notes}
                     onChange={(e) => setUpdateForm(prev => ({ ...prev, notes: e.target.value }))}
-                    placeholder="Enter notes about progress..."
+                    placeholder={t.kpiTracking.notesPlaceholder}
                     rows={3}
                   />
                 </div>

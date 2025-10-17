@@ -27,26 +27,22 @@ import { useToast } from '@/hooks/use-toast';
 import { collection, getDocs, query, where, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useLanguage } from '@/context/language-context';
-import type { Department, Employee } from '@/types';
+import type { Department, Employee, CreateEmployeeFormValues, EditEmployeeFormValues } from '@/types';
 
 const createEmployeeSchema = (t: any) => z.object({
   name: z.string().min(1, t.employees.nameRequired),
   email: z.string().email(t.employees.emailInvalid),
-  username: z.string().min(3, t.employees.usernameMinLength).max(20, t.employees.usernameMaxLength),
-  password: z.string().min(6, t.employees.passwordMinLength).max(50, t.employees.passwordMaxLength),
-  confirmPassword: z.string().min(6, t.employees.passwordMinLength),
   position: z.string().min(1, t.employees.positionRequired),
   departmentId: z.string().min(1, t.employees.departmentRequired),
   role: z.enum(['admin', 'employee'], {
     errorMap: () => ({ message: t.employees.roleRequired as string }),
   }),
-  phone: z.string().optional(),
-  address: z.string().optional(),
-  startDate: z.string().min(1, t.employees.startDateRequired),
-  employeeId: z.string().min(1, t.employees.employeeIdRequired),
+  username: z.string().min(1, t.employees.usernameRequired || 'Username is required'),
+  password: z.string().min(6, t.employees.passwordMinLength || 'Password must be at least 6 characters'),
+  confirmPassword: z.string().min(6, t.employees.passwordMinLength || 'Password must be at least 6 characters'),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: t.employees.passwordMismatch as string,
-  path: ["confirmPassword"],
+  message: t.employees.passwordMismatch || 'Passwords do not match',
+  path: ['confirmPassword'],
 });
 
 const editEmployeeSchema = (t: any) => z.object({
@@ -59,8 +55,7 @@ const editEmployeeSchema = (t: any) => z.object({
   }),
 });
 
-type CreateEmployeeFormValues = z.infer<ReturnType<typeof createEmployeeSchema>>;
-type EditEmployeeFormValues = z.infer<ReturnType<typeof editEmployeeSchema>>;
+// Types are imported from @/types
 
 interface EmployeeFormProps {
   mode: 'add' | 'edit';
@@ -91,18 +86,23 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
     } : {
       name: '',
       email: '',
-      username: '',
-      password: '',
-      confirmPassword: '',
       position: '',
       departmentId: '',
       role: 'employee',
-      phone: '',
-      address: '',
-      startDate: '',
-      employeeId: '',
+      username: '',
+      password: '',
+      confirmPassword: '',
     },
   });
+
+  // Auto-generate username from email
+  useEffect(() => {
+    if (!isEditMode && form.watch('email')) {
+      const email = form.watch('email');
+      const username = email.split('@')[0];
+      form.setValue('username', username);
+    }
+  }, [form.watch('email'), isEditMode, form]);
 
   // Load departments from Firestore
   useEffect(() => {
@@ -134,12 +134,6 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
     fetchDepartments();
   }, [toast, t]);
 
-  const handleNameChange = (name: string) => {
-    if (!isEditMode) {
-      const username = name.toLowerCase().replace(/\s+/g, '.');
-      form.setValue('username', username);
-    }
-  };
 
   const onSubmit = async (data: CreateEmployeeFormValues | EditEmployeeFormValues) => {
     if (isEditMode) {
@@ -164,8 +158,8 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
 
         onSave(updatedEmployee);
         toast({
-          title: "Thành công!",
-          description: `Đã cập nhật thông tin nhân viên "${editData.name}".`
+          title: t.common.success,
+          description: `${t.employees.updateSuccess || 'Employee updated successfully'}: "${editData.name}".`
         });
       } catch (error) {
         console.error('Error updating employee:', error);
@@ -185,15 +179,15 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
           const result = await createUserAction({
             name: createData.name,
             email: createData.email,
-            username: createData.username,
-            password: createData.password,
+            username: createData.email.split('@')[0], // Tự động tạo từ email
+            password: '123456', // Mật khẩu mặc định
             position: createData.position,
             departmentId: createData.departmentId,
             role: createData.role,
-            phone: createData.phone || '',
-            address: createData.address || '',
-            startDate: createData.startDate,
-            employeeId: createData.employeeId,
+            phone: '', // Để trống
+            address: '', // Để trống
+            startDate: new Date().toISOString().split('T')[0], // Ngày hiện tại
+            employeeId: `EMP${Date.now()}`, // Tự động tạo mã nhân viên
           });
 
           if (result.success) {
@@ -201,14 +195,14 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
               id: result.userId || `emp_${Date.now()}`,
               name: createData.name,
               email: createData.email,
-              username: createData.username,
+              username: createData.email.split('@')[0],
               position: createData.position,
               departmentId: createData.departmentId,
               role: createData.role,
-              phone: createData.phone || '',
-              address: createData.address || '',
-              startDate: createData.startDate,
-              employeeId: createData.employeeId,
+              phone: '',
+              address: '',
+              startDate: new Date().toISOString().split('T')[0],
+              employeeId: `EMP${Date.now()}`,
               isActive: true,
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
@@ -216,8 +210,8 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
 
             onSave(newEmployee);
             toast({
-              title: "Thành công!",
-              description: `Đã tạo tài khoản cho nhân viên "${createData.name}".`
+              title: t.common.success,
+              description: `${t.employees.createSuccess || 'Account created successfully'}: "${createData.name}".`
             });
           } else {
             throw new Error(result.error || 'Failed to create user');
@@ -238,7 +232,7 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="w-8 h-8 animate-spin" />
-        <span className="ml-2">Đang tải danh sách phòng ban...</span>
+        <span className="ml-2">{t.common.loading || 'Loading...'}</span>
       </div>
     );
   }
@@ -248,7 +242,7 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Thông tin cơ bản */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-primary">Thông tin cơ bản</h3>
+          <h3 className="text-lg font-semibold text-primary">{t.employees.basicInfo}</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
@@ -258,13 +252,9 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
                   <FormLabel>{t.employees.name as string} <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Nhập họ và tên đầy đủ" 
+                      placeholder={t.employees.enterFullName} 
                       {...field} 
                       disabled={isPending || isSubmitting}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        handleNameChange(e.target.value);
-                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -272,28 +262,6 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
               )}
             />
             
-            {!isEditMode && (
-              <FormField
-                control={form.control}
-                name="employeeId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t.employees.employeeId as string} <span className="text-red-500">*</span></FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Nhập mã nhân viên" 
-                        {...field} 
-                        disabled={isPending || isSubmitting}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
               name="email"
@@ -303,7 +271,7 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
                   <FormControl>
                     <Input 
                       type="email" 
-                      placeholder="Nhập email" 
+                      placeholder={t.employees.enterEmail} 
                       {...field} 
                       disabled={isPending || isSubmitting}
                     />
@@ -312,26 +280,6 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
                 </FormItem>
               )}
             />
-
-            {!isEditMode && (
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t.employees.username as string} <span className="text-red-500">*</span></FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Tên đăng nhập" 
-                        {...field} 
-                        disabled={isPending || isSubmitting}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -343,7 +291,7 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
                   <FormLabel>{t.employees.position as string} <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="Nhập chức vụ" 
+                      placeholder={t.employees.enterPosition} 
                       {...field} 
                       disabled={isPending || isSubmitting}
                     />
@@ -362,7 +310,7 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
                   <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending || isSubmitting}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn phòng ban" />
+                        <SelectValue placeholder={t.employees.selectDepartment} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -389,7 +337,7 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
                   <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending || isSubmitting}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn vai trò" />
+                        <SelectValue placeholder={t.employees.selectRole || 'Select Role'} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -401,59 +349,41 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
                 </FormItem>
               )}
             />
+          </div>
 
-            {!isEditMode && (
+          {/* Thông tin đăng nhập */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-primary">{t.employees.loginCredentials}</h3>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
-                name="startDate"
+                name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t.employees.startDate as string} <span className="text-red-500">*</span></FormLabel>
+                    <FormLabel>{t.employees.username as string} <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input 
-                        type="date" 
+                        placeholder="username" 
                         {...field} 
                         disabled={isPending || isSubmitting}
+                        readOnly
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            )}
-          </div>
 
-          {!isEditMode && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t.employees.password as string} <span className="text-red-500">*</span></FormLabel>
+                    <FormLabel>{t.employees.loginPassword as string} <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input 
-                        type="password" 
-                        placeholder="Nhập mật khẩu" 
-                        {...field} 
-                        disabled={isPending || isSubmitting}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t.employees.confirmPassword as string} <span className="text-red-500">*</span></FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder="Nhập lại mật khẩu" 
+                        type="password"
+                        placeholder={t.employees.passwordForEmployeeLogin} 
                         {...field} 
                         disabled={isPending || isSubmitting}
                       />
@@ -463,23 +393,18 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
                 )}
               />
             </div>
-          )}
-        </div>
 
-        {/* Thông tin bổ sung */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-primary">Thông tin bổ sung</h3>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {!isEditMode && (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <FormField
                 control={form.control}
-                name="phone"
+                name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t.employees.phone as string}</FormLabel>
+                    <FormLabel>{t.employees.confirmPassword as string} <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Nhập số điện thoại" 
+                        type="password"
+                        placeholder={t.employees.confirmPassword} 
                         {...field} 
                         disabled={isPending || isSubmitting}
                       />
@@ -488,27 +413,11 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
                   </FormItem>
                 )}
               />
-            )}
+            </div>
 
-            {!isEditMode && (
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t.employees.address as string}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Nhập địa chỉ" 
-                        {...field} 
-                        disabled={isPending || isSubmitting}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            <p className="text-sm text-muted-foreground">
+              {t.employees.employeeWillUseEmailPassword}
+            </p>
           </div>
         </div>
 
@@ -520,7 +429,7 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
             onClick={onClose}
             disabled={isPending || isSubmitting}
           >
-            Hủy
+            {t.common.cancel}
           </Button>
           <Button 
             type="submit" 
@@ -530,10 +439,10 @@ export default function EmployeeForm({ mode, employee, onSave, onClose }: Employ
             {isPending || isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                {isEditMode ? 'Đang cập nhật...' : 'Đang tạo...'}
+                {isEditMode ? (t.common.updating || 'Updating...') : (t.common.creating || 'Creating...')}
               </>
             ) : (
-              isEditMode ? 'Cập nhật' : 'Tạo nhân viên'
+              isEditMode ? (t.employees.update || 'Update') : (t.employees.createAccount || 'Create Account')
             )}
           </Button>
         </div>

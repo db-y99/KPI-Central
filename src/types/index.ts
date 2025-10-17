@@ -319,13 +319,12 @@ export type KpiRewardPenaltyCalculation = {
 export type CreateEmployeeFormValues = {
   name: string;
   email: string;
-  username: string;
   position: string;
   departmentId: string;
-  phone?: string;
-  address?: string;
-  startDate: string;
-  employeeId: string;
+  role: 'admin' | 'employee';
+  username: string;
+  password: string;
+  confirmPassword: string;
 };
 
 export type EditEmployeeFormValues = CreateEmployeeFormValues & {
@@ -340,12 +339,12 @@ export type CreateKpiFormValues = {
   unit: string;
   frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annually';
   formula?: string;
-  type: string;
-  category: string;
-  target: number;
-  weight: number;
-  reward: number;
-  penalty: number;
+  type?: string;
+  category?: string;
+  target?: number;
+  weight?: number;
+  reward?: number;
+  penalty?: number;
   startDate: string;
   endDate: string;
 };
@@ -358,12 +357,6 @@ export type EditKpiFormValues = CreateKpiFormValues & {
 export type CreateDepartmentFormValues = {
   name: string;
   description?: string;
-  managerId?: string;
-  location?: string;
-  phone?: string;
-  email?: string;
-  budget?: number;
-  establishedDate?: string;
 };
 
 export type EditDepartmentFormValues = CreateDepartmentFormValues & {

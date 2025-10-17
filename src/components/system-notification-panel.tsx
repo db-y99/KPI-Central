@@ -164,17 +164,8 @@ export default function SystemNotificationPanel({
                 </div>
               </Link>
               
-              <Link href="/admin/kpi-management?tab=evaluation">
-                <div className="p-3 bg-background rounded-lg border hover:shadow-md transition-shadow cursor-pointer">
-                  <div className="flex items-center gap-2 mb-1">
-                    <BarChart3 className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium">{t.nav.reports}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{t.nav.evaluateReward}</p>
-                </div>
-              </Link>
               
-              <Link href="/admin/reward-system">
+              <Link href="/admin/kpi-management?tab=reward-penalty">
                 <div className="p-3 bg-background rounded-lg border hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-center gap-2 mb-1">
                     <Gift className="w-4 h-4 text-orange-600" />

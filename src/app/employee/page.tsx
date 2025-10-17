@@ -33,12 +33,17 @@ import Link from 'next/link';
 import { KpiStatusService, KpiStatus } from '@/lib/kpi-status-service';
 
 export default function EmployeeDashboardPage() {
-  const { user } = useContext(AuthContext);
+  const { user, loading } = useContext(AuthContext);
   const { kpis, kpiRecords } = useContext(DataContext);
   const { t } = useLanguage();
 
+  // Debug user state
+  console.log('🔍 Employee Dashboard - user:', user);
+  console.log('🔍 Employee Dashboard - loading:', loading);
+
   // The layout will handle loading and redirection
   if (!user) {
+    console.log('❌ No user found, returning null');
     return null;
   }
 
@@ -47,7 +52,16 @@ export default function EmployeeDashboardPage() {
     const today = new Date();
 
     // Filter KPI records for this employee
-    const userKpiRecords = kpiRecords.filter(r => r.employeeId === user.uid);
+    console.log('🔍 Debug - user.uid:', user.uid);
+    console.log('🔍 Debug - user.id:', user.id);
+    console.log('🔍 Debug - kpiRecords:', kpiRecords);
+    const userKpiRecords = kpiRecords.filter(r => {
+      const matches = r.employeeId === user.uid || r.employeeId === user.id;
+      if (matches) {
+        console.log('✅ Found matching record:', r);
+      }
+      return matches;
+    });
 
     const enrichedRecords = userKpiRecords.map(record => {
       const kpiDetails = kpis.find(k => k.id === record.kpiId || k.documentId === record.kpiId);

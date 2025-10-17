@@ -6,13 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  StandardTable,
+  StandardTableBody,
+  StandardTableCell,
+  StandardTableHead,
+  StandardTableHeader,
+  StandardTableRow,
+  TableEmptyState,
+} from '@/components/ui/standard-table';
 import {
   Dialog,
   DialogContent,
@@ -67,9 +68,13 @@ export default function EmployeesComponent() {
 
   // Filter employees based on search and department
   const filteredEmployees = nonAdminEmployees.filter(emp => {
-    const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         emp.position.toLowerCase().includes(searchTerm.toLowerCase());
+    const name = emp.name || '';
+    const email = emp.email || '';
+    const position = emp.position || '';
+    
+    const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         position.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDepartment = selectedDepartment === 'all' || emp.departmentId === selectedDepartment;
     return matchesSearch && matchesDepartment;
   });
@@ -256,8 +261,8 @@ export default function EmployeesComponent() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             {t.employees.title}
           </h1>
@@ -265,10 +270,38 @@ export default function EmployeesComponent() {
             {t.employees.subtitle}
           </p>
         </div>
-        <Button onClick={handleAddEmployee} className="flex items-center gap-2">
-          <PlusCircle className="w-4 h-4" />
-          {t.employees.addEmployee}
-        </Button>
+        <div className="flex items-center gap-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Tìm kiếm nhân viên..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-64"
+            />
+          </div>
+          {/* Filter */}
+          <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder={t.employees.selectDepartment} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t.employees.allDepartments}</SelectItem>
+              {departments.map(dept => (
+                <SelectItem key={dept.id} value={dept.id}>
+                  {dept.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex items-center gap-2">
+            <Button onClick={handleAddEmployee} className="flex items-center gap-2">
+              <PlusCircle className="w-4 h-4" />
+              {t.employees.addEmployee}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -322,35 +355,6 @@ export default function EmployeesComponent() {
         </Card>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-4">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search employees..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder={t.employees.selectDepartment} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t.employees.allDepartments}</SelectItem>
-                {departments.map(dept => (
-                  <SelectItem key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Employee Table */}
       <Card>
@@ -358,67 +362,70 @@ export default function EmployeesComponent() {
           <CardTitle>{t.employees.employeeList} ({pagination.totalItems})</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t.employees.employee}</TableHead>
-                <TableHead>{t.employees.position}</TableHead>
-                <TableHead>{t.employees.department}</TableHead>
-                <TableHead>{t.employees.role}</TableHead>
-                <TableHead>{t.employees.contact}</TableHead>
-                <TableHead>{t.common.actions}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <StandardTable>
+            <StandardTableHeader>
+              <StandardTableRow>
+                <StandardTableHead>{t.employees.employee}</StandardTableHead>
+                <StandardTableHead>{t.employees.position}</StandardTableHead>
+                <StandardTableHead>{t.employees.department}</StandardTableHead>
+                <StandardTableHead>{t.employees.role}</StandardTableHead>
+                <StandardTableHead>{t.employees.contact}</StandardTableHead>
+                <StandardTableHead>{t.common.actions}</StandardTableHead>
+              </StandardTableRow>
+            </StandardTableHeader>
+            <StandardTableBody>
               {paginatedEmployees.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    {searchTerm || selectedDepartment !== 'all'
-                      ? 'No employees found matching your criteria.'
-                      : 'No employees found. Add your first employee to get started.'}
-                  </TableCell>
-                </TableRow>
+                <TableEmptyState
+                  icon={<Users className="w-12 h-12 text-muted-foreground" />}
+                  title={searchTerm || selectedDepartment !== 'all'
+                    ? 'Không tìm thấy nhân viên phù hợp'
+                    : 'Chưa có nhân viên nào'}
+                  description={searchTerm || selectedDepartment !== 'all'
+                    ? 'Thử thay đổi bộ lọc để tìm thấy nhân viên'
+                    : 'Bắt đầu bằng cách thêm nhân viên đầu tiên'}
+                  colSpan={6}
+                />
               ) : (
                 paginatedEmployees.map((employee) => (
-                  <TableRow key={employee.uid}>
-                    <TableCell>
+                  <StandardTableRow key={employee.uid}>
+                    <StandardTableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10">
                           <AvatarImage src={employee.avatar} />
                           <AvatarFallback>
-                            {employee.name.charAt(0).toUpperCase()}
+                            {(employee.name || employee.email || 'U').charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{employee.name}</p>
-                          <p className="text-sm text-muted-foreground">{employee.email}</p>
+                          <p className="font-medium">{employee.name || 'Unknown'}</p>
+                          <p className="text-sm text-muted-foreground">{employee.email || 'No email'}</p>
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <p className="font-medium">{employee.position}</p>
-                    </TableCell>
-                    <TableCell>
+                    </StandardTableCell>
+                    <StandardTableCell>
+                      <p className="font-medium">{employee.position || 'No position'}</p>
+                    </StandardTableCell>
+                    <StandardTableCell>
                       <Badge variant="outline">{getDepartmentName(employee.departmentId)}</Badge>
-                    </TableCell>
-                    <TableCell>
+                    </StandardTableCell>
+                    <StandardTableCell>
                       {getRoleBadge(employee.role)}
-                    </TableCell>
-                    <TableCell>
+                    </StandardTableCell>
+                    <StandardTableCell>
                       <div className="space-y-1">
                         {employee.phone && (
                           <div className="flex items-center gap-2 text-sm">
                             <Phone className="w-3 h-3" />
-                            {employee.phone}
+                            {employee.phone || 'No phone'}
                           </div>
                         )}
                         <div className="flex items-center gap-2 text-sm">
                           <Mail className="w-3 h-3" />
-                          {employee.email}
+                          {employee.email || 'No email'}
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </StandardTableCell>
+                    <StandardTableCell>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -426,12 +433,12 @@ export default function EmployeesComponent() {
                       >
                         Edit
                       </Button>
-                    </TableCell>
-                  </TableRow>
+                    </StandardTableCell>
+                  </StandardTableRow>
                 ))
               )}
-            </TableBody>
-          </Table>
+            </StandardTableBody>
+          </StandardTable>
         </CardContent>
 
         {/* Pagination */}
@@ -452,7 +459,7 @@ export default function EmployeesComponent() {
 
       {/* Add/Edit Employee Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingEmployee ? t.employees.updateEmployeeInfo : t.employees.createNewAccount}
@@ -466,170 +473,174 @@ export default function EmployeesComponent() {
 
           <div className="space-y-4">
             {/* Basic Information */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t.employees.basicInfo}</h3>
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t.employees.basicInfo}</h3>
               
-              <div>
-                <Label htmlFor="name">{t.employees.fullName} *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  placeholder={t.employees.enterFullName}
-                />
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="name">{t.employees.fullName} *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    placeholder={t.employees.enterFullName}
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="email">{t.employees.email} *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  placeholder={t.employees.enterEmail}
-                />
-              </div>
+                <div>
+                  <Label htmlFor="email">{t.employees.email} *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    placeholder={t.employees.enterEmail}
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="phone">{t.employees.phoneNumber}</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  placeholder={t.employees.enterPhoneNumber}
-                />
-              </div>
+                <div>
+                  <Label htmlFor="phone">{t.employees.phoneNumber}</Label>
+                  <Input
+                    id="phone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    placeholder={t.employees.enterPhoneNumber}
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="position">{t.employees.position} *</Label>
-                <Input
-                  id="position"
-                  value={formData.position}
-                  onChange={(e) => setFormData({...formData, position: e.target.value})}
-                  placeholder={t.employees.enterPosition}
-                />
-              </div>
+                <div>
+                  <Label htmlFor="position">{t.employees.position} *</Label>
+                  <Input
+                    id="position"
+                    value={formData.position}
+                    onChange={(e) => setFormData({...formData, position: e.target.value})}
+                    placeholder={t.employees.enterPosition}
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="employeeId">{t.employees.employeeId} *</Label>
-                <Input
-                  id="employeeId"
-                  value={formData.employeeId}
-                  onChange={(e) => setFormData({...formData, employeeId: e.target.value})}
-                  placeholder="EMP0001"
-                />
-              </div>
+                <div>
+                  <Label htmlFor="employeeId">{t.employees.employeeId} *</Label>
+                  <Input
+                    id="employeeId"
+                    value={formData.employeeId}
+                    onChange={(e) => setFormData({...formData, employeeId: e.target.value})}
+                    placeholder="EMP0001"
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="startDate">{t.employees.startDate} *</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                />
-              </div>
+                <div>
+                  <Label htmlFor="startDate">{t.employees.startDate} *</Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                  />
+                </div>
 
-              <div>
-                <Label htmlFor="department">{t.employees.department} *</Label>
-                <Select value={formData.departmentId} onValueChange={(value) => setFormData({...formData, departmentId: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t.employees.selectDepartment} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map(dept => (
-                      <SelectItem key={dept.id} value={dept.id}>
-                        {dept.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                <div>
+                  <Label htmlFor="department">{t.employees.department} *</Label>
+                  <Select value={formData.departmentId} onValueChange={(value) => setFormData({...formData, departmentId: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t.employees.selectDepartment} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departments.map(dept => (
+                        <SelectItem key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div>
-                <Label htmlFor="role">{t.employees.role}</Label>
-                <Select value={formData.role} onValueChange={(value) => setFormData({...formData, role: value})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="employee">{t.employees.employee}</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div>
+                  <Label htmlFor="role">{t.employees.role}</Label>
+                  <Select value={formData.role} onValueChange={(value) => setFormData({...formData, role: value})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="employee">{t.employees.employee}</SelectItem>
+                      <SelectItem value="manager">Manager</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
             {/* Authentication Information - Only for new employees */}
             {!editingEmployee && (
-              <div className="space-y-4">
-                <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t.employees.loginCredentials}</h3>
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t.employees.loginCredentials}</h3>
                 
-                <div>
-                  <Label htmlFor="username">{t.employees.username} *</Label>
-                  <Input
-                    id="username"
-                    value={formData.username}
-                    onChange={(e) => setFormData({...formData, username: e.target.value})}
-                    placeholder="username"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="password">{t.employees.loginPassword} *</Label>
-                  <div className="relative">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="username">{t.employees.username} *</Label>
                     <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={formData.password}
-                      onChange={(e) => setFormData({...formData, password: e.target.value})}
-                      placeholder={t.employees.passwordForEmployeeLogin}
+                      id="username"
+                      value={formData.username}
+                      onChange={(e) => setFormData({...formData, username: e.target.value})}
+                      placeholder="username"
                     />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="password">{t.employees.loginPassword} *</Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                        placeholder={t.employees.passwordForEmployeeLogin}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
                     <Button
                       type="button"
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
+                      className="mt-2"
+                      onClick={handleGeneratePassword}
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      {t.employees.clickToGenerateRandom}
                     </Button>
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="mt-2"
-                    onClick={handleGeneratePassword}
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    {t.employees.clickToGenerateRandom}
-                  </Button>
-                </div>
 
-                <div>
-                  <Label htmlFor="confirmPassword">{t.employees.confirmPassword} *</Label>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={formData.confirmPassword}
-                      onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                      placeholder={t.employees.confirmPassword}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
+                  <div className="md:col-span-2">
+                    <Label htmlFor="confirmPassword">{t.employees.confirmPassword} *</Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={formData.confirmPassword}
+                        onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                        placeholder={t.employees.confirmPassword}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <p className="text-sm text-blue-800 dark:text-blue-200">
                     {t.employees.employeeWillUseEmailPassword}
                   </p>
