@@ -1,72 +1,46 @@
 {
   "indexes": [
     {
-      "collectionGroup": "kpiRecords",
+      "collectionGroup": "departments",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "employeeId", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "endDate", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "kpiRecords",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "kpiId", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "endDate", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "reports",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "employeeId", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "reports",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "submittedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "notifications",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "userId", "order": "ASCENDING" },
-        { "fieldPath": "isRead", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "notifications",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "userId", "order": "ASCENDING" },
-        { "fieldPath": "category", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "employees",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "departmentId", "order": "ASCENDING" },
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
         { "fieldPath": "isActive", "order": "ASCENDING" },
         { "fieldPath": "name", "order": "ASCENDING" }
       ]
     },
     {
+      "collectionGroup": "departments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
+        { "fieldPath": "parentId", "order": "ASCENDING" },
+        { "fieldPath": "level", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "employees",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "role", "order": "ASCENDING" },
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
+        { "fieldPath": "departmentId", "order": "ASCENDING" },
+        { "fieldPath": "systemInfo.isActive", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "employees",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
+        { "fieldPath": "systemInfo.role", "order": "ASCENDING" },
+        { "fieldPath": "personalInfo.fullName", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "kpiCategories",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
         { "fieldPath": "isActive", "order": "ASCENDING" },
         { "fieldPath": "name", "order": "ASCENDING" }
       ]
@@ -75,224 +49,107 @@
       "collectionGroup": "kpis",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
+        { "fieldPath": "categoryId", "order": "ASCENDING" },
+        { "fieldPath": "settings.isActive", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "kpis",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
         { "fieldPath": "departmentId", "order": "ASCENDING" },
-        { "fieldPath": "frequency", "order": "ASCENDING" },
-        { "fieldPath": "name", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "rewardCalculations",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "employeeId", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "calculatedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "rewardCalculations",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "programId", "order": "ASCENDING" },
-        { "fieldPath": "period", "order": "ASCENDING" },
-        { "fieldPath": "calculatedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "metricData",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "employeeId", "order": "ASCENDING" },
-        { "fieldPath": "period", "order": "ASCENDING" },
-        { "fieldPath": "recordedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "metricData",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "metric", "order": "ASCENDING" },
-        { "fieldPath": "period", "order": "ASCENDING" },
-        { "fieldPath": "recordedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "selfUpdateRequests",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "employeeId", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "submittedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "performanceBreakdowns",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "employeeId", "order": "ASCENDING" },
-        { "fieldPath": "period", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "performancePredictions",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "employeeId", "order": "ASCENDING" },
-        { "fieldPath": "predictionPeriod", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "performanceInsights",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "employeeId", "order": "ASCENDING" },
-        { "fieldPath": "priority", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "scheduledReports",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "isActive", "order": "ASCENDING" },
-        { "fieldPath": "nextExecution", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "reportExecutions",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "reportId", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "startedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "bulkImportResults",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "templateId", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "processedAt", "order": "DESCENDING" }
-      ]
-    }
-  ],
-  "fieldOverrides": [
-    {
-      "collectionGroup": "employees",
-      "fieldPath": "username",
-      "indexes": [
-        { "order": "ASCENDING", "queryScope": "COLLECTION" }
-      ]
-    },
-    {
-      "collectionGroup": "employees",
-      "fieldPath": "employeeId",
-      "indexes": [
-        { "order": "ASCENDING", "queryScope": "COLLECTION" }
-      ]
-    },
-    {
-      "collectionGroup": "departments",
-      "fieldPath": "isActive",
-      "indexes": [
-        { "order": "ASCENDING", "queryScope": "COLLECTION" }
-      ]
-    },
-    {
-      "collectionGroup": "employeeRankings",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "period", "order": "ASCENDING" },
-        { "fieldPath": "overallRank", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "employeeRankings",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "employeeId", "order": "ASCENDING" },
-        { "fieldPath": "period", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "employeeRankings",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "departmentId", "order": "ASCENDING" },
-        { "fieldPath": "period", "order": "ASCENDING" },
-        { "fieldPath": "departmentRank", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "performanceComparisons",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "employeeId", "order": "ASCENDING" },
-        { "fieldPath": "period", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "performanceComparisons",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "period", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "performanceHistories",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "employeeId", "order": "ASCENDING" },
-        { "fieldPath": "period", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "performanceHistories",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "employeeId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
+        { "fieldPath": "settings.isActive", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "kpiRecords",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "departmentId", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
+        { "fieldPath": "employeeId", "order": "ASCENDING" },
+        { "fieldPath": "period", "order": "DESCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "kpiRecords",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
+        { "fieldPath": "departmentId", "order": "ASCENDING" },
+        { "fieldPath": "period", "order": "DESCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "kpiRecords",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
         { "fieldPath": "kpiId", "order": "ASCENDING" },
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+        { "fieldPath": "period", "order": "DESCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
       ]
     },
     {
-      "collectionGroup": "employees",
+      "collectionGroup": "rewardPrograms",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
+        { "fieldPath": "settings.isActive", "order": "ASCENDING" },
+        { "fieldPath": "period", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "rewardCalculations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
+        { "fieldPath": "employeeId", "order": "ASCENDING" },
+        { "fieldPath": "period", "order": "DESCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "rewardCalculations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
         { "fieldPath": "departmentId", "order": "ASCENDING" },
-        { "fieldPath": "isActive", "order": "ASCENDING" },
-        { "fieldPath": "name", "order": "ASCENDING" }
+        { "fieldPath": "period", "order": "DESCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "rewardCalculations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "organizationId", "order": "ASCENDING" },
+        { "fieldPath": "programId", "order": "ASCENDING" },
+        { "fieldPath": "period", "order": "DESCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "notifications",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
         { "fieldPath": "isRead", "order": "ASCENDING" },
-        { "fieldPath": "isImportant", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "reports",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "employeeId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     }
-  ]
+  ],
+  "fieldOverrides": []
 }

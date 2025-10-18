@@ -364,25 +364,25 @@ export default function RewardPenaltyComponent() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 pt-2 px-2">
             <CardTitle className="text-sm font-medium">{t.rewardPenalty.totalKpi}</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalRecords}</div>
+          <CardContent className="px-2 pb-2 text-center">
+            <div className="text-xl font-bold">{stats.totalRecords}</div>
             <p className="text-xs text-muted-foreground">{t.rewardPenalty.calculatedKpi}</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 pt-2 px-2">
             <CardTitle className="text-sm font-medium">{t.rewardPenalty.totalRewards}</CardTitle>
             <Gift className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+          <CardContent className="px-2 pb-2 text-center">
+            <div className="text-xl font-bold text-green-600">
               {formatCurrency(stats.totalRewardAmount)}
             </div>
             <p className="text-xs text-muted-foreground">{t.rewardPenalty.rewardAmount}</p>
@@ -390,12 +390,12 @@ export default function RewardPenaltyComponent() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 pt-2 px-2">
             <CardTitle className="text-sm font-medium">{t.rewardPenalty.totalPenalties}</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+          <CardContent className="px-2 pb-2 text-center">
+            <div className="text-xl font-bold text-red-600">
               {formatCurrency(stats.totalPenaltyAmount)}
             </div>
             <p className="text-xs text-muted-foreground">{t.rewardPenalty.penaltyAmount}</p>
@@ -403,56 +403,46 @@ export default function RewardPenaltyComponent() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 pt-2 px-2">
             <CardTitle className="text-sm font-medium">{t.rewardPenalty.netAmount}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${stats.netAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <CardContent className="px-2 pb-2 text-center">
+            <div className={`text-xl font-bold ${stats.netAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {formatCurrency(stats.netAmount)}
             </div>
             <p className="text-xs text-muted-foreground">{t.rewardPenalty.netAmount}</p>
           </CardContent>
         </Card>
+
+        {/* Performance Distribution Card */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 pt-2 px-2">
+            <CardTitle className="text-sm font-medium">{t.rewardPenalty.performanceDistribution}</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="px-2 pb-2 text-center">
+            <div className="grid grid-cols-2 gap-1">
+              <div className="text-center">
+                <div className="text-sm font-bold text-green-600">{stats.performanceDistribution.excellent}</div>
+                <p className="text-xs text-green-600">Xuất sắc</p>
+              </div>
+              <div className="text-center">
+                <div className="text-sm font-bold text-blue-600">{stats.performanceDistribution.good}</div>
+                <p className="text-xs text-blue-600">Tốt</p>
+              </div>
+              <div className="text-center">
+                <div className="text-sm font-bold text-yellow-600">{stats.performanceDistribution.acceptable}</div>
+                <p className="text-xs text-yellow-600">Trung bình</p>
+              </div>
+              <div className="text-center">
+                <div className="text-sm font-bold text-red-600">{stats.performanceDistribution.poor}</div>
+                <p className="text-xs text-red-600">Kém</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-
-      {/* Performance Distribution */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5" />
-            {t.rewardPenalty.performanceDistribution}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{stats.performanceDistribution.excellent}</div>
-              <p className="text-sm font-medium text-green-700">{t.rewardPenalty.excellent}</p>
-              <p className="text-xs text-muted-foreground">≥ 100%</p>
-            </div>
-
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{stats.performanceDistribution.good}</div>
-              <p className="text-sm font-medium text-blue-700">{t.rewardPenalty.good}</p>
-              <p className="text-xs text-muted-foreground">80-99%</p>
-            </div>
-
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-600">{stats.performanceDistribution.acceptable}</div>
-              <p className="text-sm font-medium text-yellow-700">{t.rewardPenalty.average}</p>
-              <p className="text-xs text-muted-foreground">60-79%</p>
-            </div>
-
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{stats.performanceDistribution.poor}</div>
-              <p className="text-sm font-medium text-red-700">{t.rewardPenalty.poor}</p>
-              <p className="text-xs text-muted-foreground">&lt; 60%</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
 
       {/* Results Table */}
       <Card>

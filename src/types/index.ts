@@ -1,17 +1,31 @@
 // Import KpiStatus từ service
 import { KpiStatus } from '@/lib/kpi-status-service';
 
-export type Department = {
+export type Organization = {
   id: string;
   name: string;
+  code: string;
   description?: string;
-  managerId?: string; // ID của người quản lý phòng ban
-  manager?: string; // Added for compatibility
-  location?: string; // Added for compatibility
-  phone?: string; // Added for compatibility
-  email?: string; // Added for compatibility
-  budget?: number; // Added for compatibility
-  establishedDate?: string; // Added for compatibility
+  settings: {
+    currency: string;
+    timezone: string;
+    language: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+};
+
+export type Department = {
+  id: string;
+  organizationId: string;
+  name: string;
+  code: string;
+  description?: string;
+  managerId?: string;
+  parentId?: string; // For hierarchical departments
+  level: number; // 1 = Top level, 2 = Sub-department
+  budget?: number;
   createdAt: string;
   updatedAt: string;
   isActive: boolean;
@@ -423,6 +437,121 @@ export type PerformanceMetrics = {
   grade: 'A' | 'B' | 'C' | 'D' | 'F';
   rank: number;
   trend: 'up' | 'down' | 'stable';
+};
+
+// New enhanced types for multi-tenant system
+export type KpiCategory = {
+  id: string;
+  organizationId: string;
+  name: string;
+  description?: string;
+  color: string;
+  icon?: string;
+  weight: number;
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+};
+
+export type EnhancedKpi = {
+  id: string;
+  organizationId: string;
+  departmentId?: string;
+  categoryId: string;
+  name: string;
+  code: string;
+  description?: string;
+  type: 'number' | 'percentage' | 'currency' | 'text';
+  unit: string;
+  frequency: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+  targets: {
+    minimum: number;
+    target: number;
+    excellent: number;
+  };
+  settings: {
+    isActive: boolean;
+    requiresApproval: boolean;
+    autoCalculation: boolean;
+  };
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type EnhancedKpiRecord = {
+  id: string;
+  organizationId: string;
+  employeeId: string;
+  departmentId: string;
+  kpiId: string;
+  period: string;
+  targetValue: number;
+  actualValue: number;
+  achievementRate: number;
+  score: number;
+  status: 'draft' | 'submitted' | 'approved' | 'rejected';
+  submittedAt?: string;
+  approvedAt?: string;
+  approvedBy?: string;
+  notes?: string;
+  attachments?: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type RewardProgram = {
+  id: string;
+  organizationId: string;
+  name: string;
+  description?: string;
+  period: 'monthly' | 'quarterly' | 'yearly';
+  eligibility: {
+    departments?: string[];
+    minPerformance?: number;
+  };
+  structure: {
+    baseAmount: number;
+    multipliers: {
+      excellent: number;
+      good: number;
+      average: number;
+      poor: number;
+    };
+  };
+  settings: {
+    isActive: boolean;
+    autoCalculate: boolean;
+  };
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type RewardCalculation = {
+  id: string;
+  organizationId: string;
+  employeeId: string;
+  departmentId: string;
+  programId: string;
+  period: string;
+  performance: {
+    kpiScore: number;
+    achievementRate: number;
+    grade: 'excellent' | 'good' | 'average' | 'poor';
+  };
+  calculation: {
+    baseAmount: number;
+    multiplier: number;
+    totalReward: number;
+    penalties: number;
+    netAmount: number;
+  };
+  status: 'calculated' | 'approved' | 'paid' | 'rejected';
+  calculatedAt: string;
+  approvedAt?: string;
+  approvedBy?: string;
+  paidAt?: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 // Export all types

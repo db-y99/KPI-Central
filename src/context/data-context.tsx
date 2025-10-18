@@ -52,7 +52,11 @@ import type {
   PerformanceInsight,
   EmployeeRanking,
   PerformanceComparison,
-  PerformanceHistory
+  PerformanceHistory,
+  Organization,
+  KpiCategory,
+  EnhancedKpi,
+  EnhancedKpiRecord
 } from '@/types';
 import { AuthContext } from './auth-context';
 
@@ -60,6 +64,12 @@ import { AuthContext } from './auth-context';
 type ViewType = 'grid' | 'list';
 
 interface DataContextType {
+  // Organization context
+  currentOrganization: Organization | null;
+  organizations: Organization[];
+  setCurrentOrganization: (org: Organization | null) => void;
+  
+  // Legacy data (for backward compatibility)
   departments: Department[];
   employees: Employee[];
   kpis: Kpi[];
@@ -85,6 +95,14 @@ interface DataContextType {
   employeeRankings: EmployeeRanking[];
   performanceComparisons: PerformanceComparison[];
   performanceHistories: PerformanceHistory[];
+  
+  // Enhanced data (new multi-tenant structure)
+  enhancedDepartments: Department[];
+  enhancedEmployees: Employee[];
+  kpiCategories: KpiCategory[];
+  enhancedKpis: EnhancedKpi[];
+  enhancedKpiRecords: EnhancedKpiRecord[];
+  
   loading: boolean;
   addEmployee: () => Promise<void>; // Simplified, form now calls server action
   updateEmployee: (employeeId: string, updates: Partial<Employee>) => Promise<void>;
@@ -204,11 +222,61 @@ interface DataContextType {
   getPerformanceHistory: (employeeId: string) => PerformanceHistory | undefined;
   getPerformanceTrend: (employeeId: string, months?: number) => PerformanceHistory | undefined;
   
+  // Enhanced data functions (multi-tenant)
+  addKpiCategory: (category: Omit<KpiCategory, 'id'>) => Promise<void>;
+  updateKpiCategory: (id: string, updates: Partial<KpiCategory>) => Promise<void>;
+  deleteKpiCategory: (id: string) => Promise<void>;
+  
+  addEnhancedKpi: (kpi: Omit<EnhancedKpi, 'id'>) => Promise<void>;
+  updateEnhancedKpi: (id: string, updates: Partial<EnhancedKpi>) => Promise<void>;
+  deleteEnhancedKpi: (id: string) => Promise<void>;
+  
+  addEnhancedKpiRecord: (record: Omit<EnhancedKpiRecord, 'id'>) => Promise<void>;
+  updateEnhancedKpiRecord: (id: string, updates: Partial<EnhancedKpiRecord>) => Promise<void>;
+  deleteEnhancedKpiRecord: (id: string) => Promise<void>;
+  
+  // Enhanced utility functions
+  getEnhancedEmployeeById: (id: string) => Employee | undefined;
+  getEnhancedDepartmentById: (id: string) => Department | undefined;
+  getEnhancedKpiById: (id: string) => EnhancedKpi | undefined;
+  getEnhancedKpiRecordById: (id: string) => EnhancedKpiRecord | undefined;
+  getKpiCategoryById: (id: string) => KpiCategory | undefined;
+  
+  // Enhanced filter functions
+  getEnhancedEmployeesByDepartment: (departmentId: string) => Employee[];
+  getEnhancedKpisByDepartment: (departmentId: string) => EnhancedKpi[];
+  getEnhancedKpisByCategory: (categoryId: string) => EnhancedKpi[];
+  getEnhancedKpiRecordsByEmployee: (employeeId: string) => EnhancedKpiRecord[];
+  getEnhancedKpiRecordsByKpi: (kpiId: string) => EnhancedKpiRecord[];
+  
+  // Enhanced statistics
+  getEnhancedStats: () => {
+    totalEmployees: number;
+    totalDepartments: number;
+    totalKpis: number;
+    totalCategories: number;
+    completedKpis: number;
+    pendingKpis: number;
+    overdueKpis: number;
+    completionRate: number;
+  };
+  
+  // Migration status
+  isMigrated: boolean;
+  migrationStatus: 'not_started' | 'in_progress' | 'completed' | 'failed';
+  setMigrationStatus: (status: 'not_started' | 'in_progress' | 'completed' | 'failed') => void;
+  
   view: ViewType;
   setView: (view: ViewType) => void;
 }
 
 export const DataContext = createContext<DataContextType>({
+  // Organization context
+  currentOrganization: null,
+  organizations: [],
+  setCurrentOrganization: () => {},
+  
+  // Legacy data
   departments: [],
   employees: [],
   kpis: [],
@@ -234,6 +302,14 @@ export const DataContext = createContext<DataContextType>({
   employeeRankings: [],
   performanceComparisons: [],
   performanceHistories: [],
+  
+  // Enhanced data
+  enhancedDepartments: [],
+  enhancedEmployees: [],
+  kpiCategories: [],
+  enhancedKpis: [],
+  enhancedKpiRecords: [],
+  
   loading: true,
   addEmployee: async () => {},
   updateEmployee: async () => {},
@@ -342,12 +418,62 @@ export const DataContext = createContext<DataContextType>({
   getPerformanceHistory: () => undefined,
   getPerformanceTrend: () => undefined,
   
+  // Enhanced data functions
+  addKpiCategory: async () => {},
+  updateKpiCategory: async () => {},
+  deleteKpiCategory: async () => {},
+  
+  addEnhancedKpi: async () => {},
+  updateEnhancedKpi: async () => {},
+  deleteEnhancedKpi: async () => {},
+  
+  addEnhancedKpiRecord: async () => {},
+  updateEnhancedKpiRecord: async () => {},
+  deleteEnhancedKpiRecord: async () => {},
+  
+  // Enhanced utility functions
+  getEnhancedEmployeeById: () => undefined,
+  getEnhancedDepartmentById: () => undefined,
+  getEnhancedKpiById: () => undefined,
+  getEnhancedKpiRecordById: () => undefined,
+  getKpiCategoryById: () => undefined,
+  
+  // Enhanced filter functions
+  getEnhancedEmployeesByDepartment: () => [],
+  getEnhancedKpisByDepartment: () => [],
+  getEnhancedKpisByCategory: () => [],
+  getEnhancedKpiRecordsByEmployee: () => [],
+  getEnhancedKpiRecordsByKpi: () => [],
+  
+  // Enhanced statistics
+  getEnhancedStats: () => ({
+    totalEmployees: 0,
+    totalDepartments: 0,
+    totalKpis: 0,
+    totalCategories: 0,
+    completedKpis: 0,
+    pendingKpis: 0,
+    overdueKpis: 0,
+    completionRate: 0
+  }),
+  
+  // Migration status
+  isMigrated: false,
+  migrationStatus: 'not_started' as const,
+  setMigrationStatus: () => {},
+  
   view: 'grid',
   setView: () => {},
 });
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useContext(AuthContext);
+  
+  // Organization state
+  const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  
+  // Legacy data state
   const [departments, setDepartments] = useState<Department[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [kpis, setKpis] = useState<Kpi[]>([]);
@@ -373,6 +499,17 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [employeeRankings, setEmployeeRankings] = useState<EmployeeRanking[]>([]);
   const [performanceComparisons, setPerformanceComparisons] = useState<PerformanceComparison[]>([]);
   const [performanceHistories, setPerformanceHistories] = useState<PerformanceHistory[]>([]);
+  
+  // Enhanced data state
+  const [enhancedDepartments, setEnhancedDepartments] = useState<Department[]>([]);
+  const [enhancedEmployees, setEnhancedEmployees] = useState<Employee[]>([]);
+  const [kpiCategories, setKpiCategories] = useState<KpiCategory[]>([]);
+  const [enhancedKpis, setEnhancedKpis] = useState<EnhancedKpi[]>([]);
+  const [enhancedKpiRecords, setEnhancedKpiRecords] = useState<EnhancedKpiRecord[]>([]);
+  
+  // Migration state
+  const [isMigrated, setIsMigrated] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState<'not_started' | 'in_progress' | 'completed' | 'failed'>('not_started');
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<ViewType>('grid');
 
@@ -2551,8 +2688,190 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       prev.map(i => (i.id === insightId ? { ...i, readAt: new Date().toISOString() } : i))
     );
   };
+
+  // Organization context functions
+  const handleSetCurrentOrganization = (org: Organization | null) => {
+    setCurrentOrganization(org);
+  };
+
+  // Enhanced data functions (multi-tenant)
+  const addKpiCategory = async (category: Omit<KpiCategory, 'id'>) => {
+    if (!currentOrganization) throw new Error('No organization selected');
+    
+    const categoryData = {
+      ...category,
+      organizationId: currentOrganization.id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    const docRef = await addDoc(collection(db, 'kpiCategories'), categoryData);
+    const savedCategory = { ...categoryData, id: docRef.id } as KpiCategory;
+    
+    setKpiCategories(prev => [savedCategory, ...prev]);
+  };
+
+  const updateKpiCategory = async (id: string, updates: Partial<KpiCategory>) => {
+    const categoryRef = doc(db, 'kpiCategories', id);
+    const updateData = {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    await updateDoc(categoryRef, updateData);
+    setKpiCategories(prev =>
+      prev.map(c => (c.id === id ? { ...c, ...updateData } : c))
+    );
+  };
+
+  const deleteKpiCategory = async (id: string) => {
+    const categoryRef = doc(db, 'kpiCategories', id);
+    await deleteDoc(categoryRef);
+    setKpiCategories(prev => prev.filter(c => c.id !== id));
+  };
+
+  const addEnhancedKpi = async (kpi: Omit<EnhancedKpi, 'id'>) => {
+    if (!currentOrganization) throw new Error('No organization selected');
+    
+    const kpiData = {
+      ...kpi,
+      organizationId: currentOrganization.id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    const docRef = await addDoc(collection(db, 'kpis'), kpiData);
+    const savedKpi = { ...kpiData, id: docRef.id } as EnhancedKpi;
+    
+    setEnhancedKpis(prev => [savedKpi, ...prev]);
+  };
+
+  const updateEnhancedKpi = async (id: string, updates: Partial<EnhancedKpi>) => {
+    const kpiRef = doc(db, 'kpis', id);
+    const updateData = {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    await updateDoc(kpiRef, updateData);
+    setEnhancedKpis(prev =>
+      prev.map(k => (k.id === id ? { ...k, ...updateData } : k))
+    );
+  };
+
+  const deleteEnhancedKpi = async (id: string) => {
+    const kpiRef = doc(db, 'kpis', id);
+    await deleteDoc(kpiRef);
+    setEnhancedKpis(prev => prev.filter(k => k.id !== id));
+  };
+
+  const addEnhancedKpiRecord = async (record: Omit<EnhancedKpiRecord, 'id'>) => {
+    if (!currentOrganization) throw new Error('No organization selected');
+    
+    const recordData = {
+      ...record,
+      organizationId: currentOrganization.id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    const docRef = await addDoc(collection(db, 'kpiRecords'), recordData);
+    const savedRecord = { ...recordData, id: docRef.id } as EnhancedKpiRecord;
+    
+    setEnhancedKpiRecords(prev => [savedRecord, ...prev]);
+  };
+
+  const updateEnhancedKpiRecord = async (id: string, updates: Partial<EnhancedKpiRecord>) => {
+    const recordRef = doc(db, 'kpiRecords', id);
+    const updateData = {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    await updateDoc(recordRef, updateData);
+    setEnhancedKpiRecords(prev =>
+      prev.map(r => (r.id === id ? { ...r, ...updateData } : r))
+    );
+  };
+
+  const deleteEnhancedKpiRecord = async (id: string) => {
+    const recordRef = doc(db, 'kpiRecords', id);
+    await deleteDoc(recordRef);
+    setEnhancedKpiRecords(prev => prev.filter(r => r.id !== id));
+  };
+
+  // Enhanced utility functions
+  const getEnhancedEmployeeById = (id: string): Employee | undefined => {
+    return enhancedEmployees.find(e => e.id === id);
+  };
+
+  const getEnhancedDepartmentById = (id: string): Department | undefined => {
+    return enhancedDepartments.find(d => d.id === id);
+  };
+
+  const getEnhancedKpiById = (id: string): EnhancedKpi | undefined => {
+    return enhancedKpis.find(k => k.id === id);
+  };
+
+  const getEnhancedKpiRecordById = (id: string): EnhancedKpiRecord | undefined => {
+    return enhancedKpiRecords.find(r => r.id === id);
+  };
+
+  const getKpiCategoryById = (id: string): KpiCategory | undefined => {
+    return kpiCategories.find(c => c.id === id);
+  };
+
+  // Enhanced filter functions
+  const getEnhancedEmployeesByDepartment = (departmentId: string): Employee[] => {
+    return enhancedEmployees.filter(e => e.departmentId === departmentId);
+  };
+
+  const getEnhancedKpisByDepartment = (departmentId: string): EnhancedKpi[] => {
+    return enhancedKpis.filter(k => k.departmentId === departmentId);
+  };
+
+  const getEnhancedKpisByCategory = (categoryId: string): EnhancedKpi[] => {
+    return enhancedKpis.filter(k => k.categoryId === categoryId);
+  };
+
+  const getEnhancedKpiRecordsByEmployee = (employeeId: string): EnhancedKpiRecord[] => {
+    return enhancedKpiRecords.filter(r => r.employeeId === employeeId);
+  };
+
+  const getEnhancedKpiRecordsByKpi = (kpiId: string): EnhancedKpiRecord[] => {
+    return enhancedKpiRecords.filter(r => r.kpiId === kpiId);
+  };
+
+  // Enhanced statistics
+  const getEnhancedStats = () => {
+    const totalEmployees = enhancedEmployees.length;
+    const totalDepartments = enhancedDepartments.length;
+    const totalKpis = enhancedKpis.length;
+    const totalCategories = kpiCategories.length;
+    const completedKpis = enhancedKpiRecords.filter(r => r.status === 'approved').length;
+    const pendingKpis = enhancedKpiRecords.filter(r => r.status === 'submitted').length;
+    const overdueKpis = enhancedKpiRecords.filter(r => r.status === 'draft').length;
+    const completionRate = totalKpis > 0 ? (completedKpis / totalKpis) * 100 : 0;
+
+    return {
+      totalEmployees,
+      totalDepartments,
+      totalKpis,
+      totalCategories,
+      completedKpis,
+      pendingKpis,
+      overdueKpis,
+      completionRate
+    };
+  };
   
   const value = {
+    // Organization context
+    currentOrganization,
+    organizations,
+    setCurrentOrganization: handleSetCurrentOrganization,
+    
+    // Legacy data
     departments,
     employees,
     kpis,
@@ -2575,6 +2894,18 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     performancePredictions,
     selfServiceSettings,
     performanceInsights,
+    // Enhanced data
+    enhancedDepartments,
+    enhancedEmployees,
+    kpiCategories,
+    enhancedKpis,
+    enhancedKpiRecords,
+    
+    // Migration status
+    isMigrated,
+    migrationStatus,
+    setMigrationStatus,
+    
     loading,
     addEmployee,
     updateEmployee,
@@ -2688,6 +3019,36 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     updatePerformanceHistory,
     getPerformanceHistory,
     getPerformanceTrend,
+    
+    // Enhanced data functions
+    addKpiCategory,
+    updateKpiCategory,
+    deleteKpiCategory,
+    
+    addEnhancedKpi,
+    updateEnhancedKpi,
+    deleteEnhancedKpi,
+    
+    addEnhancedKpiRecord,
+    updateEnhancedKpiRecord,
+    deleteEnhancedKpiRecord,
+    
+    // Enhanced utility functions
+    getEnhancedEmployeeById,
+    getEnhancedDepartmentById,
+    getEnhancedKpiById,
+    getEnhancedKpiRecordById,
+    getKpiCategoryById,
+    
+    // Enhanced filter functions
+    getEnhancedEmployeesByDepartment,
+    getEnhancedKpisByDepartment,
+    getEnhancedKpisByCategory,
+    getEnhancedKpiRecordsByEmployee,
+    getEnhancedKpiRecordsByKpi,
+    
+    // Enhanced statistics
+    getEnhancedStats,
     
     view,
     setView,

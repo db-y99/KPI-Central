@@ -2,185 +2,106 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper function to check if user is admin
-    function isAdmin() {
-      return request.auth != null && 
-        exists(/databases/$(database)/documents/employees/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.role == 'admin';
-    }
-    
-    // Helper function to check if user is authenticated
+    // Helper functions
     function isAuthenticated() {
       return request.auth != null;
     }
     
-    // Helper function to check if user owns the resource
-    function isOwner(userId) {
-      return request.auth != null && request.auth.uid == userId;
+    function isAdmin(organizationId) {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/employees/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.organizationId == organizationId &&
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.systemInfo.role == 'admin';
     }
     
-    // Users can only access their own data
-    match /users/{userId} {
-      allow read, write: if isOwner(userId);
+    function belongsToOrganization(organizationId) {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/employees/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.organizationId == organizationId;
     }
     
-    // Employees - employees can read their own data, admin can read/write all
-    match /employees/{employeeId} {
-      allow read: if isAuthenticated() && (isOwner(employeeId) || isAdmin());
-      allow write: if isAdmin();
+    function isManager(organizationId) {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/employees/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.organizationId == organizationId &&
+        get(/databases/$(database)/documents/employees/$(request.auth.uid)).data.systemInfo.role in ['admin', 'manager'];
     }
     
-    // Departments - all authenticated users can read, admin can write
+    // Organization rules
+    match /organizations/{organizationId} {
+      allow read, write: if isAdmin(organizationId);
+    }
+    
+    // Department rules
     match /departments/{departmentId} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
+      allow read: if belongsToOrganization(resource.data.organizationId);
+      allow write: if isAdmin(resource.data.organizationId);
     }
     
-    // KPIs - all authenticated users can read, admin can write
+    // Employee rules
+    match /employees/{employeeId} {
+      allow read: if belongsToOrganization(resource.data.organizationId);
+      allow write: if isAdmin(resource.data.organizationId);
+      allow update: if belongsToOrganization(resource.data.organizationId) && 
+        employeeId == request.auth.uid; // Employees can update their own profile
+    }
+    
+    // KPI Categories rules
+    match /kpiCategories/{categoryId} {
+      allow read: if belongsToOrganization(resource.data.organizationId);
+      allow write: if isAdmin(resource.data.organizationId);
+    }
+    
+    // KPI rules
     match /kpis/{kpiId} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
+      allow read: if belongsToOrganization(resource.data.organizationId);
+      allow write: if isAdmin(resource.data.organizationId);
     }
     
-    // KPI Records - employees can read/write their own, admin can read/write all
+    // KPI Records rules
     match /kpiRecords/{recordId} {
-      allow read, write: if isAuthenticated() && 
-        (resource.data.employeeId == request.auth.uid || isAdmin());
+      allow read: if belongsToOrganization(resource.data.organizationId) &&
+        (resource.data.employeeId == request.auth.uid || isManager(resource.data.organizationId));
+      allow write: if belongsToOrganization(resource.data.organizationId) &&
+        (resource.data.employeeId == request.auth.uid || isManager(resource.data.organizationId));
+      allow update: if belongsToOrganization(resource.data.organizationId) &&
+        (resource.data.employeeId == request.auth.uid || isManager(resource.data.organizationId));
     }
     
-    // Reports - employees can read/write their own, admin can read/write all
-    match /reports/{reportId} {
-      allow read, write: if isAuthenticated() && 
-        (resource.data.employeeId == request.auth.uid || isAdmin());
-    }
-    
-    // Notifications - users can read their own, admin can write
-    match /notifications/{notificationId} {
-      allow read: if isAuthenticated() && 
-        (resource.data.userId == request.auth.uid || isAdmin());
-      allow write: if isAdmin();
-    }
-    
-    // Notification Settings - users can read/write their own
-    match /notificationSettings/{userId} {
-      allow read, write: if isOwner(userId);
-    }
-    
-    // Notification Templates - admin only
-    match /notificationTemplates/{templateId} {
-      allow read, write: if isAdmin();
-    }
-    
-    // Reward System Collections - admin only
+    // Reward Programs rules
     match /rewardPrograms/{programId} {
-      allow read, write: if isAdmin();
+      allow read: if belongsToOrganization(resource.data.organizationId);
+      allow write: if isAdmin(resource.data.organizationId);
     }
     
-    match /positionConfigs/{configId} {
-      allow read, write: if isAdmin();
-    }
-    
-    match /employeePoints/{pointId} {
-      allow read, write: if isAdmin();
-    }
-    
+    // Reward Calculations rules
     match /rewardCalculations/{calculationId} {
-      allow read, write: if isAdmin();
+      allow read: if belongsToOrganization(resource.data.organizationId) &&
+        (resource.data.employeeId == request.auth.uid || isManager(resource.data.organizationId));
+      allow write: if isManager(resource.data.organizationId);
     }
     
-    match /metricData/{dataId} {
-      allow read, write: if isAdmin();
+    // Reports rules
+    match /reports/{reportId} {
+      allow read, write: if belongsToOrganization(resource.data.organizationId) &&
+        (resource.data.employeeId == request.auth.uid || isManager(resource.data.organizationId));
     }
     
-    // Advanced KPI Features - admin only
-    match /kpiFormulas/{formulaId} {
-      allow read, write: if isAdmin();
+    // Notifications rules
+    match /notifications/{notificationId} {
+      allow read, write: if belongsToOrganization(resource.data.organizationId) &&
+        resource.data.userId == request.auth.uid;
     }
     
-    match /measurementCycles/{cycleId} {
-      allow read, write: if isAdmin();
+    // Legacy collections - maintain backward compatibility
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
     }
     
-    match /kpiCycles/{cycleId} {
-      allow read, write: if isAdmin();
-    }
-    
-    // Bulk Import - admin only
-    match /bulkImportTemplates/{templateId} {
-      allow read, write: if isAdmin();
-    }
-    
-    match /bulkImportResults/{resultId} {
-      allow read, write: if isAdmin();
-    }
-    
-    // Employee Self-Service Collections
-    match /selfUpdateRequests/{requestId} {
+    // Allow read access to legacy collections for migration
+    match /{document=**} {
       allow read, write: if isAuthenticated() && 
-        (resource.data.employeeId == request.auth.uid || isAdmin());
-    }
-    
-    match /performanceBreakdowns/{breakdownId} {
-      allow read: if isAuthenticated() && 
-        (resource.data.employeeId == request.auth.uid || isAdmin());
-      allow write: if isAdmin();
-    }
-    
-    match /performancePredictions/{predictionId} {
-      allow read: if isAuthenticated() && 
-        (resource.data.employeeId == request.auth.uid || isAdmin());
-      allow write: if isAdmin();
-    }
-    
-    match /selfServiceSettings/{employeeId} {
-      allow read, write: if isOwner(employeeId);
-    }
-    
-    match /performanceInsights/{insightId} {
-      allow read: if isAuthenticated() && 
-        (resource.data.employeeId == request.auth.uid || isAdmin());
-      allow write: if isAdmin();
-    }
-    
-    // Scheduled Reports - admin only
-    match /scheduledReports/{reportId} {
-      allow read, write: if isAdmin();
-    }
-    
-    match /reportExecutions/{executionId} {
-      allow read, write: if isAdmin();
-    }
-    
-    match /reportTemplates/{templateId} {
-      allow read, write: if isAdmin();
-    }
-    
-    // System Collections - admin only
-    match /performanceMetrics/{metricId} {
-      allow read: if isAuthenticated();
-      allow write: if isAdmin();
-    }
-    
-    match /errorLogs/{logId} {
-      allow read, write: if isAdmin();
-    }
-    
-    match /performanceReports/{reportId} {
-      allow read, write: if isAdmin();
-    }
-    
-    // Alert System - admin only
-    match /alertRules/{ruleId} {
-      allow read, write: if isAdmin();
-    }
-    
-    match /alerts/{alertId} {
-      allow read, write: if isAdmin();
-    }
-    
-    // API Integrations - admin only
-    match /apiIntegrations/{integrationId} {
-      allow read, write: if isAdmin();
+        exists(/databases/$(database)/documents/employees/$(request.auth.uid));
     }
   }
 }
